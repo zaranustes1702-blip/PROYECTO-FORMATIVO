@@ -1,0 +1,141 @@
+datasource db {
+  provider = "mysql"
+
+}
+
+model user {
+  id            Int      @id @default(autoincrement())
+  fullName      String
+  userName      String   @unique
+  email         String   @unique
+  password      String
+  role          String
+  status        Boolean  @default(true)
+}
+
+model barn {
+  id               Int     @id @default(autoincrement())
+  barnName         String
+  barnSize         Float
+  maxBirdCapacity  Int
+  birdBreed        String
+}
+
+model birdBatch {
+  id              Int      @id @default(autoincrement())
+  entryDate       DateTime
+  batchNumber     String   @unique
+  birdQuantity    Int
+  batchWeight     Float
+  birdAgeWeeks    Int
+  appliedVaccines String
+}
+
+model supply {
+  id               Int       @id @default(autoincrement())
+  supplyDate       DateTime
+  supplyType       String
+  supplyName       String
+  category         String
+  brand            String?
+  unitMeasure      String
+  stockQuantity    Int
+  unitValue        Float
+  totalValue       Float
+  reference        String
+  expirationDate   DateTime?
+  supplier         String
+  storageLocation  String
+  responsiblePerson String
+  observations     String?
+}
+
+model feeding {
+  id                  Int      @id @default(autoincrement())
+  feedingDate         DateTime
+  dailyConsumptionKg  Float
+  remainingKg         Float
+  remainingBags       Int
+  responsiblePerson   String
+  shift               String
+}
+
+model eggProduction {
+  id              Int      @id @default(autoincrement())
+  productionDate  DateTime
+  birdQuantity    Int
+  collectedAM     Int
+  collectedPM     Int
+  dailyProduction Int
+  brokenEggs      Int
+  eggType         String
+  unitValue       Float
+  totalValue      Float
+  weeklyEggTotal  Int
+}
+
+model mortality {
+  id                    Int      @id @default(autoincrement())
+  mortalityDate         DateTime
+  mortalityTime         String
+  dailyMortality        Int
+  possibleCauseOfDeath  String
+  necropsyPerformed     Boolean
+  observations          String?
+}
+
+model responsible {
+  id               Int     @id @default(autoincrement())
+  fullName         String
+  documentNumber   String  @unique
+  trainingRecord   String
+  role             String
+  responsibleType  String
+}
+
+model weighing {
+  id                         Int      @id @default(autoincrement())
+  weighingId                 String   @unique
+  date                       DateTime
+  time                       String
+  responsible                String
+  weighedHen                 String
+  totalWeightKg              Float
+  averageWeightGrams         Float
+  batchUniformityPercentage  Float
+}
+
+model visit {
+  id                Int      @id @default(autoincrement())
+  visitDate         DateTime
+  visitorName       String
+  institution       String
+  visitReason       String
+  observations      String?
+  responsiblePerson String
+}
+
+model health {
+  id                Int      @id @default(autoincrement())
+  detectionDate     DateTime
+  affectedBatch     String
+  symptoms          String
+  diagnosis         String
+  treatmentApplied  String
+  responsiblePerson String
+  observations      String?
+  recoveryDate      DateTime?
+}
+
+model quarantine {
+  id                  Int      @id @default(autoincrement())
+  quarantineDate      DateTime
+  affectedBirds       Int
+  symptoms            String
+  diagnosis           String
+  treatmentApplied    String
+  dosage              String
+  treatmentDuration   String
+  observations        String?
+  quarantineEndDate   DateTime?
+}
