@@ -1,15 +1,18 @@
 function FormCreateHealth() {
     return (
-        <div className="p-4 max-w-xl bg-white rounded-lg shadow">
+        <div className="p-4 max-w-xl bg-white rounded-lg shadow border border-border">
+
             <h1 className="text-xl font-semibold mb-4 text-title">
                 Formulario de Sanidad
             </h1>
 
             <form className="flex flex-col gap-3">
+
                 <div className="flex flex-col">
                     <label className="text-sm font-medium text-subtitle">
                         Fecha de Detección
                     </label>
+
                     <input
                         type="date"
                         name="detectionDate"
@@ -22,6 +25,7 @@ function FormCreateHealth() {
                     <label className="text-sm font-medium text-subtitle">
                         Lote Afectado
                     </label>
+
                     <input
                         type="text"
                         name="affectedBatch"
@@ -34,6 +38,7 @@ function FormCreateHealth() {
                     <label className="text-sm font-medium text-subtitle">
                         Síntomas
                     </label>
+
                     <input
                         type="text"
                         name="symptoms"
@@ -46,6 +51,7 @@ function FormCreateHealth() {
                     <label className="text-sm font-medium text-subtitle">
                         Diagnóstico
                     </label>
+
                     <input
                         type="text"
                         name="diagnosis"
@@ -58,6 +64,7 @@ function FormCreateHealth() {
                     <label className="text-sm font-medium text-subtitle">
                         Tratamiento
                     </label>
+
                     <input
                         type="text"
                         name="treatmentApplied"
@@ -70,6 +77,7 @@ function FormCreateHealth() {
                     <label className="text-sm font-medium text-subtitle">
                         Responsable
                     </label>
+
                     <input
                         type="text"
                         name="responsiblePerson"
@@ -82,16 +90,18 @@ function FormCreateHealth() {
                     <label className="text-sm font-medium text-subtitle">
                         Observaciones
                     </label>
+
                     <textarea
                         name="observations"
                         className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                    ></textarea>
+                    />
                 </div>
 
                 <div className="flex flex-col">
                     <label className="text-sm font-medium text-subtitle">
                         Fecha de Recuperación
                     </label>
+
                     <input
                         type="date"
                         name="recoveryDate"
@@ -105,6 +115,7 @@ function FormCreateHealth() {
                 >
                     Crear
                 </button>
+
             </form>
         </div>
     );

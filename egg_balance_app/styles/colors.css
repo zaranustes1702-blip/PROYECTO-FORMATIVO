@@ -1,0 +1,182 @@
+/* ========== DEGRADADOS ========== */
+
+.bg-gradient-nav {
+  background: linear-gradient(to right, #2B7FFF, #1448E6);
+}
+
+
+/* ========== COLORES DE FONDO ========== */
+
+.bg-fond {
+  background-color: #F2E9D4;
+}
+
+.bg-green-1-navbar {
+  background-color: #2E7D32;
+}
+
+.bg-green-1-navbar:hover {
+  background-color: #256628;
+}
+
+.bg-green-2-navbar {
+  background-color: #2C3C23;
+}
+
+.bg-green-2-navbar:hover {
+  background-color: #202D1A;
+}
+
+.bg-green {
+  background-color: #8DB33E;
+}
+
+.bg-green:hover {
+  background-color: #76962F;
+}
+
+.bg-yellow {
+  background-color: #F4C430;
+}
+
+.bg-yellow:hover {
+  background-color: #D9A900;
+}
+
+.bg-white {
+  background-color: #FFFFFF;
+}
+
+.bg-title {
+  background-color: #3A2A1A;
+}
+
+.bg-subtitle {
+  background-color: #2C3C23;
+}
+
+
+/* ========== COLORES DE TEXTO ========== */
+
+.text-fond {
+  color: #F2E9D4;
+}
+
+.text-fond:hover {
+  color: #E8DCC2;
+}
+
+.text-title {
+  color: #3A2A1A;
+}
+
+.text-title:hover {
+  color: #2E7D32;
+}
+
+.text-subtitle {
+  color: #2C3C23;
+}
+
+.text-subtitle:hover {
+  color: #2E7D32;
+}
+
+.text-parrafo {
+  color: #2C3C23;
+}
+
+.text-parrafo:hover {
+  color: #3A2A1A;
+}
+
+.text-green {
+  color: #8DB33E;
+}
+
+.text-green:hover {
+  color: #76962F;
+}
+
+.text-green-1-navbar {
+  color: #2E7D32;
+}
+
+.text-green-1-navbar:hover {
+  color: #256628;
+}
+
+.text-green-2-navbar {
+  color: #2C3C23;
+}
+
+.text-green-2-navbar:hover {
+  color: #202D1A;
+}
+
+.text-yellow {
+  color: #F4C430;
+}
+
+.text-yellow:hover {
+  color: #D9A900;
+}
+
+.text-white {
+  color: #FFFFFF;
+}
+
+
+/* ========== BORDES ========== */
+
+.border-border {
+  border-color: #2E7D32;
+}
+
+.border-border:hover {
+  border-color: #256628;
+}
+
+.border-green {
+  border-color: #2E7D32;
+}
+
+.border-green:hover {
+  border-color: #256628;
+}
+
+
+/* ========== HOVER DE LOS ENLACES DEL NAVBAR ========== */
+
+.nav-link {
+  position: relative;
+  font-weight: 500;
+  color: #3A2A1A;
+  transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: #2E7D32;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 0;
+  height: 2px;
+  background-color: #F4C430;
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+
+/* ========== TRANSICIONES ========== */
+
+* {
+  transition: all 0.2s ease-in-out;
+}

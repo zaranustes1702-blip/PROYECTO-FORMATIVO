@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   Bird,
   ClipboardList,
@@ -11,7 +13,7 @@ import {
   Scale,
   ChevronRight,
   User,
-} from "lucide-react"
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -21,146 +23,317 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
-  SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarRail,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+} from "@/components/ui/collapsible";
 
 const data = [
   {
     group: "Gestión de Aves",
     items: [
-      { title: "Galpones", icon: Warehouse },
-      { title: "Lotes de Aves", icon: Bird },
-      { title: "Pesaje", icon: Scale },
-      { title: "Mortalidad", icon: Skull },
-      { title: "Alimentación", icon: Wheat },
+      {
+        title: "Galpones",
+        icon: Warehouse,
+        route: "barn",
+      },
+      {
+        title: "Lotes de Aves",
+        icon: Bird,
+        route: "birdBatch",
+      },
+      {
+        title: "Pesaje",
+        icon: Scale,
+        route: "weighing",
+      },
+      {
+        title: "Mortalidad",
+        icon: Skull,
+        route: "mortality",
+      },
+      {
+        title: "Alimentación",
+        icon: Wheat,
+        route: "feeding",
+      },
     ],
   },
+
   {
     group: "Producción",
     items: [
-      { title: "Producción de Huevos", icon: Egg },
+      {
+        title: "Producción de Huevos",
+        icon: Egg,
+        route: "eggProduction",
+      },
     ],
   },
+
   {
     group: "Salud",
     items: [
-      { title: "Salud", icon: HeartPulse },
-      { title: "Cuarentena", icon: ShieldAlert },
+      {
+        title: "Salud",
+        icon: HeartPulse,
+        route: "health",
+      },
+      {
+        title: "Cuarentena",
+        icon: ShieldAlert,
+        route: "quarantine",
+      },
     ],
   },
+
   {
     group: "Visitas",
     items: [
-      { title: "Registro de Visitas", icon: ClipboardList },
+      {
+        title: "Registro de Visitas",
+        icon: ClipboardList,
+        route: "visit",
+      },
     ],
   },
+
   {
     group: "Inventario",
     items: [
-      { title: "Medicamentos", icon: Package },
-      { title: "Alimentos", icon: Package },
+      {
+        title: "Alimentos",
+        icon: Package,
+        route: "food",
+      },
     ],
   },
-]
+
+  {
+    group: "Administración",
+    items: [
+      {
+        title: "Responsables",
+        icon: User,
+        route: "responsible",
+      },
+      {
+        title: "Usuarios",
+        icon: User,
+        route: "user",
+      },
+    ],
+  },
+];
 
 export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
+
+      {/* HEADER */}
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg">
+
+            <button
+              type="button"
+              className="
+                flex
+                w-full
+                items-center
+                gap-2
+                rounded-md
+                p-2
+                text-left
+                transition-colors
+                hover:bg-sidebar-accent
+                hover:text-sidebar-accent-foreground
+              "
+            >
               <Egg />
+
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
                   Egg Balance
                 </span>
+
                 <span className="truncate text-xs">
                   Sistema Avícola
                 </span>
               </div>
-            </SidebarMenuButton>
+            </button>
+
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
 
+      {/* CONTENIDO */}
       <SidebarContent>
 
         {data.map((group) => (
+
           <SidebarGroup key={group.group}>
+
             <SidebarGroupLabel>
               {group.group}
             </SidebarGroupLabel>
 
             <SidebarMenu>
+
               {group.items.map((item) => (
+
                 <Collapsible
                   key={item.title}
                   className="group/collapsible"
                 >
-                  <SidebarMenuItem>
-                    <CollapsibleTrigger>
-                      <SidebarMenuButton>
-                        <item.icon />
-                        <span>{item.title}</span>
 
-                        <ChevronRight
-                          className="
-                            ml-auto
-                            transition-transform
-                            duration-200
-                            group-data-[state=open]/collapsible:rotate-90
-                          "
-                        />
-                      </SidebarMenuButton>
+                  <SidebarMenuItem>
+
+                    {/* BOTÓN PRINCIPAL */}
+                    <CollapsibleTrigger
+                      className="
+                        flex
+                        w-full
+                        items-center
+                        gap-2
+                        rounded-md
+                        px-2
+                        py-2
+                        text-sm
+                        transition-colors
+                        hover:bg-sidebar-accent
+                        hover:text-sidebar-accent-foreground
+                      "
+                    >
+
+                      <item.icon />
+
+                      <span>
+                        {item.title}
+                      </span>
+
+                      <ChevronRight
+                        className="
+                          ml-auto
+                          transition-transform
+                          duration-200
+                          group-data-[state=open]/collapsible:rotate-90
+                        "
+                      />
+
                     </CollapsibleTrigger>
 
+                    {/* SUBMENÚ */}
                     <CollapsibleContent>
+
                       <SidebarMenuSub>
+
+                        {/* CREAR */}
                         <SidebarMenuSubItem>
-                          <SidebarMenuSubButton>
+                          <Link
+                            href={`/dashboard/${item.route}/crear`}
+                            className="
+                              flex
+                              h-7
+                              w-full
+                              items-center
+                              rounded-md
+                              px-2
+                              text-sm
+                              text-sidebar-foreground
+                              transition-colors
+                              hover:bg-sidebar-accent
+                              hover:text-sidebar-accent-foreground
+                            "
+                          >
                             Crear
-                          </SidebarMenuSubButton>
+                          </Link>
                         </SidebarMenuSubItem>
 
+                        {/* LISTAR */}
                         <SidebarMenuSubItem>
-                          <SidebarMenuSubButton>
+                          <Link
+                            href={`/dashboard/${item.route}/listar`}
+                            className="
+                              flex
+                              h-7
+                              w-full
+                              items-center
+                              rounded-md
+                              px-2
+                              text-sm
+                              text-sidebar-foreground
+                              transition-colors
+                              hover:bg-sidebar-accent
+                              hover:text-sidebar-accent-foreground
+                            "
+                          >
                             Listar
-                          </SidebarMenuSubButton>
+                          </Link>
                         </SidebarMenuSubItem>
+
                       </SidebarMenuSub>
+
                     </CollapsibleContent>
+
                   </SidebarMenuItem>
+
                 </Collapsible>
+
               ))}
+
             </SidebarMenu>
+
           </SidebarGroup>
+
         ))}
+
       </SidebarContent>
 
+      {/* FOOTER */}
       <SidebarFooter>
+
         <SidebarMenu>
+
           <SidebarMenuItem>
-            <SidebarMenuButton>
+
+            <button
+              type="button"
+              className="
+                flex
+                w-full
+                items-center
+                gap-2
+                rounded-md
+                p-2
+                text-left
+                transition-colors
+                hover:bg-sidebar-accent
+                hover:text-sidebar-accent-foreground
+              "
+            >
               <User />
-              <span>Administrador</span>
-            </SidebarMenuButton>
+
+              <span>
+                Administrador
+              </span>
+            </button>
+
           </SidebarMenuItem>
+
         </SidebarMenu>
+
       </SidebarFooter>
 
       <SidebarRail />
+
     </Sidebar>
-  )
+  );
 }

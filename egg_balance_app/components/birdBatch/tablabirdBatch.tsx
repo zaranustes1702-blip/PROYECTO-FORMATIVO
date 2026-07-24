@@ -1,113 +1,145 @@
 export default function TablaBirdBatch() {
-  return (
-    <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
+    return (
+        <div className="p-6 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
-      <table className="w-full border-collapse">
+            <table className="w-full border-collapse">
 
-        <thead>
-          <tr className="bg-green-2-navbar text-white">
+                <thead>
+                    <tr className="bg-green-2-navbar text-white">
 
-            <th className="border border-border px-4 py-2 text-left">
-              Batch Number
-            </th>
+                        <th className="border border-border px-4 py-3 text-left">
+                            Número de Lote
+                        </th>
 
-            <th className="border border-border px-4 py-2 text-left">
-              Entry Date
-            </th>
+                        <th className="border border-border px-4 py-3 text-left">
+                            Fecha de Ingreso
+                        </th>
 
-            <th className="border border-border px-4 py-2 text-left">
-              Bird Quantity
-            </th>
+                        <th className="border border-border px-4 py-3 text-left">
+                            Fecha de Finalización
+                        </th>
 
-            <th className="border border-border px-4 py-2 text-left">
-              Batch Weight
-            </th>
+                        <th className="border border-border px-4 py-3 text-left">
+                            Cantidad de Aves
+                        </th>
 
-            <th className="border border-border px-4 py-2 text-left">
-              Age Weeks
-            </th>
+                        <th className="border border-border px-4 py-3 text-left">
+                            Peso del Lote (Kg)
+                        </th>
 
-          </tr>
-        </thead>
+                        <th className="border border-border px-4 py-3 text-left">
+                            Edad (Semanas)
+                        </th>
 
-        <tbody>
+                        <th className="border border-border px-4 py-3 text-left">
+                            Vacunas Aplicadas
+                        </th>
 
-          <tr className="hover:bg-fond transition-colors">
+                    </tr>
+                </thead>
 
-            <td className="border border-border px-4 py-2 text-title">
-              L001
-            </td>
+                <tbody>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-01-01
-            </td>
+                    <tr className="hover:bg-fond transition-colors">
 
-            <td className="border border-border px-4 py-2 text-title">
-              500
-            </td>
+                        <td className="border border-border px-4 py-3 text-title">
+                            L001
+                        </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              850
-            </td>
+                        <td className="border border-border px-4 py-3 text-title">
+                            2025-01-01
+                        </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              20
-            </td>
+                        <td className="border border-border px-4 py-3 text-title">
+                            2026-01-01
+                        </td>
 
-          </tr>
+                        <td className="border border-border px-4 py-3 text-title">
+                            192
+                        </td>
 
-          <tr className="hover:bg-fond transition-colors">
+                        <td className="border border-border px-4 py-3 text-title">
+                            384.50
+                        </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              L002
-            </td>
+                        <td className="border border-border px-4 py-3 text-title">
+                            20
+                        </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-02-01
-            </td>
+                        <td className="border border-border px-4 py-3 text-title">
+                            Newcastle
+                        </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              450
-            </td>
+                    </tr>
 
-            <td className="border border-border px-4 py-2 text-title">
-              700
-            </td>
+                    <tr className="hover:bg-fond transition-colors">
 
-            <td className="border border-border px-4 py-2 text-title">
-              18
-            </td>
+                        <td className="border border-border px-4 py-3 text-title">
+                            L002
+                        </td>
 
-          </tr>
+                        <td className="border border-border px-4 py-3 text-title">
+                            2025-02-01
+                        </td>
 
-          <tr className="hover:bg-fond transition-colors">
+                        <td className="border border-border px-4 py-3 text-title">
+                            2026-02-01
+                        </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              L003
-            </td>
+                        <td className="border border-border px-4 py-3 text-title">
+                            180
+                        </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-03-01
-            </td>
+                        <td className="border border-border px-4 py-3 text-title">
+                            360.20
+                        </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              600
-            </td>
+                        <td className="border border-border px-4 py-3 text-title">
+                            18
+                        </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              950
-            </td>
+                        <td className="border border-border px-4 py-3 text-title">
+                            Bronquitis
+                        </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              22
-            </td>
+                    </tr>
 
-          </tr>
+                    <tr className="hover:bg-fond transition-colors">
 
-        </tbody>
+                        <td className="border border-border px-4 py-3 text-title">
+                            L003
+                        </td>
 
-      </table>
+                        <td className="border border-border px-4 py-3 text-title">
+                            2025-03-01
+                        </td>
 
-    </div>
-  );
+                        <td className="border border-border px-4 py-3 text-title">
+                            2026-03-01
+                        </td>
+
+                        <td className="border border-border px-4 py-3 text-title">
+                            200
+                        </td>
+
+                        <td className="border border-border px-4 py-3 text-title">
+                            410.00
+                        </td>
+
+                        <td className="border border-border px-4 py-3 text-title">
+                            22
+                        </td>
+
+                        <td className="border border-border px-4 py-3 text-title">
+                            Newcastle, Viruela
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+    );
 }

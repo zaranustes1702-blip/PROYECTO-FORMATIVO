@@ -8,27 +8,31 @@ export default function TablaEggProduction() {
           <tr className="bg-green-2-navbar text-white">
 
             <th className="border border-border px-4 py-2 text-left">
-              Date
+              Fecha
             </th>
 
             <th className="border border-border px-4 py-2 text-left">
-              Birds
+              Aves
             </th>
 
             <th className="border border-border px-4 py-2 text-left">
-              AM
+              Huevos AM
             </th>
 
             <th className="border border-border px-4 py-2 text-left">
-              PM
+              Huevos PM
             </th>
 
             <th className="border border-border px-4 py-2 text-left">
-              Total
+              Total Diario
             </th>
 
             <th className="border border-border px-4 py-2 text-left">
-              Egg Type
+              Huevos Rotos
+            </th>
+
+            <th className="border border-border px-4 py-2 text-left">
+              Tipo de Huevo
             </th>
 
           </tr>
@@ -56,6 +60,10 @@ export default function TablaEggProduction() {
 
             <td className="border border-border px-4 py-2 text-title">
               450
+            </td>
+
+            <td className="border border-border px-4 py-2 text-title">
+              5
             </td>
 
             <td className="border border-border px-4 py-2 text-title">
@@ -87,6 +95,10 @@ export default function TablaEggProduction() {
             </td>
 
             <td className="border border-border px-4 py-2 text-title">
+              3
+            </td>
+
+            <td className="border border-border px-4 py-2 text-title">
               AA
             </td>
 
@@ -112,6 +124,10 @@ export default function TablaEggProduction() {
 
             <td className="border border-border px-4 py-2 text-title">
               470
+            </td>
+
+            <td className="border border-border px-4 py-2 text-title">
+              4
             </td>
 
             <td className="border border-border px-4 py-2 text-title">

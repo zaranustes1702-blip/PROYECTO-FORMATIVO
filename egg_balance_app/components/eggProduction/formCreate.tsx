@@ -36,7 +36,7 @@ function FormCreateEggProduction() {
 
                 <div className="flex flex-col">
                     <label className="text-sm font-medium text-title">
-                        Huevos AM
+                        Huevos Recolectados en la Mañana
                     </label>
 
                     <input
@@ -49,7 +49,7 @@ function FormCreateEggProduction() {
 
                 <div className="flex flex-col">
                     <label className="text-sm font-medium text-title">
-                        Huevos PM
+                        Huevos Recolectados en la Tarde
                     </label>
 
                     <input
@@ -95,12 +95,12 @@ function FormCreateEggProduction() {
                         name="eggType"
                         className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
                     >
-                        <option>AAA</option>
-                        <option>AA</option>
-                        <option>A</option>
-                        <option>B</option>
-                        <option>C</option>
-                        <option>JUMBO</option>
+                        <option value="AAA">AAA</option>
+                        <option value="AA">AA</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="JUMBO">JUMBO</option>
                     </select>
                 </div>
 
@@ -134,7 +134,7 @@ function FormCreateEggProduction() {
 
                 <div className="flex flex-col">
                     <label className="text-sm font-medium text-title">
-                        Total Semanal
+                        Total Semanal de Huevos
                     </label>
 
                     <input

@@ -62,9 +62,22 @@ export default function ResetPassword(props: ProsResetPassword) {
           <DialogFooter className="flex flex-row gap-2 mt-4">
 
             <DialogClose />
-
-            <Button className="w-full bg-green-2-navbar hover:bg-green-1-navbar text-white rounded-xl py-2.5 font-semibold shadow-md hover:shadow-lg hover:scale-[1.01] transition-all">
-              Reestablecer
+            <Button
+              className="
+                w-full
+                !bg-[#2C3C23]
+                hover:!bg-[#2E7D32]
+                !text-white
+                rounded-xl
+                py-2.5
+                font-semibold
+                shadow-md
+                hover:shadow-lg
+                hover:scale-[1.01]
+                transition-all
+              "
+            >
+              Restablecer
             </Button>
 
           </DialogFooter>

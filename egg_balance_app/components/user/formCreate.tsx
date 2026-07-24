@@ -1,6 +1,7 @@
 function FormCreateUser() {
     return (
-        <div className="p-4 max-w-xl bg-white rounded-lg shadow">
+        <div className="p-4 max-w-xl bg-white rounded-lg shadow border border-border">
+
             <h1 className="text-xl font-semibold mb-4 text-title">
                 Formulario de Usuario
             </h1>
@@ -35,7 +36,7 @@ function FormCreateUser() {
 
                 <div className="flex flex-col">
                     <label className="text-sm font-medium text-subtitle">
-                        Correo
+                        Correo Electrónico
                     </label>
 
                     <input
@@ -64,22 +65,27 @@ function FormCreateUser() {
                         Rol
                     </label>
 
-                    <input
-                        type="text"
+                    <select
                         name="role"
                         className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
                         required
-                    />
+                    >
+                        <option value="">Seleccione un rol</option>
+                        <option value="Administrador">Administrador</option>
+                        <option value="Instructor">Instructor</option>
+                        <option value="Aprendiz">Aprendiz</option>
+                    </select>
                 </div>
 
                 <button
                     type="submit"
                     className="bg-green-1-navbar text-white py-2 rounded hover:bg-green-2-navbar transition"
                 >
-                    Crear
+                    Crear Usuario
                 </button>
 
             </form>
+
         </div>
     );
 }

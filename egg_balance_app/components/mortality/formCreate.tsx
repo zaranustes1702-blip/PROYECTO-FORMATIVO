@@ -1,6 +1,7 @@
 function FormCreateMortality() {
     return (
-        <div className="p-4 max-w-xl bg-white rounded-lg shadow">
+        <div className="p-4 max-w-xl bg-white rounded-lg shadow border border-border">
+
             <h1 className="text-xl font-semibold mb-4 text-title">
                 Formulario de Mortalidad
             </h1>
@@ -41,6 +42,7 @@ function FormCreateMortality() {
                     <input
                         type="number"
                         name="dailyMortality"
+                        min="0"
                         className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
                         required
                     />
@@ -67,9 +69,15 @@ function FormCreateMortality() {
                     <select
                         name="necropsyPerformed"
                         className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                        required
                     >
-                        <option value="true">Sí</option>
-                        <option value="false">No</option>
+                        <option value="true">
+                            Sí
+                        </option>
+
+                        <option value="false">
+                            No
+                        </option>
                     </select>
                 </div>
 
@@ -81,7 +89,7 @@ function FormCreateMortality() {
                     <textarea
                         name="observations"
                         className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                    ></textarea>
+                    />
                 </div>
 
                 <button

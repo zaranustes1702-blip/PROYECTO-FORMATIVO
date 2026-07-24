@@ -1,55 +1,64 @@
 import NavBar from "@/components/NavBar";
 import Footer from "@/components/Footer";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import Link from "next/link";
 
-import { Field, FieldGroup } from "@/components/ui/field";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 export default function App() {
   return (
     <>
       <NavBar />
 
-      <main className= "bg-fond min-h-screen">
+      <main className="bg-fond min-h-screen">
+
         <section className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 xl:px-32 py-24">
 
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid lg:grid-cols-2 gap-16 items-center min-h-[550px]">
+
+            {/* TEXTO PRINCIPAL */}
 
             <div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-title leading-tight mb-8">
-                Bienvenido a{" "}
+              <p className="text-green-1-navbar font-semibold text-lg mb-4">
+                Centro agropecuario "La granja" - Espinal
+              </p>
+
+              <h1 className="text-4xl md:text-6xl font-bold text-title leading-tight mb-6">
+
+                El control de nuestra unidad avicola,
                 <span className="text-green-1-navbar">
-                  EggBalanceAPP
+                  {" "}más fácil.
                 </span>
+
               </h1>
 
-              <p className="text-lg md:text-xl leading-9 text-parrafo mb-6">
-                EggBalanceAPP es tu solución integral para gestionar la información
-                de tus gallinas y la producción de huevos. Con nuestra plataforma
-                podrás llevar un registro detallado de la salud, alimentación y
-                producción de cada ave, además de obtener análisis y recomendaciones
-                que faciliten la toma de decisiones.
+              <p className="text-lg md:text-xl leading-8 text-parrafo max-w-xl mb-8">
+
+                EggBalanceAPP centraliza la información de tus aves,
+                alimentación, pesaje y producción de huevos en un solo lugar.
+
               </p>
 
-              <p className="text-lg md:text-xl leading-9 text-parrafo">
-                Ya seas un pequeño productor o una granja comercial, EggBalanceAPP
-                te brinda las herramientas necesarias para optimizar la
-                productividad, mejorar el bienestar animal y hacer más eficiente la
-                administración de tu explotación avícola.
-              </p>
+              <div className="flex flex-wrap gap-4">
+
+                <Link
+                  href="/productos"
+                  className="bg-green-2-navbar hover:bg-green-1-navbar text-white px-7 py-3 rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+                >
+                  Explorar plataforma
+                </Link>
+
+                <Link
+                  href="/nosotros"
+                  className="border-2 border-green-1-navbar text-green-1-navbar hover:bg-green-1-navbar hover:text-white px-7 py-3 rounded-full font-semibold transition-all duration-300"
+                >
+                  Conócenos
+                </Link>
+
+              </div>
 
             </div>
+
+
+            {/* LOGO */}
 
             <div className="flex justify-center lg:justify-end">
 
@@ -64,6 +73,26 @@ export default function App() {
           </div>
 
         </section>
+
+
+        {/* FRASE INFERIOR */}
+
+        <section className="bg-green-2-navbar py-10">
+
+          <div className="max-w-5xl mx-auto px-6 text-center">
+
+            <h2 className="text-2xl md:text-3xl font-bold text-white">
+              Detrás de cada huevo hay trabajo, cuidado y dedicación.
+            </h2>
+
+            <p className="text-white/80 mt-3">
+              Tecnología pensada para hacer más eficiente la gestión avícola.
+            </p>
+
+          </div>
+
+        </section>
+
       </main>
 
       <Footer />
