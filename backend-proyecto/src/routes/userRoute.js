@@ -3,7 +3,7 @@
 const express = require("express");
 const router = express.Router();
 
-const verifyToken = require("../middlewares/authMiddleware");
+//const verifyToken = require("../middlewares/authMiddleware");
 
 const {
   getUsers,
@@ -28,7 +28,7 @@ const {
  */
 
 // Ruta obtener usuarios
-router.get("/UserAll", verifyToken, getUsers);
+router.get("/UserAll", getUsers);
 
 /**
  * @swagger
@@ -51,7 +51,7 @@ router.get("/UserAll", verifyToken, getUsers);
  */
 
 // Ruta obtener usuario por ID
-router.get("/UserById/:id", verifyToken, getAllUsersById);
+router.get("/UserById/:id",getAllUsersById);
 
 /**
  * @swagger
@@ -68,7 +68,7 @@ router.get("/UserById/:id", verifyToken, getAllUsersById);
  */
 
 // Ruta crear usuario
-router.post("/CreateUser", verifyToken, createUser);
+router.post("/CreateUser",createUser);
 
 /**
  * @swagger
@@ -91,7 +91,7 @@ router.post("/CreateUser", verifyToken, createUser);
  */
 
 // Ruta actualizar usuario
-router.put("/UpdateUser/:id", verifyToken, updateUser);
+router.put("/UpdateUser/:id", updateUser);
 
 /**
  * @swagger
@@ -114,6 +114,6 @@ router.put("/UpdateUser/:id", verifyToken, updateUser);
  */
 
 // Ruta eliminar usuario
-router.delete("/DeleteUser/:id", verifyToken, deleteUser); 
+router.delete("/DeleteUser/:id",deleteUser); 
 
 module.exports = router;

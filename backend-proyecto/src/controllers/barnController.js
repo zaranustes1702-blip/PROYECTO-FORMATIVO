@@ -11,7 +11,6 @@ const Response = require("../functions/response");
 const getBarns = async (req, res) => {
     try{
         const barns = await getAllBarns();
-        
         var response = new Response(
             true, 
             "Lotes obtenidos exitosamente", 

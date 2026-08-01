@@ -18,12 +18,6 @@ const user = db.define("user", {
         unique: true,
         allowNull: false
     },
-    password: {
-        type: DataTypes.STRING,
-        max: 50,
-        min: 6,
-        allowNull: false
-    },
     documentId: {
         type: DataTypes.STRING,
         max: 50,

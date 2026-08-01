@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const verifyToken = require("../middlewares/authMiddleware");
+//const verifyToken = require("../middlewares/authMiddleware");
 
 const {
     getAllFeedings,
@@ -23,7 +23,7 @@ const {
  *       200:
  *         description: Lista de alimentaciones obtenida exitosamente
  */
-router.get("/FeedingAll", verifyToken, getAllFeedings);
+router.get("/FeedingAll", getAllFeedings);
 
 /**
  * @swagger
@@ -41,7 +41,7 @@ router.get("/FeedingAll", verifyToken, getAllFeedings);
  *       200:
  *         description: Alimentación encontrada
  */
-router.get("/FeedingById/:id", verifyToken, getFeedingById);
+router.get("/FeedingById/:id", getFeedingById);
 
 /**
  * @swagger
@@ -53,7 +53,7 @@ router.get("/FeedingById/:id", verifyToken, getFeedingById);
  *       200:
  *         description: Alimentación creada exitosamente
  */
-router.post("/CreateFeeding", verifyToken, createFeeding);
+router.post("/CreateFeeding", createFeeding);
 
 /**
  * @swagger
@@ -71,7 +71,7 @@ router.post("/CreateFeeding", verifyToken, createFeeding);
  *       200:
  *         description: Alimentación actualizada exitosamente
  */
-router.put("/UpdateFeeding/:id", verifyToken, updateFeeding);
+router.put("/UpdateFeeding/:id", updateFeeding);
 
 /**
  * @swagger
@@ -89,6 +89,6 @@ router.put("/UpdateFeeding/:id", verifyToken, updateFeeding);
  *       200:
  *         description: Alimentación eliminada exitosamente
  */
-router.delete("/DeleteFeeding/:id", verifyToken, deleteFeeding);
+router.delete("/DeleteFeeding/:id", deleteFeeding);
 
 module.exports = router;

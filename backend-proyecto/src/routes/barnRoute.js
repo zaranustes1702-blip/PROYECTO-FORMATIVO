@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const verifyToken = require("../middlewares/authMiddleware");
+//const verifyToken = require("../middlewares/authMiddleware");
 
 const {
   getBarns,
@@ -26,7 +26,7 @@ const {
  */
 
 // Ruta obtener galpones
-router.get("/BarnAll", verifyToken, getBarns);
+router.get("/BarnAll", getBarns);
 
 /**
  * @swagger
@@ -49,7 +49,7 @@ router.get("/BarnAll", verifyToken, getBarns);
  */
 
 // Ruta obtener galpón por ID
-router.get("/BarnById/:id", verifyToken, getAllBarnsById);
+router.get("/BarnById/:id", getAllBarnsById);
 
 /**
  * @swagger
@@ -66,7 +66,7 @@ router.get("/BarnById/:id", verifyToken, getAllBarnsById);
  */
 
 // Ruta crear galpón
-router.post("/CreateBarn", verifyToken, createBarn);
+router.post("/CreateBarn", createBarn);
 
 /**
  * @swagger
@@ -89,7 +89,7 @@ router.post("/CreateBarn", verifyToken, createBarn);
  */
 
 // Ruta actualizar galpón
-router.put("/UpdateBarn/:id", verifyToken, updateBarn);
+router.put("/UpdateBarn/:id", updateBarn);
 
 /**
  * @swagger
@@ -112,6 +112,6 @@ router.put("/UpdateBarn/:id", verifyToken, updateBarn);
  */
 
 // Ruta eliminar galpón
-router.delete("/DeleteBarn/:id", verifyToken, deleteBarn);
+router.delete("/DeleteBarn/:id", deleteBarn);
 
 module.exports = router;

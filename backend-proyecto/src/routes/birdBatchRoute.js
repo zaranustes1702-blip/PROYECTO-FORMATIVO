@@ -3,7 +3,7 @@
 const express = require("express");
 const router = express.Router();
 
-const verifyToken = require("../middlewares/authMiddleware");
+//const verifyToken = require("../middlewares/authMiddleware");
 
 const {
   getAllBirdBatches,
@@ -28,7 +28,7 @@ const {
  */
 
 // Ruta obtener lotes
-router.get("/BirdBatchAll", verifyToken, getAllBirdBatches);
+router.get("/BirdBatchAll", getAllBirdBatches);
 
 /**
  * @swagger
@@ -51,7 +51,7 @@ router.get("/BirdBatchAll", verifyToken, getAllBirdBatches);
  */
 
 // Ruta obtener lote por ID
-router.get("/BirdBatchById/:id", verifyToken, getBirdBatchById);
+router.get("/BirdBatchById/:id", getBirdBatchById);
 
 /**
  * @swagger
@@ -68,7 +68,7 @@ router.get("/BirdBatchById/:id", verifyToken, getBirdBatchById);
  */
 
 // Ruta crear lote
-router.post("/CreateBirdBatch", verifyToken, createBirdBatch);
+router.post("/CreateBirdBatch", createBirdBatch);
 
 /**
  * @swagger
@@ -91,7 +91,7 @@ router.post("/CreateBirdBatch", verifyToken, createBirdBatch);
  */
 
 // Ruta actualizar lote
-router.put("/UpdateBirdBatch/:id", verifyToken, updateBirdBatch);
+router.put("/UpdateBirdBatch/:id", updateBirdBatch);
 
 /**
  * @swagger
@@ -114,6 +114,6 @@ router.put("/UpdateBirdBatch/:id", verifyToken, updateBirdBatch);
  */
 
 // Ruta eliminar lote
-router.delete("/DeleteBirdBatch/:id", verifyToken, deleteBirdBatch);
+router.delete("/DeleteBirdBatch/:id", deleteBirdBatch);
 
 module.exports = router;

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const verifyToken = require("../middlewares/authMiddleware");
+//const verifyToken = require("../middlewares/authMiddleware");
 
 const {
     getAllEggProductions,
@@ -20,7 +20,7 @@ const {
  *       200:
  *         description: Lista de producciones obtenida exitosamente
  */
-router.get("/EggProductionAll", verifyToken, getAllEggProductions);
+router.get("/EggProductionAll", getAllEggProductions);
 
 /**
  * @swagger
@@ -35,7 +35,7 @@ router.get("/EggProductionAll", verifyToken, getAllEggProductions);
  *       200:
  *         description: Producción encontrada
  */
-router.get("/EggProductionById/:id", verifyToken, getEggProductionById);
+router.get("/EggProductionById/:id",  getEggProductionById);
 
 /**
  * @swagger
@@ -46,7 +46,7 @@ router.get("/EggProductionById/:id", verifyToken, getEggProductionById);
  *       200:
  *         description: Producción creada exitosamente
  */
-router.post("/CreateEggProduction", verifyToken, createEggProduction);
+router.post("/CreateEggProduction",  createEggProduction);
 
 /**
  * @swagger
@@ -61,7 +61,7 @@ router.post("/CreateEggProduction", verifyToken, createEggProduction);
  *       200:
  *         description: Producción actualizada exitosamente
  */
-router.put("/UpdateEggProduction/:id", verifyToken, updateEggProduction);
+router.put("/UpdateEggProduction/:id",  updateEggProduction);
 
 /**
  * @swagger
@@ -76,6 +76,6 @@ router.put("/UpdateEggProduction/:id", verifyToken, updateEggProduction);
  *       200:
  *         description: Producción eliminada exitosamente
  */
-router.delete("/DeleteEggProduction/:id", verifyToken, deleteEggProduction);
+router.delete("/DeleteEggProduction/:id", deleteEggProduction);
 
 module.exports = router;

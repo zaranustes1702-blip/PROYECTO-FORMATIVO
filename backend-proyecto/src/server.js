@@ -1,8 +1,9 @@
 // src/server.js
-
+const cors = require ("cors");
 const express = require("express");
 const helmet = require("helmet");
 const morgan = require("morgan");
+const { sendEmail } = require("./services/emailServices");
 require("dotenv").config();
 
 // Swagger
@@ -34,6 +35,7 @@ const PORT = process.env.PORT || 3000;
 
 // Middlewares globales
 app.use(express.json());
+app.use(cors());
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(limiter);
@@ -75,16 +77,73 @@ app.use(errorHandler);
 // Inicializar servidor
 const init = async () => {
     try {
+
         await db.authenticate();
 
-        console.log("Conexión a la base de datos establecida correctamente.");
+        console.log(
+            "Conexión a la base de datos establecida correctamente."
+        );
+
+
+        // // ======================================
+        // // PRUEBA 1: CORREO DE BIENVENIDA
+        // // ======================================
+
+        // await sendEmail(
+        //     "eggbalance857@gmail.com",
+
+        //     "Bienvenido a EggBalanceApp",
+
+        //     "Tu cuenta fue creada correctamente.",
+
+        //     `
+        //         <h1>Bienvenido a EggBalanceApp</h1>
+
+        //         <p>
+        //             Hola, bienvenido a nuestra plataforma.
+        //         </p>
+
+        //         <p>
+        //             Tu cuenta fue creada correctamente.
+        //         </p>
+
+        //         <p>
+        //             Fecha de envío:
+        //             ${new Date().toLocaleDateString()}
+        //         </p>
+
+        //         <hr>
+
+        //         <footer>
+        //             EggBalanceApp - Sistema de gestión avícola
+        //         </footer>
+        //     `
+        // );
+
+        // console.log(
+        //     "Prueba 1: Correo de bienvenida enviado correctamente."
+        // );
+
+
+        // ======================================
+        // INICIAR SERVIDOR
+        // ======================================
 
         app.listen(PORT, () => {
-            console.log(`Servidor corriendo en el puerto ${PORT}`);
+
+            console.log(
+                `Servidor corriendo en el puerto ${PORT}`
+            );
+
         });
 
     } catch (error) {
-        console.error("Error al conectar a la base de datos:", error);
+
+        console.error(
+            "Error en la aplicación:",
+            error.message
+        );
+
     }
 };
 

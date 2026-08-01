@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const verifyToken = require("../middlewares/authMiddleware");
+//const verifyToken = require("../middlewares/authMiddleware");
 
 const {
     getAllResponsibles,
@@ -23,7 +23,7 @@ const {
  *       200:
  *         description: Lista de responsables obtenida exitosamente
  */
-router.get("/ResponsibleAll", verifyToken, getAllResponsibles);
+router.get("/ResponsibleAll", getAllResponsibles);
 
 /**
  * @swagger
@@ -41,7 +41,7 @@ router.get("/ResponsibleAll", verifyToken, getAllResponsibles);
  *       200:
  *         description: Responsable encontrado
  */
-router.get("/ResponsibleById/:id", verifyToken, getResponsibleById);
+router.get("/ResponsibleById/:id", getResponsibleById);
 
 /**
  * @swagger
@@ -53,7 +53,7 @@ router.get("/ResponsibleById/:id", verifyToken, getResponsibleById);
  *       200:
  *         description: Responsable creado exitosamente
  */
-router.post("/CreateResponsible", verifyToken, createResponsible);
+router.post("/CreateResponsible", createResponsible);
 
 /**
  * @swagger
@@ -71,7 +71,7 @@ router.post("/CreateResponsible", verifyToken, createResponsible);
  *       200:
  *         description: Responsable actualizado exitosamente
  */
-router.put("/UpdateResponsible/:id", verifyToken, updateResponsible);
+router.put("/UpdateResponsible/:id", updateResponsible);
 
 /**
  * @swagger
@@ -89,6 +89,6 @@ router.put("/UpdateResponsible/:id", verifyToken, updateResponsible);
  *       200:
  *         description: Responsable eliminado exitosamente
  */
-router.delete("/DeleteResponsible/:id", verifyToken, deleteResponsible);
+router.delete("/DeleteResponsible/:id", deleteResponsible);
 
 module.exports = router;

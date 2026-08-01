@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const verifyToken = require("../middlewares/authMiddleware");
+//const verifyToken = require("../middlewares/authMiddleware");
 
 const {
     getAllHealth,
@@ -24,7 +24,7 @@ const { healthCreate } = require("../services/healthServices");
  *       200:
  *         description: Lista de registros obtenida exitosamente
  */
-router.get("/HealthAll", verifyToken, getAllHealth);
+router.get("/HealthAll", getAllHealth);
 
 /**
  * @swagger
@@ -42,7 +42,7 @@ router.get("/HealthAll", verifyToken, getAllHealth);
  *       200:
  *         description: Registro encontrado
  */
-router.get("/HealthById/:id", verifyToken, getAllHealthsById);
+router.get("/HealthById/:id", getAllHealthsById);
 
 /**
  * @swagger
@@ -54,7 +54,7 @@ router.get("/HealthById/:id", verifyToken, getAllHealthsById);
  *       200:
  *         description: Registro creado exitosamente
  */
-router.post("/CreateHealth", verifyToken, createHealth);
+router.post("/CreateHealth", createHealth);
 
 /**
  * @swagger
@@ -72,7 +72,7 @@ router.post("/CreateHealth", verifyToken, createHealth);
  *       200:
  *         description: Registro actualizado exitosamente
  */
-router.put("/UpdateHealth/:id", verifyToken, updateHealth);
+router.put("/UpdateHealth/:id", updateHealth);
 
 /**
  * @swagger
@@ -90,6 +90,6 @@ router.put("/UpdateHealth/:id", verifyToken, updateHealth);
  *       200:
  *         description: Registro eliminado exitosamente
  */
-router.delete("/DeleteHealth/:id", verifyToken, deleteHealth);
+router.delete("/DeleteHealth/:id", deleteHealth);
 
 module.exports = router;

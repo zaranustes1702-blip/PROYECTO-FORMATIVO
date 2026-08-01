@@ -1,97 +1,123 @@
-export default function TablaUser() {
-  return (
-    <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
+"use client";
 
-      <table className="w-full border-collapse">
+import { useEffect, useState } from "react";
 
-        <thead>
-          <tr className="bg-green-2-navbar text-white">
+export default function TableUser() {
+    const [users, setUsers] = useState<any[]>([]);
 
-            <th className="border border-border px-4 py-2 text-left">
-              Nombre Completo
-            </th>
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const response = await fetch("http://localhost:3000/api/users/UserAll");
+                const resJson = await response.json();
 
-            <th className="border border-border px-4 py-2 text-left">
-              Nombre de Usuario
-            </th>
+                setUsers(resJson.data || []);
+            } catch (error) {
+                console.error("Error:", error);
+                setUsers([]);
+            }
+        };
 
-            <th className="border border-border px-4 py-2 text-left">
-              Correo
-            </th>
+        fetchUser();
+    }, []);
 
-            <th className="border border-border px-4 py-2 text-left">
-              Rol
-            </th>
+    return (
+        <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
-          </tr>
-        </thead>
+            <h2 className="text-xl font-semibold mb-4 text-title">
+                Lista de Usuarios
+            </h2>
 
-        <tbody>
+            <table className="w-full border-collapse">
 
-          <tr className="hover:bg-fond transition-colors">
+                <thead>
+                    <tr className="bg-green-2-navbar text-white">
 
-            <td className="border border-border px-4 py-2 text-title">
-              Juan Pérez
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            ID
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              jperez
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Nombre
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              juan@gmail.com
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Correo
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Administrador
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Documento
+                        </th>
 
-          </tr>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Cargo
+                        </th>
 
-          <tr className="hover:bg-fond transition-colors">
+                        <th className="border border-border px-4 py-2 text-left">
+                            Verificación
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              María López
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Estado
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              mlopez
-            </td>
+                    </tr>
+                </thead>
 
-            <td className="border border-border px-4 py-2 text-title">
-              maria@gmail.com
-            </td>
+                <tbody>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Instructor
-            </td>
+                    {users.length > 0 ? (
+                        users.map((user: any) => (
+                            <tr
+                                key={user.id}
+                                className="hover:bg-fond transition-colors"
+                            >
 
-          </tr>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {user.id}
+                                </td>
 
-          <tr className="hover:bg-fond transition-colors">
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {user.name}
+                                </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Carlos Ruiz
-            </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {user.email}
+                                </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              cruiz
-            </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {user.documentId}
+                                </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              carlos@gmail.com
-            </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {user.postJob}
+                                </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Aprendiz
-            </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {user.verifyEmail ? "Verificado" : "Pendiente"}
+                                </td>
 
-          </tr>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {user.active ? "Activo" : "Inactivo"}
+                                </td>
 
-        </tbody>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td
+                                colSpan={7}
+                                className="border border-border px-4 py-6 text-center text-title"
+                            >
+                                No hay usuarios registrados.
+                            </td>
+                        </tr>
+                    )}
 
-      </table>
+                </tbody>
 
-    </div>
-  );
+            </table>
+
+        </div>
+    );
 }
