@@ -3,7 +3,7 @@ function FormCreateVisit() {
         <div className="p-4 max-w-xl bg-white rounded-lg shadow border border-border">
 
             <h1 className="text-xl font-semibold mb-4 text-title">
-                Formulario de Creación de Visita
+                Formulario de Visita
             </h1>
 
             <form className="flex flex-col gap-3">

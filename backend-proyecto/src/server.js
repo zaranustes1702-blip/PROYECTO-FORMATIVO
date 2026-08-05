@@ -25,6 +25,7 @@ const weighingRoute = require("./routes/weighingRoute");
 const visitRoute = require("./routes/visitRoute");
 const healthRoute = require("./routes/healthRoute");
 const quarantineRoute = require("./routes/quarantineRoute");
+const supplyRoute = require("./routes/supplyRoute");
 
 // Middlewares
 const limiter = require("./middlewares/rateLimit");
@@ -63,6 +64,7 @@ app.use("/api/weighings", weighingRoute);
 app.use("/api/visits", visitRoute);
 app.use("/api/health", healthRoute);
 app.use("/api/quarantines", quarantineRoute);
+app.use("/api/supplies", supplyRoute);
 
 // Ruta no encontrada
 app.use((req, res, next) => {

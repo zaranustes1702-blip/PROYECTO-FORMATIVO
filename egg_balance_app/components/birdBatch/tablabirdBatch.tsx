@@ -1,145 +1,156 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function TablaBirdBatch() {
+
+    const [birdBatches, setBirdBatches] = useState<any[]>([]);
+
+    useEffect(() => {
+
+        const fetchBirdBatches = async () => {
+
+            try {
+
+                const response = await fetch(
+                    "http://localhost:3000/api/bird-batches/BirdBatchAll"
+                );
+
+                const resJson = await response.json();
+
+                setBirdBatches(resJson.data || []);
+
+            } catch (error) {
+
+                console.error("Error:", error);
+                setBirdBatches([]);
+
+            }
+
+        };
+
+        fetchBirdBatches();
+
+    }, []);
+
     return (
-        <div className="p-6 bg-white rounded-lg shadow border border-border overflow-x-auto">
+
+        <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
+
+            <h2 className="text-xl font-semibold mb-4 text-title">
+                Lista de Lotes de Aves
+            </h2>
 
             <table className="w-full border-collapse">
 
                 <thead>
+
                     <tr className="bg-green-2-navbar text-white">
 
-                        <th className="border border-border px-4 py-3 text-left">
-                            Número de Lote
+                        <th className="border border-border px-4 py-2 text-left">
+                            ID
                         </th>
 
-                        <th className="border border-border px-4 py-3 text-left">
+                        <th className="border border-border px-4 py-2 text-left">
                             Fecha de Ingreso
                         </th>
 
-                        <th className="border border-border px-4 py-3 text-left">
-                            Fecha de Finalización
+                        <th className="border border-border px-4 py-2 text-left">
+                            Número de Lote
                         </th>
 
-                        <th className="border border-border px-4 py-3 text-left">
+                        <th className="border border-border px-4 py-2 text-left">
                             Cantidad de Aves
                         </th>
 
-                        <th className="border border-border px-4 py-3 text-left">
+                        <th className="border border-border px-4 py-2 text-left">
                             Peso del Lote (Kg)
                         </th>
 
-                        <th className="border border-border px-4 py-3 text-left">
+                        <th className="border border-border px-4 py-2 text-left">
                             Edad (Semanas)
                         </th>
 
-                        <th className="border border-border px-4 py-3 text-left">
+                        <th className="border border-border px-4 py-2 text-left">
                             Vacunas Aplicadas
                         </th>
 
+                        <th className="border border-border px-4 py-2 text-left">
+                            Estado
+                        </th>
+
                     </tr>
+
                 </thead>
 
                 <tbody>
 
-                    <tr className="hover:bg-fond transition-colors">
+                    {birdBatches.length > 0 ? (
 
-                        <td className="border border-border px-4 py-3 text-title">
-                            L001
-                        </td>
+                        birdBatches.map((batch: any) => (
 
-                        <td className="border border-border px-4 py-3 text-title">
-                            2025-01-01
-                        </td>
+                            <tr
+                                key={batch.id}
+                                className="hover:bg-fond transition-colors"
+                            >
 
-                        <td className="border border-border px-4 py-3 text-title">
-                            2026-01-01
-                        </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {batch.id}
+                                </td>
 
-                        <td className="border border-border px-4 py-3 text-title">
-                            192
-                        </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {batch.entryDate}
+                                </td>
 
-                        <td className="border border-border px-4 py-3 text-title">
-                            384.50
-                        </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {batch.batchNumber}
+                                </td>
 
-                        <td className="border border-border px-4 py-3 text-title">
-                            20
-                        </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {batch.birdQuantity}
+                                </td>
 
-                        <td className="border border-border px-4 py-3 text-title">
-                            Newcastle
-                        </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {batch.batchWeight}
+                                </td>
 
-                    </tr>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {batch.birdAgeWeeks}
+                                </td>
 
-                    <tr className="hover:bg-fond transition-colors">
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {batch.appliedVaccines}
+                                </td>
 
-                        <td className="border border-border px-4 py-3 text-title">
-                            L002
-                        </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {batch.active ? "Activo" : "Inactivo"}
+                                </td>
 
-                        <td className="border border-border px-4 py-3 text-title">
-                            2025-02-01
-                        </td>
+                            </tr>
 
-                        <td className="border border-border px-4 py-3 text-title">
-                            2026-02-01
-                        </td>
+                        ))
 
-                        <td className="border border-border px-4 py-3 text-title">
-                            180
-                        </td>
+                    ) : (
 
-                        <td className="border border-border px-4 py-3 text-title">
-                            360.20
-                        </td>
+                        <tr>
 
-                        <td className="border border-border px-4 py-3 text-title">
-                            18
-                        </td>
+                            <td
+                                colSpan={8}
+                                className="border border-border px-4 py-6 text-center text-title"
+                            >
+                                No hay lotes de aves registrados.
+                            </td>
 
-                        <td className="border border-border px-4 py-3 text-title">
-                            Bronquitis
-                        </td>
+                        </tr>
 
-                    </tr>
-
-                    <tr className="hover:bg-fond transition-colors">
-
-                        <td className="border border-border px-4 py-3 text-title">
-                            L003
-                        </td>
-
-                        <td className="border border-border px-4 py-3 text-title">
-                            2025-03-01
-                        </td>
-
-                        <td className="border border-border px-4 py-3 text-title">
-                            2026-03-01
-                        </td>
-
-                        <td className="border border-border px-4 py-3 text-title">
-                            200
-                        </td>
-
-                        <td className="border border-border px-4 py-3 text-title">
-                            410.00
-                        </td>
-
-                        <td className="border border-border px-4 py-3 text-title">
-                            22
-                        </td>
-
-                        <td className="border border-border px-4 py-3 text-title">
-                            Newcastle, Viruela
-                        </td>
-
-                    </tr>
+                    )}
 
                 </tbody>
 
             </table>
 
         </div>
+
     );
+
 }

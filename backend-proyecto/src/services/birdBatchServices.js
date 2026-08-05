@@ -1,6 +1,6 @@
 const birdBatch = require('../models/birdBatchModel');
 
-const createBirdBatchService = async (data) => {
+const BirdBatchCreate = async (data) => {
     try {
         const newBirdBatch = await birdBatch.create(data);
         return newBirdBatch;
@@ -27,7 +27,7 @@ const getIdBirdBatch = async (id) => {
     }
 }
 
-const deleteBirdBatch = async (id) => {
+const BirdBatchDelete = async (id) => {
     try {
         const deletedBirdBatch = await birdBatch.destroy({ where: { id } });
         return deletedBirdBatch;
@@ -36,7 +36,7 @@ const deleteBirdBatch = async (id) => {
     }
 }
 
-const updateBirdBatch = async (id, data) => {
+const BirdBatchUpdate = async (id, data) => {
     try {
         const updatedBirdBatch = await birdBatch.update(data, { where: { id } });
         return updatedBirdBatch;
@@ -48,7 +48,7 @@ const updateBirdBatch = async (id, data) => {
 module.exports = {
     getAllBirdBatches,
     getIdBirdBatch,
-    createBirdBatchService,
-    updateBirdBatch,
-    deleteBirdBatch
+    BirdBatchCreate,
+    BirdBatchUpdate,
+    BirdBatchDelete
 }

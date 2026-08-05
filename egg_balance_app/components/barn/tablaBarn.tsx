@@ -1,97 +1,132 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function TablaBarn() {
-  return (
-    <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
-      <table className="w-full border-collapse">
+    const [barns, setBarns] = useState<any[]>([]);
 
-        <thead>
-          <tr className="bg-green-2-navbar text-white">
+    useEffect(() => {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Nombre
-            </th>
+        const fetchBarns = async () => {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Tamaño
-            </th>
+            try {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Capacidad
-            </th>
+                const response = await fetch(
+                    "http://localhost:3000/api/barns/BarnAll"
+                );
 
-            <th className="border border-border px-4 py-2 text-left">
-              Raza de Ave
-            </th>
+                const resJson = await response.json();
 
-          </tr>
-        </thead>
+                setBarns(resJson.data || []);
 
-        <tbody>
+            } catch (error) {
 
-          <tr className="hover:bg-fond transition-colors">
+                console.error("Error:", error);
+                setBarns([]);
 
-            <td className="border border-border px-4 py-2 text-title">
-              Galpón 1
-            </td>
+            }
 
-            <td className="border border-border px-4 py-2 text-title">
-              500
-            </td>
+        };
 
-            <td className="border border-border px-4 py-2 text-title">
-              1000
-            </td>
+        fetchBarns();
 
-            <td className="border border-border px-4 py-2 text-title">
-              Isa Brown
-            </td>
+    }, []);
 
-          </tr>
+    return (
 
-          <tr className="hover:bg-fond transition-colors">
+        <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
-            <td className="border border-border px-4 py-2 text-title">
-              Galpón 2
-            </td>
+            <h2 className="text-xl font-semibold mb-4 text-title">
+                Lista de Galpones
+            </h2>
 
-            <td className="border border-border px-4 py-2 text-title">
-              700
-            </td>
+            <table className="w-full border-collapse">
 
-            <td className="border border-border px-4 py-2 text-title">
-              1500
-            </td>
+                <thead>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Lohmann Brown
-            </td>
+                    <tr className="bg-green-2-navbar text-white">
 
-          </tr>
+                        <th className="border border-border px-4 py-2 text-left">
+                            ID
+                        </th>
 
-          <tr className="hover:bg-fond transition-colors">
+                        <th className="border border-border px-4 py-2 text-left">
+                            Nombre
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Galpón 3
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Tamaño
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              600
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Capacidad Máxima
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              1200
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Raza de Ave
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Hy-Line
-            </td>
+                    </tr>
 
-          </tr>
+                </thead>
 
-        </tbody>
+                <tbody>
 
-      </table>
+                    {barns.length > 0 ? (
 
-    </div>
-  );
+                        barns.map((barn: any) => (
+
+                            <tr
+                                key={barn.id}
+                                className="hover:bg-fond transition-colors"
+                            >
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {barn.id}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {barn.barnName}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {barn.barnSize}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {barn.maxBirdCapacity}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {barn.birdBreed}
+                                </td>
+
+                            </tr>
+
+                        ))
+
+                    ) : (
+
+                        <tr>
+
+                            <td
+                                colSpan={5}
+                                className="border border-border px-4 py-6 text-center text-title"
+                            >
+                                No hay galpones registrados.
+                            </td>
+
+                        </tr>
+
+                    )}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    );
+
 }

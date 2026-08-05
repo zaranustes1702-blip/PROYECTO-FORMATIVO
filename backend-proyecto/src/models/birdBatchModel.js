@@ -1,7 +1,7 @@
 const { DataTypes } = require("sequelize");
 const db = require("../config/conectionDB");
 
-const birdBatch = db.define("birdBatch", {
+const birdbatch = db.define("birdbatch", {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -30,7 +30,23 @@ const birdBatch = db.define("birdBatch", {
     appliedVaccines: {
         type: DataTypes.STRING,
         allowNull: false
+    },
+        active: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
+    },
+    createdAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
+    },
+    updatedAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
     }
-});
+    },
+    {
+        freezeTableName: true
+    }
+);
 
-module.exports = birdBatch;
+module.exports = birdbatch;

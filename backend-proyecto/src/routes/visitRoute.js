@@ -2,8 +2,7 @@
 
 const express = require("express");
 const router = express.Router();
-
-//const verifyToken = require("../middlewares/authMiddleware");
+const ValidateToken = require("../middlewares/handlerToken.js");
 
 const {
   getVisits,
@@ -25,11 +24,11 @@ const {
  *       200:
  *         description: Lista de visitas obtenida exitosamente
  */
-router.get("/VisitAll", getVisits);
+router.get("/VisitAll", ValidateToken, getVisits);
 
 /**
  * @swagger
- * /api/visits/VisitById/{id}:
+ * /api/visits/Visit/{id}:
  *   get:
  *     summary: Obtener visita por ID
  *     description: Retorna una visita según el ID enviado.
@@ -45,7 +44,7 @@ router.get("/VisitAll", getVisits);
  *       200:
  *         description: Visita encontrada
  */
-router.get("/VisitById/:id", getAllVisitsById);
+router.get("/Visit/:id", ValidateToken, getAllVisitsById);
 
 /**
  * @swagger
@@ -65,7 +64,7 @@ router.get("/VisitById/:id", getAllVisitsById);
  *       201:
  *         description: Visita creada exitosamente
  */
-router.post("/CreateVisit", createVisit);
+router.post("/CreateVisit", ValidateToken,createVisit);
 
 /**
  * @swagger
@@ -83,7 +82,7 @@ router.post("/CreateVisit", createVisit);
  *       200:
  *         description: Visita actualizada exitosamente
  */
-router.put("/UpdateVisit/:id", updateVisit);
+router.put("/UpdateVisit/:id", ValidateToken, updateVisit);
 
 /**
  * @swagger
@@ -101,6 +100,6 @@ router.put("/UpdateVisit/:id", updateVisit);
  *       200:
  *         description: Visita eliminada exitosamente
  */
-router.delete("/DeleteVisit/:id", deleteVisit);
+router.delete("/DeleteVisit/:id", ValidateToken, deleteVisit);
 
 module.exports = router;

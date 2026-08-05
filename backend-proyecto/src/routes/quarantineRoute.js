@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-//const verifyToken = require("../middlewares/authMiddleware");
+const ValidateToken = require("../middlewares/handlerToken.js");
 
 const {
     getQuarantines,
@@ -23,11 +23,11 @@ const {
  *       200:
  *         description: Lista de cuarentenas obtenida exitosamente
  */
-router.get("/QuarantineAll", getQuarantines);
+router.get("/QuarantineAll", ValidateToken, getQuarantines);
 
 /**
  * @swagger
- * /api/quarantines/QuarantineById/{id}:
+ * /api/quarantines/Quarantine/{id}:
  *   get:
  *     summary: Obtener cuarentena por ID
  *     description: Retorna una cuarentena según el ID enviado.
@@ -41,7 +41,7 @@ router.get("/QuarantineAll", getQuarantines);
  *       200:
  *         description: Cuarentena encontrada
  */
-router.get("/QuarantineById/:id", getAllQuarantinesById);
+router.get("/Quarantine/:id", ValidateToken, getAllQuarantinesById);
 
 /**
  * @swagger
@@ -53,7 +53,7 @@ router.get("/QuarantineById/:id", getAllQuarantinesById);
  *       200:
  *         description: Cuarentena creada exitosamente
  */
-router.post("/CreateQuarantine", createQuarantine);
+router.post("/CreateQuarantine", ValidateToken, createQuarantine);
 
 /**
  * @swagger
@@ -71,7 +71,7 @@ router.post("/CreateQuarantine", createQuarantine);
  *       200:
  *         description: Cuarentena actualizada exitosamente
  */
-router.put("/UpdateQuarantine/:id", updateQuarantine);
+router.put("/UpdateQuarantine/:id", ValidateToken, updateQuarantine);
 
 /**
  * @swagger
@@ -89,6 +89,6 @@ router.put("/UpdateQuarantine/:id", updateQuarantine);
  *       200:
  *         description: Cuarentena eliminada exitosamente
  */
-router.delete("/DeleteQuarantine/:id", deleteQuarantine);
+router.delete("/DeleteQuarantine/:id", ValidateToken, deleteQuarantine);
 
 module.exports = router;

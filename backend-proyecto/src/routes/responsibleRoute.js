@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
-//const verifyToken = require("../middlewares/authMiddleware");
+const ValidateToken = require("../middlewares/handlerToken.js");
 
 const {
-    getAllResponsibles,
-    getResponsibleById,
+    getResponsibles,
+    getAllResponsiblesById,
     createResponsible,
     updateResponsible,
     deleteResponsible
@@ -23,11 +23,11 @@ const {
  *       200:
  *         description: Lista de responsables obtenida exitosamente
  */
-router.get("/ResponsibleAll", getAllResponsibles);
+router.get("/ResponsibleAll", ValidateToken, getResponsibles);
 
 /**
  * @swagger
- * /api/responsibles/ResponsibleById/{id}:
+ * /api/responsibles/Responsible/{id}:
  *   get:
  *     summary: Obtener responsable por ID
  *     description: Retorna un responsable según el ID enviado.
@@ -41,7 +41,7 @@ router.get("/ResponsibleAll", getAllResponsibles);
  *       200:
  *         description: Responsable encontrado
  */
-router.get("/ResponsibleById/:id", getResponsibleById);
+router.get("/Responsible/:id", ValidateToken, getAllResponsiblesById);
 
 /**
  * @swagger
@@ -53,7 +53,7 @@ router.get("/ResponsibleById/:id", getResponsibleById);
  *       200:
  *         description: Responsable creado exitosamente
  */
-router.post("/CreateResponsible", createResponsible);
+router.post("/CreateResponsible",ValidateToken, createResponsible);
 
 /**
  * @swagger
@@ -71,7 +71,7 @@ router.post("/CreateResponsible", createResponsible);
  *       200:
  *         description: Responsable actualizado exitosamente
  */
-router.put("/UpdateResponsible/:id", updateResponsible);
+router.put("/UpdateResponsible/:id", ValidateToken, updateResponsible);
 
 /**
  * @swagger
@@ -89,6 +89,6 @@ router.put("/UpdateResponsible/:id", updateResponsible);
  *       200:
  *         description: Responsable eliminado exitosamente
  */
-router.delete("/DeleteResponsible/:id", deleteResponsible);
+router.delete("/DeleteResponsible/:id", ValidateToken, deleteResponsible);
 
 module.exports = router;

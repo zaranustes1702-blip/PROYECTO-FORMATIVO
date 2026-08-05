@@ -1,113 +1,158 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function TablaVisit() {
-  return (
-    <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
-      <table className="w-full border-collapse">
+    const [visits, setVisits] = useState<any[]>([]);
 
-        <thead>
-          <tr className="bg-green-2-navbar text-white">
+    useEffect(() => {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Fecha
-            </th>
+        const fetchVisits = async () => {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Visitante
-            </th>
+            try {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Institución
-            </th>
+                const response = await fetch(
+                    "http://localhost:3000/api/visits/VisitAll"
+                );
 
-            <th className="border border-border px-4 py-2 text-left">
-              Motivo
-            </th>
+                const resJson = await response.json();
 
-            <th className="border border-border px-4 py-2 text-left">
-              Responsable
-            </th>
+                console.log(resJson.data);
 
-          </tr>
-        </thead>
+                setVisits(resJson.data || []);
 
-        <tbody>
+            } catch (error) {
 
-          <tr className="hover:bg-fond transition-colors">
+                console.error("Error:", error);
+                setVisits([]);
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-10
-            </td>
+            }
 
-            <td className="border border-border px-4 py-2 text-title">
-              Pedro Gómez
-            </td>
+        };
 
-            <td className="border border-border px-4 py-2 text-title">
-              SENA
-            </td>
+        fetchVisits();
 
-            <td className="border border-border px-4 py-2 text-title">
-              Visita Académica
-            </td>
+    }, []);
 
-            <td className="border border-border px-4 py-2 text-title">
-              Juan Pérez
-            </td>
+    return (
 
-          </tr>
+        <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
-          <tr className="hover:bg-fond transition-colors">
+            <h2 className="text-xl font-semibold mb-4 text-title">
+                Lista de Visitas
+            </h2>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-20
-            </td>
+            <table className="w-full border-collapse">
 
-            <td className="border border-border px-4 py-2 text-title">
-              Laura Díaz
-            </td>
+                <thead>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Universidad del Cauca
-            </td>
+                    <tr className="bg-green-2-navbar text-white">
 
-            <td className="border border-border px-4 py-2 text-title">
-              Investigación
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            ID
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              María López
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Fecha
+                        </th>
 
-          </tr>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Visitante
+                        </th>
 
-          <tr className="hover:bg-fond transition-colors">
+                        <th className="border border-border px-4 py-2 text-left">
+                            Institución
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-06-01
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Motivo
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Andrés Ruiz
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Observaciones
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              ICA
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Responsable
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Inspección
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Estado
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Carlos Ruiz
-            </td>
+                    </tr>
 
-          </tr>
+                </thead>
 
-        </tbody>
+                <tbody>
 
-      </table>
+                    {visits.length > 0 ? (
 
-    </div>
-  );
+                        visits.map((visit: any) => (
+
+                            <tr
+                                key={visit.id}
+                                className="hover:bg-fond transition-colors"
+                            >
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {visit.id}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {visit.visitDate}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {visit.visitorName}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {visit.institutionOrganization}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {visit.visitReason}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {visit.observations}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {visit.responsiblePerson}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {visit.active ? "Activo" : "Inactivo"}
+                                </td>
+
+                            </tr>
+
+                        ))
+
+                    ) : (
+
+                        <tr>
+
+                            <td
+                                colSpan={8}
+                                className="border border-border px-4 py-6 text-center text-title"
+                            >
+                                No hay visitas registradas.
+                            </td>
+
+                        </tr>
+
+                    )}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    );
+
 }

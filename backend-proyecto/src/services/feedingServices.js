@@ -1,54 +1,67 @@
 const feeding = require('../models/feedingModel');
 
-const createFeedingService = async (data) => {
+// crear alimentación
+const FeedingCreate = async (data) => {
     try {
         const newFeeding = await feeding.create(data);
         return newFeeding;
     } catch (error) {
-        console.error(error);
+        console.log(error);
+        throw error;
     }
 }
 
+// obtener todas las alimentaciones
 const getAllFeedings = async () => {
     try {
         const feedings = await feeding.findAll();
         return feedings;
     } catch (error) {
-        console.error(error);
-    }
-};
-
-const getIdFeeding = async (id) => {
-    try {
-        const feedingId = await feeding.findOne({ where: { id } });
-        return feedingId;
-    } catch (error) {
-        console.error(error);
+        console.log(error);
+        throw error;
     }
 }
 
-const deleteFeeding = async (id) => {
+// obtener alimentación por id
+const getFeedingById = async (id) => {
     try {
-        const deletedFeeding = await feeding.destroy({ where: { id } });
-        return deletedFeeding;
+        const feedingid = await feeding.findOne({
+            where: { id }
+        });
+        return feedingid;
     } catch (error) {
-        console.error(error);
+        console.log(error);
+        throw error;
     }
 }
 
-const updateFeeding = async (id, data) => {
+// eliminar
+const FeedingDelete = async (id) => {
     try {
-        const updatedFeeding = await feeding.update(data, { where: { id } });
-        return updatedFeeding;
+        const feedingDelete = await feeding.destroy({
+            where: { id }
+        });
+        return feedingDelete;
     } catch (error) {
-        console.error(error);
+        console.log(error);
+        throw error;
     }
 }
 
+// actualizar alimentación
+const FeedingUpdate = async (id, data) => {
+    try {
+        const feedingUpdate = await feeding.update(data, { where: { id } });
+        return feedingUpdate;
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+}
 module.exports = {
+    FeedingCreate,
     getAllFeedings,
-    getIdFeeding,
-    createFeedingService,
-    updateFeeding,
-    deleteFeeding
-}
+    getFeedingById,
+    FeedingDelete,
+    FeedingUpdate
+};

@@ -29,7 +29,23 @@ const mortality = db.define("mortality", {
     },
     observations: {
         type: DataTypes.TEXT
+    },
+    active: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
+    },
+    createdAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
+    },
+    updatedAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
     }
-});
+    },
+    {
+        freezeTableName: true
+    }
+);
 
 module.exports = mortality;

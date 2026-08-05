@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
-//const verifyToken = require("../middlewares/authMiddleware");
+const ValidateToken = require("../middlewares/handlerToken.js");
 
 const {
-    getAllMortalities,
-    getMortalityById,
+    getMortalities,
+    getAllMortalitiesById,
     createMortality,
     updateMortality,
     deleteMortality
@@ -23,7 +23,7 @@ const {
  *       200:
  *         description: Lista de mortalidades obtenida exitosamente
  */
-router.get("/MortalityAll", getAllMortalities);
+router.get("/MortalityAll", ValidateToken,getMortalities);
 
 /**
  * @swagger
@@ -41,7 +41,7 @@ router.get("/MortalityAll", getAllMortalities);
  *       200:
  *         description: Mortalidad encontrada
  */
-router.get("/MortalityById/:id", getMortalityById);
+router.get("/MortalityById/:id" ,ValidateToken ,getAllMortalitiesById);
 
 /**
  * @swagger
@@ -53,7 +53,7 @@ router.get("/MortalityById/:id", getMortalityById);
  *       200:
  *         description: Registro creado exitosamente
  */
-router.post("/CreateMortality", createMortality);
+router.post("/CreateMortality", ValidateToken,createMortality);
 
 /**
  * @swagger
@@ -71,7 +71,7 @@ router.post("/CreateMortality", createMortality);
  *       200:
  *         description: Registro actualizado exitosamente
  */
-router.put("/UpdateMortality/:id", updateMortality);
+router.put("/UpdateMortality/:id", ValidateToken, updateMortality);
 
 /**
  * @swagger
@@ -89,6 +89,6 @@ router.put("/UpdateMortality/:id", updateMortality);
  *       200:
  *         description: Registro eliminado exitosamente
  */
-router.delete("/DeleteMortality/:id", deleteMortality);
+router.delete("/DeleteMortality/:id", ValidateToken,deleteMortality);
 
 module.exports = router;

@@ -1,102 +1,357 @@
-const { createEggProductionService } = require('../services/eggProductionServices');
-const { Response } = require("../functions/response");
 
-const getAllEggProductions = (req, res) => {
-    const body = req.body;
-    console.log("Body recibido:", body);
+const {
+    getAllEggProductions,
+    getEggProductionById,
+    EggProductionCreate,
+    EggProductionUpdate,
+    EggProductionDelete
+} = require("../services/eggProductionServices");
 
-    res.status(201);
-    res.json({ message: "Obteniendo toda la producción de huevos" });
+const Response = require("../functions/response");
+
+const getEggProductions = async (req, res) => {
+    try {
+
+        const eggProductions = await getAllEggProductions();
+
+        var response = new Response(
+            true,
+            "Producciones obtenidas exitosamente",
+            eggProductions
+        );
+
+        res.status(201);
+        res.json(response.json);
+
+    } catch (error) {
+
+        console.error("Error obteniendo producciones:", error);
+
+        const errorResponse = new Response(
+            false,
+            "Error interno del servidor",
+            [{ message: error.message || "Ocurrió un error inesperado" }]
+        );
+
+        res.status(500);
+        res.json(errorResponse.json);
+    }
 };
 
-const getEggProductionById = (req, res) => {
-    const { id } = req.params;
-    res.json({ message: `Obteniendo producción de huevos con id ${id}` });
+const getAllEggProductionsById = async (req, res) => {
+
+    try {
+
+        const { id } = req.params;
+
+        var errors = [];
+
+        if (!id) {
+            errors.push("El ID del registro es obligatorio");
+        }
+
+        if (errors.length > 0) {
+
+            var response = new Response(
+                false,
+                "Error al obtener el registro",
+                errors
+            );
+
+            res.status(400);
+            res.json(response.json);
+            return;
+        }
+
+        const eggProduction = await getEggProductionById(id);
+
+        if (!eggProduction) {
+
+            var response = new Response(
+                false,
+                "El registro no existe",
+                []
+            );
+
+            res.status(404);
+            res.json(response.json);
+            return;
+        }
+
+        var response = new Response(
+            true,
+            "Registro obtenido exitosamente",
+            eggProduction
+        );
+
+        res.status(201);
+        res.json(response.json);
+
+    } catch (error) {
+
+        console.error("Error obteniendo registro:", error);
+
+        const errorResponse = new Response(
+            false,
+            "Error interno del servidor",
+            [{ message: error.message || "Ocurrió un error inesperado" }]
+        );
+
+        res.status(500);
+        res.json(errorResponse.json);
+    }
 };
 
 const createEggProduction = async (req, res) => {
 
-    const {
-        productionDate,
-        birdQuantity,
-        collectedAM,
-        collectedPM,
-        dailyProduction,
-        brokenEggs,
-        eggType,
-        unitValue,
-        totalValue,
-        weeklyEggTotal
-    } = req.body;
+    try {
 
-    var errors = [];
+        const {
+            productionDate,
+            productionHour,
+            batch,
+            birdQuantity,
+            responsible,
+            responsibleRole,
+            collectedAM,
+            collectedPM,
+            jumboEggs,
+            aaaEggs,
+            aaEggs,
+            aEggs,
+            bEggs,
+            cEggs,
+            brokenEggs,
+            totalDay,
+            goodEggs,
+            weeklyEggTotal,
+            productionPercentage,
+            observations
+        } = req.body;
 
-    if (
-        !productionDate ||
-        !birdQuantity ||
-        !collectedAM ||
-        !collectedPM ||
-        !dailyProduction ||
-        !brokenEggs ||
-        !eggType ||
-        !unitValue ||
-        !totalValue ||
-        !weeklyEggTotal
-    ) {
-        errors.push("Todos los campos son obligatorios");
-    }
+        var errors = [];
 
-    if (eggType == "") errors.push("El campo eggType no puede estar vacío");
+        if (!productionDate) errors.push("La fecha es obligatoria");
+        if (!productionHour) errors.push("La hora es obligatoria");
+        if (!batch || batch.trim() === "") errors.push("El lote es obligatorio");
+        if (!birdQuantity) errors.push("La cantidad de aves es obligatoria");
+        if (!responsible || responsible.trim() === "") errors.push("El responsable es obligatorio");
+        if (!responsibleRole || responsibleRole.trim() === "") errors.push("El rol es obligatorio");
 
-    if (errors.length > 0) {
+        if (errors.length > 0) {
+
+            var response = new Response(
+                false,
+                "Error al crear el registro",
+                errors
+            );
+
+            res.status(400);
+            return res.json(response.json);
+        }
+
+        const data = {
+            productionDate,
+            productionHour,
+            batch,
+            birdQuantity,
+            responsible,
+            responsibleRole,
+            collectedAM,
+            collectedPM,
+            jumboEggs,
+            aaaEggs,
+            aaEggs,
+            aEggs,
+            bEggs,
+            cEggs,
+            brokenEggs,
+            totalDay,
+            goodEggs,
+            weeklyEggTotal,
+            productionPercentage,
+            observations
+        };
+
+        const eggProduction = await EggProductionCreate(data);
+
         var response = new Response(
-            false,
-            "Error al crear producción de huevos",
-            null,
-            errors
+            true,
+            "Producción registrada exitosamente",
+            eggProduction
         );
 
-        return res.status(400).json(response.json());
+        res.status(201);
+        res.json(response.json);
+
+    } catch (error) {
+
+        console.error("Error creando producción:", error);
+
+        const errorResponse = new Response(
+            false,
+            "Error interno del servidor",
+            [{ message: error.message || "Ocurrió un error inesperado" }]
+        );
+
+        res.status(500);
+        res.json(errorResponse.json);
     }
-
-    const data = {
-        productionDate,
-        birdQuantity,
-        collectedAM,
-        collectedPM,
-        dailyProduction,
-        brokenEggs,
-        eggType,
-        unitValue,
-        totalValue,
-        weeklyEggTotal
-    };
-
-    const eggProduction = await createEggProductionService(data);
-
-    var response = new Response(
-        true,
-        "Producción de huevos creada exitosamente",
-        eggProduction
-    );
-
-    res.status(201);
-    res.json(response.json());
 };
 
-const updateEggProduction = (req, res) => {
-    const { id } = req.params;
-    res.json({ message: `Actualizando producción de huevos con id ${id}` });
+const updateEggProduction = async (req, res) => {
+
+    try {
+
+        const { id } = req.params;
+
+        const {
+            productionDate,
+            productionHour,
+            batch,
+            birdQuantity,
+            responsible,
+            responsibleRole,
+            collectedAM,
+            collectedPM,
+            jumboEggs,
+            aaaEggs,
+            aaEggs,
+            aEggs,
+            bEggs,
+            cEggs,
+            brokenEggs,
+            totalDay,
+            goodEggs,
+            weeklyEggTotal,
+            productionPercentage,
+            observations
+        } = req.body;
+
+        var errors = [];
+
+        if (!id) errors.push("El ID es obligatorio");
+        if (!productionDate) errors.push("La fecha es obligatoria");
+        if (!productionHour) errors.push("La hora es obligatoria");
+        if (!batch || batch.trim() === "") errors.push("El lote es obligatorio");
+        if (!birdQuantity) errors.push("La cantidad de aves es obligatoria");
+        if (!responsible || responsible.trim() === "") errors.push("El responsable es obligatorio");
+        if (!responsibleRole || responsibleRole.trim() === "") errors.push("El rol es obligatorio");
+
+        if (errors.length > 0) {
+
+            var response = new Response(
+                false,
+                "Error al actualizar el registro",
+                errors
+            );
+
+            res.status(400);
+            return res.json(response.json);
+        }
+
+        const data = {
+            productionDate,
+            productionHour,
+            batch,
+            birdQuantity,
+            responsible,
+            responsibleRole,
+            collectedAM,
+            collectedPM,
+            jumboEggs,
+            aaaEggs,
+            aaEggs,
+            aEggs,
+            bEggs,
+            cEggs,
+            brokenEggs,
+            totalDay,
+            goodEggs,
+            weeklyEggTotal,
+            productionPercentage,
+            observations
+        };
+
+        const eggProduction = await EggProductionUpdate(id, data);
+
+        var response = new Response(
+            true,
+            "Producción actualizada exitosamente",
+            eggProduction
+        );
+
+        res.status(201);
+        res.json(response.json);
+
+    } catch (error) {
+
+        console.error("Error actualizando producción:", error);
+
+        const errorResponse = new Response(
+            false,
+            "Error interno del servidor",
+            [{ message: error.message || "Ocurrió un error inesperado" }]
+        );
+
+        res.status(500);
+        res.json(errorResponse.json);
+    }
 };
 
-const deleteEggProduction = (req, res) => {
-    const { id } = req.params;
-    res.json({ message: `Eliminando producción de huevos con id ${id}` });
+const deleteEggProduction = async (req, res) => {
+
+    try {
+
+        const { id } = req.params;
+
+        var errors = [];
+
+        if (!id) {
+            errors.push("El ID es obligatorio");
+        }
+
+        if (errors.length > 0) {
+
+            var response = new Response(
+                false,
+                "Error al eliminar el registro",
+                errors
+            );
+
+            res.status(400);
+            return res.json(response.json);
+        }
+
+        const eggProduction = await EggProductionDelete(id);
+
+        var response = new Response(
+            true,
+            "Registro eliminado exitosamente",
+            eggProduction
+        );
+
+        res.status(201);
+        res.json(response.json);
+
+    } catch (error) {
+
+        console.error("Error eliminando producción:", error);
+
+        const errorResponse = new Response(
+            false,
+            "Error interno del servidor",
+            [{ message: error.message || "Ocurrió un error inesperado" }]
+        );
+
+        res.status(500);
+        res.json(errorResponse.json);
+    }
 };
 
 module.exports = {
-    getAllEggProductions,
-    getEggProductionById,
+    getEggProductions,
+    getAllEggProductionsById,
     createEggProduction,
     updateEggProduction,
     deleteEggProduction

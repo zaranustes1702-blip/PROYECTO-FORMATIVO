@@ -1,13 +1,13 @@
-const eggProduction = require('../models/eggProductionModel');
+const eggProduction = require("../models/eggProductionModel");
 
-const createEggProductionService = async (data) => {
+const EggProductionCreate = async (data) => {
     try {
         const newEggProduction = await eggProduction.create(data);
         return newEggProduction;
     } catch (error) {
         console.error(error);
     }
-}
+};
 
 const getAllEggProductions = async () => {
     try {
@@ -18,37 +18,49 @@ const getAllEggProductions = async () => {
     }
 };
 
-const getIdEggProduction = async (id) => {
+const getEggProductionById = async (id) => {
     try {
-        const eggProductionId = await eggProduction.findOne({ where: { id } });
+        const eggProductionId = await eggProduction.findOne({
+            where: { id }
+        });
+
         return eggProductionId;
     } catch (error) {
         console.error(error);
     }
-}
+};
 
-const deleteEggProduction = async (id) => {
+const EggProductionDelete = async (id) => {
     try {
-        const deletedEggProduction = await eggProduction.destroy({ where: { id } });
+        const deletedEggProduction = await eggProduction.destroy({
+            where: { id }
+        });
+
         return deletedEggProduction;
     } catch (error) {
         console.error(error);
     }
-}
+};
 
-const updateEggProduction = async (id, data) => {
+const EggProductionUpdate = async (id, data) => {
     try {
-        const updatedEggProduction = await eggProduction.update(data, { where: { id } });
+        const updatedEggProduction = await eggProduction.update(
+            data,
+            {
+                where: { id }
+            }
+        );
+
         return updatedEggProduction;
     } catch (error) {
         console.error(error);
     }
-}
+};
 
 module.exports = {
     getAllEggProductions,
-    getIdEggProduction,
-    createEggProductionService,
-    updateEggProduction,
-    deleteEggProduction
-}
+    getEggProductionById,
+    EggProductionCreate,
+    EggProductionUpdate,
+    EggProductionDelete
+};

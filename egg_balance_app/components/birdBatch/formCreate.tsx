@@ -3,7 +3,7 @@ function FormCreateBirdBatch() {
         <div className="p-6 max-w-xl bg-white rounded-lg shadow border border-border">
 
             <h2 className="text-xl font-semibold mb-6 text-title">
-                Registrar Lote de Aves
+                Formulario Lote de Aves
             </h2>
 
             <form className="flex flex-col gap-4">

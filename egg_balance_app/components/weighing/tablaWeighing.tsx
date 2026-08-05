@@ -1,161 +1,164 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function TablaWeighing() {
-  return (
-    <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
-      <table className="w-full border-collapse">
+    const [weighings, setWeighings] = useState<any[]>([]);
 
-        <thead>
-          <tr className="bg-green-2-navbar text-white">
+    useEffect(() => {
 
-            <th className="border border-border px-4 py-2 text-left">
-              ID Pesaje
-            </th>
+        const fetchWeighings = async () => {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Fecha
-            </th>
+            try {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Hora
-            </th>
+                const response = await fetch(
+                    "http://localhost:3000/api/weighings/WeighingsAll"
+                );
 
-            <th className="border border-border px-4 py-2 text-left">
-              Responsable
-            </th>
+                const resJson = await response.json();
 
-            <th className="border border-border px-4 py-2 text-left">
-              Gallina Pesada
-            </th>
+                setWeighings(resJson.data || []);
 
-            <th className="border border-border px-4 py-2 text-left">
-              Peso Total (Kg)
-            </th>
+            } catch (error) {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Peso Promedio (g)
-            </th>
+                console.error("Error:", error);
+                setWeighings([]);
 
-            <th className="border border-border px-4 py-2 text-left">
-              Uniformidad (%)
-            </th>
+            }
 
-          </tr>
-        </thead>
+        };
 
-        <tbody>
+        fetchWeighings();
 
-          <tr className="hover:bg-fond transition-colors">
+    }, []);
 
-            <td className="border border-border px-4 py-2 text-title">
-              P001
-            </td>
+    return (
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-01
-            </td>
+        <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
-            <td className="border border-border px-4 py-2 text-title">
-              08:00
-            </td>
+            <h2 className="text-xl font-semibold mb-4 text-title">
+                Lista de Pesajes
+            </h2>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Juan Pérez
-            </td>
+            <table className="w-full border-collapse">
 
-            <td className="border border-border px-4 py-2 text-title">
-              Gallina 001
-            </td>
+                <thead>
 
-            <td className="border border-border px-4 py-2 text-title">
-              1.95
-            </td>
+                    <tr className="bg-green-2-navbar text-white">
 
-            <td className="border border-border px-4 py-2 text-title">
-              1950
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            ID
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              92%
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Fecha
+                        </th>
 
-          </tr>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Hora
+                        </th>
 
-          <tr className="hover:bg-fond transition-colors">
+                        <th className="border border-border px-4 py-2 text-left">
+                            Responsable
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              P002
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Aves Pesadas
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-08
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Peso Total (Kg)
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              09:00
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Peso Promedio (g)
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              María López
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Uniformidad (%)
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Gallina 002
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Estado
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2.01
-            </td>
+                    </tr>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2010
-            </td>
+                </thead>
 
-            <td className="border border-border px-4 py-2 text-title">
-              94%
-            </td>
+                <tbody>
 
-          </tr>
+                    {weighings.length > 0 ? (
 
-          <tr className="hover:bg-fond transition-colors">
+                        weighings.map((weighing: any) => (
 
-            <td className="border border-border px-4 py-2 text-title">
-              P003
-            </td>
+                            <tr
+                                key={weighing.id}
+                                className="hover:bg-fond transition-colors"
+                            >
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-15
-            </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {weighing.id}
+                                </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              07:30
-            </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {weighing.weighingDate}
+                                </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Carlos Ruiz
-            </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {weighing.weighingTime}
+                                </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Gallina 003
-            </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {weighing.responsiblePerson}
+                                </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              1.89
-            </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {weighing.weighedBirds}
+                                </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              1890
-            </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {weighing.totalWeightKg}
+                                </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              89%
-            </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {weighing.averageWeightGrams}
+                                </td>
 
-          </tr>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {weighing.batchUniformityPercentage}%
+                                </td>
 
-        </tbody>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {weighing.active ? "Activo" : "Inactivo"}
+                                </td>
 
-      </table>
+                            </tr>
 
-    </div>
-  );
+                        ))
+
+                    ) : (
+
+                        <tr>
+
+                            <td
+                                colSpan={9}
+                                className="border border-border px-4 py-6 text-center text-title"
+                            >
+                                No hay registros de pesajes.
+                            </td>
+
+                        </tr>
+
+                    )}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    );
+
 }

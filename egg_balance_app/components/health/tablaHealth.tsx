@@ -1,145 +1,164 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function TablaHealth() {
-  return (
-    <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
-      <table className="w-full border-collapse">
+    const [healths, setHealths] = useState<any[]>([]);
 
-        <thead>
-          <tr className="bg-green-2-navbar text-white">
+    useEffect(() => {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Fecha de Detección
-            </th>
+        const fetchHealths = async () => {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Lote Afectado
-            </th>
+            try {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Síntomas
-            </th>
+                const response = await fetch(
+                    "http://localhost:3000/api/health/HealthAll"
+                );
 
-            <th className="border border-border px-4 py-2 text-left">
-              Diagnóstico
-            </th>
+                const resJson = await response.json();
 
-            <th className="border border-border px-4 py-2 text-left">
-              Tratamiento
-            </th>
+                setHealths(resJson.data || []);
 
-            <th className="border border-border px-4 py-2 text-left">
-              Responsable
-            </th>
+            } catch (error) {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Fecha de Recuperación
-            </th>
+                console.error("Error:", error);
+                setHealths([]);
 
-          </tr>
-        </thead>
+            }
 
-        <tbody>
+        };
 
-          <tr className="hover:bg-fond transition-colors">
+        fetchHealths();
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-01
-            </td>
+    }, []);
 
-            <td className="border border-border px-4 py-2 text-title">
-              L001
-            </td>
+    return (
 
-            <td className="border border-border px-4 py-2 text-title">
-              Tos
-            </td>
+        <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
-            <td className="border border-border px-4 py-2 text-title">
-              Gripe Aviar
-            </td>
+            <h2 className="text-xl font-semibold mb-4 text-title">
+                Lista de Registros de Salud
+            </h2>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Antibiótico
-            </td>
+            <table className="w-full border-collapse">
 
-            <td className="border border-border px-4 py-2 text-title">
-              Juan Pérez
-            </td>
+                <thead>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-10
-            </td>
+                    <tr className="bg-green-2-navbar text-white">
 
-          </tr>
+                        <th className="border border-border px-4 py-2 text-left">
+                            ID
+                        </th>
 
-          <tr className="hover:bg-fond transition-colors">
+                        <th className="border border-border px-4 py-2 text-left">
+                            Fecha de Detección
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-15
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Lote Afectado
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              L002
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Síntomas
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Diarrea
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Diagnóstico
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Salmonelosis
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Tratamiento
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Tratamiento Oral
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Responsable
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              María López
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Fecha de Recuperación
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-22
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Estado
+                        </th>
 
-          </tr>
+                    </tr>
 
-          <tr className="hover:bg-fond transition-colors">
+                </thead>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-06-01
-            </td>
+                <tbody>
 
-            <td className="border border-border px-4 py-2 text-title">
-              L003
-            </td>
+                    {healths.length > 0 ? (
 
-            <td className="border border-border px-4 py-2 text-title">
-              Fiebre
-            </td>
+                        healths.map((health: any) => (
 
-            <td className="border border-border px-4 py-2 text-title">
-              Infección Respiratoria
-            </td>
+                            <tr
+                                key={health.id}
+                                className="hover:bg-fond transition-colors"
+                            >
 
-            <td className="border border-border px-4 py-2 text-title">
-              Vacunación
-            </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {health.id}
+                                </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Carlos Ruiz
-            </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {health.detectionDate}
+                                </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-06-08
-            </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {health.affectedBatch}
+                                </td>
 
-          </tr>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {health.symptoms}
+                                </td>
 
-        </tbody>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {health.diagnosis}
+                                </td>
 
-      </table>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {health.treatment}
+                                </td>
 
-    </div>
-  );
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {health.responsiblePerson}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {health.recoveryDate}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {health.active ? "Activo" : "Inactivo"}
+                                </td>
+
+                            </tr>
+
+                        ))
+
+                    ) : (
+
+                        <tr>
+
+                            <td
+                                colSpan={9}
+                                className="border border-border px-4 py-6 text-center text-title"
+                            >
+                                No hay registros de salud.
+                            </td>
+
+                        </tr>
+
+                    )}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    );
+
 }

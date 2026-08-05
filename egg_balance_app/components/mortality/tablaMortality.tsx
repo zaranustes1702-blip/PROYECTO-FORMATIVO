@@ -1,113 +1,156 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function TablaMortality() {
-  return (
-    <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
-      <table className="w-full border-collapse">
+    const [mortalities, setMortalities] = useState<any[]>([]);
 
-        <thead>
-          <tr className="bg-green-2-navbar text-white">
+    useEffect(() => {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Fecha
-            </th>
+        const fetchMortalities = async () => {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Hora
-            </th>
+            try {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Mortalidad del Día
-            </th>
+                const response = await fetch(
+                    "http://localhost:3000/api/mortalities/MortalityAll"
+                );
 
-            <th className="border border-border px-4 py-2 text-left">
-              Causa
-            </th>
+                const resJson = await response.json();
 
-            <th className="border border-border px-4 py-2 text-left">
-              Necropsia
-            </th>
+                setMortalities(resJson.data || []);
 
-          </tr>
-        </thead>
+            } catch (error) {
 
-        <tbody>
+                console.error("Error:", error);
+                setMortalities([]);
 
-          <tr className="hover:bg-fond transition-colors">
+            }
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-01
-            </td>
+        };
 
-            <td className="border border-border px-4 py-2 text-title">
-              08:00
-            </td>
+        fetchMortalities();
 
-            <td className="border border-border px-4 py-2 text-title">
-              2
-            </td>
+    }, []);
 
-            <td className="border border-border px-4 py-2 text-title">
-              Enfermedad
-            </td>
+    return (
 
-            <td className="border border-border px-4 py-2 text-title">
-              Sí
-            </td>
+        <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
-          </tr>
+            <h2 className="text-xl font-semibold mb-4 text-title">
+                Lista de Mortalidad
+            </h2>
 
-          <tr className="hover:bg-fond transition-colors">
+            <table className="w-full border-collapse">
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-02
-            </td>
+                <thead>
 
-            <td className="border border-border px-4 py-2 text-title">
-              09:00
-            </td>
+                    <tr className="bg-green-2-navbar text-white">
 
-            <td className="border border-border px-4 py-2 text-title">
-              1
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            ID
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Estrés
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Fecha
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              No
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Hora
+                        </th>
 
-          </tr>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Mortalidad del Día
+                        </th>
 
-          <tr className="hover:bg-fond transition-colors">
+                        <th className="border border-border px-4 py-2 text-left">
+                            Posible Causa
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-03
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Necropsia
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              07:30
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Observaciones
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              3
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Estado
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Infección
-            </td>
+                    </tr>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Sí
-            </td>
+                </thead>
 
-          </tr>
+                <tbody>
 
-        </tbody>
+                    {mortalities.length > 0 ? (
 
-      </table>
+                        mortalities.map((mortality: any) => (
 
-    </div>
-  );
+                            <tr
+                                key={mortality.id}
+                                className="hover:bg-fond transition-colors"
+                            >
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {mortality.id}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {mortality.mortalityDate}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {mortality.mortalityTime}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {mortality.dailyMortality}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {mortality.possibleCauseOfDeath}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {mortality.necropsyPerformed ? "Sí" : "No"}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {mortality.observations}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {mortality.active ? "Activo" : "Inactivo"}
+                                </td>
+
+                            </tr>
+
+                        ))
+
+                    ) : (
+
+                        <tr>
+
+                            <td
+                                colSpan={8}
+                                className="border border-border px-4 py-6 text-center text-title"
+                            >
+                                No hay registros de mortalidad.
+                            </td>
+
+                        </tr>
+
+                    )}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    );
+
 }

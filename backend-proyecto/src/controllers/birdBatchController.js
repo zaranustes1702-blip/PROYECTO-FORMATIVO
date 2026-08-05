@@ -1,91 +1,356 @@
-const { createBirdBatchService } = require("../services/birdBatchServices");
-const { Response } = require("../functions/response");
+const {
+    getAllBirdBatches,
+    getIdBirdBatch,
+    BirdBatchCreate,
+    BirdBatchUpdate,
+    BirdBatchDelete
+} = require("../services/birdBatchServices");
 
-const getAllBirdBatches = (req, res) => {
-    const body = req.body;
-    console.log("Body recibido:", body);
+const Response = require("../functions/response");
 
-    res.status(201);
-    res.json({ message: "Obteniendo todos los lotes de aves" });
+const getBirdBatches = async (req, res) => {
+
+    try {
+
+        const birdBatches = await getAllBirdBatches();
+
+        var response = new Response(
+            true,
+            "Lotes de aves obtenidos exitosamente",
+            birdBatches
+        );
+
+        res.status(201);
+        res.json(response.json);
+
+    } catch (error) {
+
+        console.error("Error obteniendo lotes:", error);
+
+        const errorResponse = new Response(
+            false,
+            "Error interno del servidor",
+            [
+                {
+                    message: error.message || "Ocurrió un error inesperado"
+                }
+            ]
+        );
+
+        res.status(500);
+        res.json(errorResponse.json);
+    }
 };
 
-const getBirdBatchById = (req, res) => {
-    const { id } = req.params;
-    res.json({ message: `Obteniendo lote de aves con id ${id}` });
+const getAllBirdBatchesById = async (req, res) => {
+
+    try {
+
+        const { id } = req.params;
+
+        var errors = [];
+
+        if (!id) {
+            errors.push("El ID del lote es obligatorio");
+        }
+
+        if (errors.length > 0) {
+
+            var response = new Response(
+                false,
+                "Error al obtener el lote",
+                errors
+            );
+
+            res.status(400);
+            return res.json(response.json);
+        }
+
+        const birdBatch = await getBirdBatchById(id);
+
+        if (!birdBatch) {
+
+            var response = new Response(
+                false,
+                "El lote no existe",
+                []
+            );
+
+            res.status(404);
+            return res.json(response.json);
+        }
+
+        var response = new Response(
+            true,
+            "Lote obtenido exitosamente",
+            birdBatch
+        );
+
+        res.status(201);
+        res.json(response.json);
+
+    } catch (error) {
+
+        console.error("Error obteniendo lote:", error);
+
+        const errorResponse = new Response(
+            false,
+            "Error interno del servidor",
+            [
+                {
+                    message: error.message || "Ocurrió un error inesperado"
+                }
+            ]
+        );
+
+        res.status(500);
+        res.json(errorResponse.json);
+    }
 };
 
 const createBirdBatch = async (req, res) => {
 
-    const {
-        entryDate,
-        batchNumber,
-        birdQuantity,
-        batchWeight,
-        birdAgeWeeks,
-        appliedVaccines
-    } = req.body;
+    try {
 
-    var errors = [];
+        const {
+            entryDate,
+            batchNumber,
+            birdQuantity,
+            batchWeight,
+            birdAgeWeeks,
+            appliedVaccines
+        } = req.body;
 
-    if (
-        !entryDate ||
-        !batchNumber ||
-        !birdQuantity ||
-        !batchWeight ||
-        !birdAgeWeeks ||
-        !appliedVaccines
-    ) {
-        errors.push("Todos los campos son obligatorios");
-    }
+        var errors = [];
 
-    if (batchNumber == "") errors.push("El campo batchNumber no puede estar vacío");
-    if (appliedVaccines == "") errors.push("El campo appliedVaccines no puede estar vacío");
+        if (!entryDate) {
+            errors.push("La fecha de ingreso es obligatoria");
+        }
 
-    if (errors.length > 0) {
+        if (!batchNumber || batchNumber.trim() === "") {
+            errors.push("El número del lote es obligatorio");
+        }
+
+        if (!birdQuantity) {
+            errors.push("La cantidad de aves es obligatoria");
+        }
+
+        if (!batchWeight) {
+            errors.push("El peso del lote es obligatorio");
+        }
+
+        if (!birdAgeWeeks) {
+            errors.push("La edad de las aves es obligatoria");
+        }
+
+        if (!appliedVaccines || appliedVaccines.trim() === "") {
+            errors.push("Las vacunas aplicadas son obligatorias");
+        }
+
+        if (errors.length > 0) {
+
+            var response = new Response(
+                false,
+                "Error al crear el lote",
+                errors
+            );
+
+            res.status(400);
+            return res.json(response.json);
+        }
+
+        const data = {
+            entryDate,
+            batchNumber,
+            birdQuantity,
+            batchWeight,
+            birdAgeWeeks,
+            appliedVaccines
+        };
+
+        const birdBatch = await BirdBatchCreate(data);
+
         var response = new Response(
-            false,
-            "Error al crear lote de aves",
-            null,
-            errors
+            true,
+            "Lote creado exitosamente",
+            birdBatch
         );
 
-        return res.status(400).json(response.json());
+        res.status(201);
+        res.json(response.json);
+
+    } catch (error) {
+
+        console.error("Error creando lote:", error);
+
+        const errorResponse = new Response(
+            false,
+            "Error interno del servidor",
+            [
+                {
+                    message: error.message || "Ocurrió un error inesperado"
+                }
+            ]
+        );
+
+        res.status(500);
+        res.json(errorResponse.json);
     }
-
-    const data = {
-        entryDate,
-        batchNumber,
-        birdQuantity,
-        batchWeight,
-        birdAgeWeeks,
-        appliedVaccines
-    };
-
-    const birdBatch = await createBirdBatchService(data);
-
-    var response = new Response(
-        true,
-        "Lote de aves creado exitosamente",
-        birdBatch
-    );
-
-    res.status(201);
-    res.json(response.json());
 };
 
-const updateBirdBatch = (req, res) => {
-    const { id } = req.params;
-    res.json({ message: `Actualizando lote de aves con id ${id}` });
+const updateBirdBatch = async (req, res) => {
+
+    try {
+
+        const { id } = req.params;
+
+        const {
+            entryDate,
+            batchNumber,
+            birdQuantity,
+            batchWeight,
+            birdAgeWeeks,
+            appliedVaccines
+        } = req.body;
+
+        var errors = [];
+
+        if (!id) {
+            errors.push("El ID del lote es obligatorio");
+        }
+
+        if (!entryDate) {
+            errors.push("La fecha de ingreso es obligatoria");
+        }
+
+        if (!batchNumber || batchNumber.trim() === "") {
+            errors.push("El número del lote es obligatorio");
+        }
+
+        if (!birdQuantity) {
+            errors.push("La cantidad de aves es obligatoria");
+        }
+
+        if (!batchWeight) {
+            errors.push("El peso del lote es obligatorio");
+        }
+
+        if (!birdAgeWeeks) {
+            errors.push("La edad de las aves es obligatoria");
+        }
+
+        if (!appliedVaccines || appliedVaccines.trim() === "") {
+            errors.push("Las vacunas aplicadas son obligatorias");
+        }
+
+        if (errors.length > 0) {
+
+            var response = new Response(
+                false,
+                "Error al actualizar el lote",
+                errors
+            );
+
+            res.status(400);
+            return res.json(response.json);
+        }
+
+        const data = {
+            entryDate,
+            batchNumber,
+            birdQuantity,
+            batchWeight,
+            birdAgeWeeks,
+            appliedVaccines
+        };
+
+        const birdBatch = await BirdBatchUpdate(id, data);
+
+        var response = new Response(
+            true,
+            "Lote actualizado exitosamente",
+            birdBatch
+        );
+
+        res.status(201);
+        res.json(response.json);
+
+    } catch (error) {
+
+        console.error("Error actualizando lote:", error);
+
+        const errorResponse = new Response(
+            false,
+            "Error interno del servidor",
+            [
+                {
+                    message: error.message || "Ocurrió un error inesperado"
+                }
+            ]
+        );
+
+        res.status(500);
+        res.json(errorResponse.json);
+    }
 };
 
-const deleteBirdBatch = (req, res) => {
-    const { id } = req.params;
-    res.json({ message: `Eliminando lote de aves con id ${id}` });
+const deleteBirdBatch = async (req, res) => {
+
+    try {
+
+        const { id } = req.params;
+
+        var errors = [];
+
+        if (!id) {
+            errors.push("El ID del lote es obligatorio");
+        }
+
+        if (errors.length > 0) {
+
+            var response = new Response(
+                false,
+                "Error al eliminar el lote",
+                errors
+            );
+
+            res.status(400);
+            return res.json(response.json);
+        }
+
+        const birdBatch = await BirdBatchDelete(id);
+
+        var response = new Response(
+            true,
+            "Lote eliminado exitosamente",
+            birdBatch
+        );
+
+        res.status(201);
+        res.json(response.json);
+
+    } catch (error) {
+
+        console.error("Error eliminando lote:", error);
+
+        const errorResponse = new Response(
+            false,
+            "Error interno del servidor",
+            [
+                {
+                    message: error.message || "Ocurrió un error inesperado"
+                }
+            ]
+        );
+
+        res.status(500);
+        res.json(errorResponse.json);
+    }
 };
 
 module.exports = {
-    getAllBirdBatches,
-    getBirdBatchById,
+    getBirdBatches,
+    getAllBirdBatchesById,
     createBirdBatch,
     updateBirdBatch,
     deleteBirdBatch

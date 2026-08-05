@@ -1,129 +1,156 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function TablaFeeding() {
-  return (
-    <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
-      <table className="w-full border-collapse">
+    const [feedings, setFeedings] = useState<any[]>([]);
 
-        <thead>
-          <tr className="bg-green-2-navbar text-white">
+    useEffect(() => {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Fecha
-            </th>
+        const fetchFeedings = async () => {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Consumo Diario (Kg)
-            </th>
+            try {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Saldo (Kg)
-            </th>
+                const response = await fetch(
+                    "http://localhost:3000/api/feedings/FeedingAll"
+                );
 
-            <th className="border border-border px-4 py-2 text-left">
-              Saldo (Bultos)
-            </th>
+                const resJson = await response.json();
 
-            <th className="border border-border px-4 py-2 text-left">
-              Responsable
-            </th>
+                setFeedings(resJson.data || []);
 
-            <th className="border border-border px-4 py-2 text-left">
-              Turno
-            </th>
+            } catch (error) {
 
-          </tr>
-        </thead>
+                console.error("Error:", error);
+                setFeedings([]);
 
-        <tbody>
+            }
 
-          <tr className="hover:bg-fond transition-colors">
+        };
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-01
-            </td>
+        fetchFeedings();
 
-            <td className="border border-border px-4 py-2 text-title">
-              50
-            </td>
+    }, []);
 
-            <td className="border border-border px-4 py-2 text-title">
-              450
-            </td>
+    return (
 
-            <td className="border border-border px-4 py-2 text-title">
-              9
-            </td>
+        <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
-            <td className="border border-border px-4 py-2 text-title">
-              Juan Pérez
-            </td>
+            <h2 className="text-xl font-semibold mb-4 text-title">
+                Lista de Alimentación
+            </h2>
 
-            <td className="border border-border px-4 py-2 text-title">
-              AM
-            </td>
+            <table className="w-full border-collapse">
 
-          </tr>
+                <thead>
 
-          <tr className="hover:bg-fond transition-colors">
+                    <tr className="bg-green-2-navbar text-white">
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-02
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            ID
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              48
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Fecha
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              402
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Consumo Diario (Kg)
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              8
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Saldo (Kg)
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              María López
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Saldo (Bultos)
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              PM
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Responsable
+                        </th>
 
-          </tr>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Turno
+                        </th>
 
-          <tr className="hover:bg-fond transition-colors">
+                        <th className="border border-border px-4 py-2 text-left">
+                            Estado
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-03
-            </td>
+                    </tr>
 
-            <td className="border border-border px-4 py-2 text-title">
-              52
-            </td>
+                </thead>
 
-            <td className="border border-border px-4 py-2 text-title">
-              350
-            </td>
+                <tbody>
 
-            <td className="border border-border px-4 py-2 text-title">
-              7
-            </td>
+                    {feedings.length > 0 ? (
 
-            <td className="border border-border px-4 py-2 text-title">
-              Carlos Ruiz
-            </td>
+                        feedings.map((feeding: any) => (
 
-            <td className="border border-border px-4 py-2 text-title">
-              AM
-            </td>
+                            <tr
+                                key={feeding.id}
+                                className="hover:bg-fond transition-colors"
+                            >
 
-          </tr>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {feeding.id}
+                                </td>
 
-        </tbody>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {feeding.feedingDate}
+                                </td>
 
-      </table>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {feeding.dailyConsumptionKg}
+                                </td>
 
-    </div>
-  );
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {feeding.remainingKg}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {feeding.remainingBags}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {feeding.responsiblePerson}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {feeding.shift}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {feeding.active ? "Activo" : "Inactivo"}
+                                </td>
+
+                            </tr>
+
+                        ))
+
+                    ) : (
+
+                        <tr>
+
+                            <td
+                                colSpan={8}
+                                className="border border-border px-4 py-6 text-center text-title"
+                            >
+                                No hay registros de alimentación.
+                            </td>
+
+                        </tr>
+
+                    )}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    );
+
 }

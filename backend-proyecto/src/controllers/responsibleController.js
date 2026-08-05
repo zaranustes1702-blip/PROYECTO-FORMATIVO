@@ -1,97 +1,272 @@
-const { createResponsibleService } = require('../services/responsibleServices');
-const { Response } = require("../functions/response");
+const {
+    getAllResponsibles,
+    getResponsibleById,
+    ResponsibleCreate,
+    ResponsibleUpdate,
+    ResponsibleDelete
+} = require("../services/responsibleServices");
 
-const getAllResponsibles = (req, res) => {
-    const body = req.body;
-    console.log("Body recibido:", body);
+const Response = require("../functions/response");
 
-    res.status(201);
-    res.json({ message: "Obteniendo todos los responsables" });
+const getResponsibles = async (req, res) => {
+    try{
+        const responsibles = await getAllResponsibles();
+
+        var response = new Response(
+            true,
+            "Responsables obtenidos exitosamente",
+            responsibles
+        );
+        res.status(201);
+        res.json(response.json);
+    } catch (error) {
+        console.error("Error obteniendo responsables:", error);
+        const errorResponse = new Response(false, "Error interno del servidor", [
+            { message: error.message || "Ocurrió un error inesperado" }
+        ]);
+        res.status(500);
+        res.json(errorResponse.json);
+    }
 };
 
-const getResponsibleById = (req, res) => {
-    const { id } = req.params;
-    res.json({ message: `Obteniendo responsable con id ${id}` });
+const getAllResponsiblesById = async (req, res) => {
+    try {
+
+        const { id } = req.params;
+        var errors = [];
+
+        if (!id) {
+            errors.push("El ID del responsable es obligatorio");
+        }
+
+        if (errors.length > 0) {
+            var response = new Response(false, "Error al obtener el responsable", errors);
+            res.status(400);
+            res.json(response.json);
+            return;
+        }
+        const responsible = await getResponsibleById(id);
+                // Validación de existencia del ID
+        if (!responsible) {
+            var response = new Response(
+                false,
+                "El responsable no existe",
+                []
+            );
+
+            res.status(404);
+            res.json(response.json);
+            return;
+        }
+
+
+        var response = new Response(true, "Responsable obtenido exitosamente", responsible);
+
+        res.status(201);
+        res.json(response.json);
+
+    } catch (error) {
+
+        console.error("Error obteniendo responsable:", error);
+
+        const errorResponse = new Response(false, "Error interno del servidor", [
+            { message: error.message || "Ocurrió un error inesperado" }
+        ]);
+
+        res.status(500);
+        res.json(errorResponse.json);
+    }
 };
 
 const createResponsible = async (req, res) => {
 
-    const {
+    try {
+
+        const {
         fullName,
         documentNumber,
         trainingRecord,
         role,
         responsibleType
-    } = req.body;
+        } = req.body;
 
-    var errors = [];
+        var errors = [];
 
-    if (
-        !fullName ||
-        !documentNumber ||
-        !trainingRecord ||
-        !role ||
-        !responsibleType
-    ) {
-        errors.push("Todos los campos son obligatorios");
+        if (!fullName || fullName.trim() === "") {
+            errors.push("El nombre completo del responsable es obligatorio");
+        }
+
+        if (!documentNumber || documentNumber.trim() === "") {
+            errors.push("El número de documento es obligatorio");
+        }
+
+        if (!trainingRecord || trainingRecord.trim() === "") {
+            errors.push("El registro de capacitación es obligatorio");
+        }
+
+        if (!role || role.trim() === "") {
+            errors.push("El rol del responsable es obligatorio");
+        }
+
+        if (!responsibleType || responsibleType.trim() === "") {
+            errors.push("El tipo de responsable es obligatorio");
+        }
+
+        if (errors.length > 0) {
+
+            var response = new Response(false, "Error al crear el responsable", errors);
+
+            res.status(400);
+            return res.json(response.json);
+        }
+
+        const data = {
+            fullName,
+            documentNumber,
+            trainingRecord,
+            role,
+            responsibleType
+        };
+
+        const responsible = await ResponsibleCreate(data);
+
+        var response = new Response(true, "Responsable creado exitosamente", responsible);
+
+        res.status(201);
+        res.json(response.json);
+
+    } catch (error) {
+
+        console.error("Error en crear responsable:", error);
+
+        const errorResponse = new Response(false, "Error interno del servidor", [
+            { message: error.message || "Ocurrió un error inesperado" }
+        ]);
+
+        res.status(500);
+        res.json(errorResponse.json);
     }
-
-    if (fullName == "") errors.push("El campo fullName no puede estar vacío");
-    if (documentNumber == "") errors.push("El campo documentNumber no puede estar vacío");
-    if (trainingRecord == "") errors.push("El campo trainingRecord no puede estar vacío");
-    if (role == "") errors.push("El campo role no puede estar vacío");
-    if (responsibleType == "") errors.push("El campo responsibleType no puede estar vacío");
-
-    if (errors.length > 0) {
-        var response = new Response(
-            false,
-            "Error al crear responsable",
-            null,
-            errors
-        );
-
-        return res.status(400).json(response.json());
-    }
-
-    const data = {
-        fullName,
-        documentNumber,
-        trainingRecord,
-        role,
-        responsibleType
-    };
-
-    const responsible = await createResponsibleService(data);
-
-    var response = new Response(
-        true,
-        "Responsable creado exitosamente",
-        responsible
-    );
-
-    res.status(201);
-    res.json(response.json());
 };
 
-const updateResponsible = (req, res) => {
-    const { id } = req.params;
+const updateResponsible = async (req, res) => {
 
-    res.json({
-        message: `Actualizando responsable con id ${id}`
-    });
+    try {
+
+        const { id } = req.params;
+
+        const {
+            fullName,
+            documentNumber,
+            trainingRecord,
+            role,
+            responsibleType
+        } = req.body;
+
+        var errors = [];
+
+        if (!id) {
+            errors.push("El ID del responsable es obligatorio");
+        }
+
+        if (!fullName || fullName.trim() === "") {
+            errors.push("El nombre completo del responsable es obligatorio");
+        }
+
+        if (!documentNumber || documentNumber.trim() === "") {
+            errors.push("El número de documento es obligatorio");
+        }
+
+        if (!trainingRecord || trainingRecord.trim() === "") {
+            errors.push("El registro de capacitación es obligatorio");
+        }
+
+        if (!role || role.trim() === "") {
+            errors.push("El rol del responsable es obligatorio");
+        }
+
+        if (!responsibleType || responsibleType.trim() === "") {
+            errors.push("El tipo de responsable es obligatorio");
+        }
+
+        if (errors.length > 0) {
+
+            var response = new Response(false, "Error al actualizar el responsable", errors);
+
+            res.status(400);
+            return res.json(response.json);
+        }
+
+        const data = {
+            fullName,
+            documentNumber,
+            trainingRecord,
+            role,
+            responsibleType
+        };
+
+        const responsible = await ResponsibleUpdate(id, data);
+
+        var response = new Response(true, "Responsable actualizado exitosamente", responsible);
+
+        res.status(201);
+        res.json(response.json);
+
+    } catch (error) {
+
+        console.error("Error en actualizar responsable:", error);
+
+        const errorResponse = new Response(false, "Error interno del servidor", [
+            { message: error.message || "Ocurrió un error inesperado" }
+        ]);
+
+        res.status(500);
+        res.json(errorResponse.json);
+    }
 };
 
-const deleteResponsible = (req, res) => {
-    const { id } = req.params;
+const deleteResponsible = async (req, res) => {
 
-    res.json({
-        message: `Eliminando responsable con id ${id}`
-    });
+    try {
+
+        const { id } = req.params;
+
+        var errors = [];
+
+        if (!id) {
+            errors.push("El ID del responsable es obligatorio");
+        }
+
+        if (errors.length > 0) {
+
+            var response = new Response(false, "Error al eliminar el responsable", errors);
+
+            res.status(400);
+            return res.json(response.json);
+        }
+
+        const responsible = await ResponsibleDelete(id);
+
+        var response = new Response(true, "Responsable eliminado exitosamente", responsible);
+
+        res.status(201);
+        res.json(response.json);
+
+    } catch (error) {
+
+        console.error("Error en eliminar responsable:", error);
+
+        const errorResponse = new Response(false, "Error interno del servidor", [
+            { message: error.message || "Ocurrió un error inesperado" }
+        ]);
+
+        res.status(500);
+        res.json(errorResponse.json);
+    }
 };
 
 module.exports = {
-    getAllResponsibles,
-    getResponsibleById,
+    getResponsibles,
+    getAllResponsiblesById,
     createResponsible,
     updateResponsible,
     deleteResponsible

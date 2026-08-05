@@ -1,54 +1,67 @@
 const responsible = require('../models/responsibleModel');
 
-const createResponsibleService = async (data) => {
+// crear responsable
+const ResponsibleCreate = async (data) => {
     try {
         const newResponsible = await responsible.create(data);
         return newResponsible;
     } catch (error) {
-        console.error(error);
+        console.log(error);
+        throw error;
     }
 }
 
+// obtener todos los responsables
 const getAllResponsibles = async () => {
     try {
         const responsibles = await responsible.findAll();
         return responsibles;
     } catch (error) {
-        console.error(error);
-    }
-};
-
-const getIdResponsible = async (id) => {
-    try {
-        const responsibleId = await responsible.findOne({ where: { id } });
-        return responsibleId;
-    } catch (error) {
-        console.error(error);
+        console.log(error);
+        throw error;
     }
 }
 
-const deleteResponsible = async (id) => {
+// obtener responsable por id
+const getResponsibleById = async (id) => {
     try {
-        const deletedResponsible = await responsible.destroy({ where: { id } });
-        return deletedResponsible;
+        const responsibleid = await responsible.findOne({
+            where: { id }
+        });
+        return responsibleid;
     } catch (error) {
-        console.error(error);
+        console.log(error);
+        throw error;
     }
 }
 
-const updateResponsible = async (id, data) => {
+// eliminar
+const ResponsibleDelete = async (id) => {
     try {
-        const updatedResponsible = await responsible.update(data, { where: { id } });
-        return updatedResponsible;
+        const responsibleDelete = await responsible.destroy({
+            where: { id }
+        });
+        return responsibleDelete;
     } catch (error) {
-        console.error(error);
+        console.log(error);
+        throw error;
     }
 }
 
+// actualizar responsable
+const ResponsibleUpdate = async (id, data) => {
+    try {
+        const responsibleUpdate = await responsible.update(data, { where: { id } });
+        return responsibleUpdate;
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+}
 module.exports = {
+    ResponsibleCreate,
     getAllResponsibles,
-    getIdResponsible,
-    createResponsibleService,
-    updateResponsible,
-    deleteResponsible
-}
+    getResponsibleById,
+    ResponsibleDelete,
+    ResponsibleUpdate
+};

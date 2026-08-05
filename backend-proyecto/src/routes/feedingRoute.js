@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
-//const verifyToken = require("../middlewares/authMiddleware");
+const ValidateToken = require("../middlewares/handlerToken.js");
 
 const {
-    getAllFeedings,
-    getFeedingById,
+    getFeedings,
+    getAllFeedingsById,
     createFeeding,
     updateFeeding,
     deleteFeeding
@@ -23,11 +23,11 @@ const {
  *       200:
  *         description: Lista de alimentaciones obtenida exitosamente
  */
-router.get("/FeedingAll", getAllFeedings);
+router.get("/FeedingAll", ValidateToken, getFeedings);
 
 /**
  * @swagger
- * /api/feedings/FeedingById/{id}:
+ * /api/feedings/Feeding/{id}:
  *   get:
  *     summary: Obtener alimentación por ID
  *     description: Retorna una alimentación según el ID enviado.
@@ -41,7 +41,7 @@ router.get("/FeedingAll", getAllFeedings);
  *       200:
  *         description: Alimentación encontrada
  */
-router.get("/FeedingById/:id", getFeedingById);
+router.get("/Feeding/:id", ValidateToken, getAllFeedingsById);
 
 /**
  * @swagger
@@ -53,7 +53,7 @@ router.get("/FeedingById/:id", getFeedingById);
  *       200:
  *         description: Alimentación creada exitosamente
  */
-router.post("/CreateFeeding", createFeeding);
+router.post("/CreateFeeding", ValidateToken, createFeeding);
 
 /**
  * @swagger
@@ -71,7 +71,7 @@ router.post("/CreateFeeding", createFeeding);
  *       200:
  *         description: Alimentación actualizada exitosamente
  */
-router.put("/UpdateFeeding/:id", updateFeeding);
+router.put("/UpdateFeeding/:id", ValidateToken, updateFeeding);
 
 /**
  * @swagger
@@ -89,6 +89,6 @@ router.put("/UpdateFeeding/:id", updateFeeding);
  *       200:
  *         description: Alimentación eliminada exitosamente
  */
-router.delete("/DeleteFeeding/:id", deleteFeeding);
+router.delete("/DeleteFeeding/:id", ValidateToken, deleteFeeding);
 
 module.exports = router;

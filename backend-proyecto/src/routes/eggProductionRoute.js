@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
-//const verifyToken = require("../middlewares/authMiddleware");
+const ValidateToken = require("../middlewares/handlerToken.js");
 
 const {
-    getAllEggProductions,
-    getEggProductionById,
+    getEggProductions,
+    getAllEggProductionsById,
     createEggProduction,
     updateEggProduction,
     deleteEggProduction
@@ -20,11 +20,11 @@ const {
  *       200:
  *         description: Lista de producciones obtenida exitosamente
  */
-router.get("/EggProductionAll", getAllEggProductions);
+router.get("/EggProductionAll", ValidateToken, getEggProductions);
 
 /**
  * @swagger
- * /api/egg-productions/EggProductionById/{id}:
+ * /api/egg-productions/EggProduction/{id}:
  *   get:
  *     summary: Obtener producción por ID
  *     parameters:
@@ -35,7 +35,7 @@ router.get("/EggProductionAll", getAllEggProductions);
  *       200:
  *         description: Producción encontrada
  */
-router.get("/EggProductionById/:id",  getEggProductionById);
+router.get("/EggProduction/:id", ValidateToken, getAllEggProductionsById);
 
 /**
  * @swagger
@@ -46,7 +46,7 @@ router.get("/EggProductionById/:id",  getEggProductionById);
  *       200:
  *         description: Producción creada exitosamente
  */
-router.post("/CreateEggProduction",  createEggProduction);
+router.post("/CreateEggProduction", ValidateToken,  createEggProduction);
 
 /**
  * @swagger
@@ -61,7 +61,7 @@ router.post("/CreateEggProduction",  createEggProduction);
  *       200:
  *         description: Producción actualizada exitosamente
  */
-router.put("/UpdateEggProduction/:id",  updateEggProduction);
+router.put("/UpdateEggProduction/:id", ValidateToken,  updateEggProduction);
 
 /**
  * @swagger
@@ -76,6 +76,6 @@ router.put("/UpdateEggProduction/:id",  updateEggProduction);
  *       200:
  *         description: Producción eliminada exitosamente
  */
-router.delete("/DeleteEggProduction/:id", deleteEggProduction);
+router.delete("/DeleteEggProduction/:id", ValidateToken, deleteEggProduction);
 
 module.exports = router;

@@ -1,158 +1,302 @@
 function FormCreateEggProduction() {
     return (
-        <div className="p-4 max-w-xl bg-white rounded-lg shadow border border-border">
+        <div className="p-4 max-w-4xl bg-white rounded-lg shadow border border-border">
 
-            <h1 className="text-xl font-semibold mb-4 text-title">
-                Formulario de Producción de Huevos
+            <h1 className="text-xl font-semibold mb-6 text-title">
+                Formulario Producción de Huevos
             </h1>
 
-            <form className="flex flex-col gap-3">
+            <form className="flex flex-col gap-6">
 
-                <div className="flex flex-col">
-                    <label className="text-sm font-medium text-title">
-                        Fecha
-                    </label>
+                {/* INFORMACIÓN GENERAL */}
+                <div className="border border-border rounded-lg p-4">
 
-                    <input
-                        type="date"
-                        name="productionDate"
-                        className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                        required
-                    />
+                    <h2 className="font-semibold text-title mb-4">
+                        Información General
+                    </h2>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <div className="flex flex-col">
+                            <label className="text-sm font-medium text-title">
+                                Fecha
+                            </label>
+
+                            <input
+                                type="date"
+                                name="productionDate"
+                                className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                            />
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label className="text-sm font-medium text-title">
+                                Hora
+                            </label>
+
+                            <input
+                                type="time"
+                                name="productionHour"
+                                className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                            />
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label className="text-sm font-medium text-title">
+                                Lote
+                            </label>
+
+                            <select
+                                className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                            >
+                                <option>Seleccione un lote</option>
+                            </select>
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label className="text-sm font-medium text-title">
+                                Cantidad de Aves
+                            </label>
+
+                            <input
+                                type="number"
+                                name="birdQuantity"
+                                className="border border-border rounded px-3 py-2 bg-gray-100"
+                                readOnly
+                            />
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label className="text-sm font-medium text-title">
+                                Responsable
+                            </label>
+
+                            <input
+                                type="text"
+                                name="responsible"
+                                className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                            />
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label className="text-sm font-medium text-title">
+                                Rol
+                            </label>
+
+                            <select
+                                className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                            >
+                                <option>Gestor</option>
+                                <option>Instructor</option>
+                                <option>Pasante</option>
+                            </select>
+                        </div>
+
+                    </div>
+
                 </div>
 
-                <div className="flex flex-col">
-                    <label className="text-sm font-medium text-title">
-                        Número de Aves
-                    </label>
+                {/* RECOLECCIÓN */}
+                <div className="border border-border rounded-lg p-4">
 
-                    <input
-                        type="number"
-                        name="birdQuantity"
-                        className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                        required
-                    />
+                    <h2 className="font-semibold text-title mb-4">
+                        Recolección
+                    </h2>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <div className="flex flex-col">
+                            <label className="text-sm font-medium text-title">
+                                Huevos Recolectados (Mañana)
+                            </label>
+
+                            <input
+                                type="number"
+                                className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                            />
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label className="text-sm font-medium text-title">
+                                Huevos Recolectados (Tarde)
+                            </label>
+
+                            <input
+                                type="number"
+                                className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                            />
+                        </div>
+
+                    </div>
+
                 </div>
 
-                <div className="flex flex-col">
-                    <label className="text-sm font-medium text-title">
-                        Huevos Recolectados en la Mañana
-                    </label>
+                {/* CLASIFICACIÓN */}
+                <div className="border border-border rounded-lg p-4">
 
-                    <input
-                        type="number"
-                        name="collectedAM"
-                        className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                        required
-                    />
+                    <h2 className="font-semibold text-title mb-4">
+                        Clasificación
+                    </h2>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+
+                        <div className="flex flex-col">
+                            <label>Jumbo</label>
+                            <input type="number" className="border border-border rounded px-3 py-2"/>
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label>AAA</label>
+                            <input type="number" className="border border-border rounded px-3 py-2"/>
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label>AA</label>
+                            <input type="number" className="border border-border rounded px-3 py-2"/>
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label>A</label>
+                            <input type="number" className="border border-border rounded px-3 py-2"/>
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label>B</label>
+                            <input type="number" className="border border-border rounded px-3 py-2"/>
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label>C</label>
+                            <input type="number" className="border border-border rounded px-3 py-2"/>
+                        </div>
+
+                    </div>
+
                 </div>
 
-                <div className="flex flex-col">
-                    <label className="text-sm font-medium text-title">
-                        Huevos Recolectados en la Tarde
-                    </label>
+                {/* CONTROL */}
+                <div className="border border-border rounded-lg p-4">
 
-                    <input
-                        type="number"
-                        name="collectedPM"
-                        className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                        required
-                    />
+                    <h2 className="font-semibold text-title mb-4">
+                        Control de Calidad
+                    </h2>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <div className="flex flex-col">
+                            <label className="text-sm font-medium text-title">
+                                Huevos Rotos
+                            </label>
+
+                            <input
+                                type="number"
+                                className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                            />
+                        </div>
+
+                        <div className="flex flex-col">
+                            <label className="text-sm font-medium text-title">
+                                Observaciones
+                            </label>
+
+                            <textarea
+                                rows={3}
+                                className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                            />
+                        </div>
+
+                    </div>
+
                 </div>
 
-                <div className="flex flex-col">
-                    <label className="text-sm font-medium text-title">
-                        Producción Diaria
-                    </label>
+                {/* RESUMEN */}
+                <div className="border border-border rounded-lg p-4 bg-fond">
 
-                    <input
-                        type="number"
-                        name="dailyProduction"
-                        className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                        required
-                    />
-                </div>
+                    <h2 className="font-semibold text-title mb-4">
+                        Resumen Automático
+                    </h2>
 
-                <div className="flex flex-col">
-                    <label className="text-sm font-medium text-title">
-                        Huevos Rotos
-                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
 
-                    <input
-                        type="number"
-                        name="brokenEggs"
-                        className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                        required
-                    />
-                </div>
+                        <div>
+                            <label className="text-sm text-subtitle">
+                                Total Mañana
+                            </label>
 
-                <div className="flex flex-col">
-                    <label className="text-sm font-medium text-title">
-                        Tipo de Huevo
-                    </label>
+                            <input
+                                readOnly
+                                className="border border-border rounded px-3 py-2 bg-gray-100 w-full"
+                            />
+                        </div>
 
-                    <select
-                        name="eggType"
-                        className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                    >
-                        <option value="AAA">AAA</option>
-                        <option value="AA">AA</option>
-                        <option value="A">A</option>
-                        <option value="B">B</option>
-                        <option value="C">C</option>
-                        <option value="JUMBO">JUMBO</option>
-                    </select>
-                </div>
+                        <div>
+                            <label className="text-sm text-subtitle">
+                                Total Tarde
+                            </label>
 
-                <div className="flex flex-col">
-                    <label className="text-sm font-medium text-title">
-                        Valor Unitario
-                    </label>
+                            <input
+                                readOnly
+                                className="border border-border rounded px-3 py-2 bg-gray-100 w-full"
+                            />
+                        </div>
 
-                    <input
-                        type="number"
-                        step="0.01"
-                        name="unitValue"
-                        className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                        required
-                    />
-                </div>
+                        <div>
+                            <label className="text-sm text-subtitle">
+                                Total del Día
+                            </label>
 
-                <div className="flex flex-col">
-                    <label className="text-sm font-medium text-title">
-                        Valor Total
-                    </label>
+                            <input
+                                readOnly
+                                className="border border-border rounded px-3 py-2 bg-gray-100 w-full"
+                            />
+                        </div>
 
-                    <input
-                        type="number"
-                        step="0.01"
-                        name="totalValue"
-                        className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                        required
-                    />
-                </div>
+                        <div>
+                            <label className="text-sm text-subtitle">
+                                Huevos Buenos
+                            </label>
 
-                <div className="flex flex-col">
-                    <label className="text-sm font-medium text-title">
-                        Total Semanal de Huevos
-                    </label>
+                            <input
+                                readOnly
+                                className="border border-border rounded px-3 py-2 bg-gray-100 w-full"
+                            />
+                        </div>
 
-                    <input
-                        type="number"
-                        name="weeklyEggTotal"
-                        className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                        required
-                    />
+                        <div>
+                            <label className="text-sm text-subtitle">
+                                Producción Semanal
+                            </label>
+
+                            <input
+                                readOnly
+                                className="border border-border rounded px-3 py-2 bg-gray-100 w-full"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="text-sm text-subtitle">
+                                % Producción
+                            </label>
+
+                            <input
+                                readOnly
+                                className="border border-border rounded px-3 py-2 bg-gray-100 w-full"
+                            />
+                        </div>
+
+                    </div>
+
                 </div>
 
                 <button
                     type="submit"
                     className="bg-green-2-navbar text-white py-2 rounded hover:bg-green-1-navbar transition-colors"
                 >
-                    Crear
+                    Crear Producción
                 </button>
 
             </form>
+
         </div>
     );
 }

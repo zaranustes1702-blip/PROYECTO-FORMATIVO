@@ -1,0 +1,9 @@
+{
+    "subject": "¡Bienvenido a EggBalance!",
+    "html": "C:\\Users\\Zara Ñustes\\OneDrive\\Documents\\ACTIVIDADES EMBO\\EMBO DESARROLLO\\PROYECTO-FORMATIVO\\backend-proyecto\\public\\plantillas\\html\\welcome.html",
+    "params": {
+        "@link": "https://eggbalance.com/login",
+        "@nameBtn": "Iniciar sesión",
+        "@cuentaEmpresa": "soporte@eggbalance.com"
+    }
+}

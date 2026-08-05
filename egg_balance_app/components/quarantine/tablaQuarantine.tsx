@@ -1,145 +1,164 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function TablaQuarantine() {
-  return (
-    <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
-      <table className="w-full border-collapse">
+    const [quarantines, setQuarantines] = useState<any[]>([]);
 
-        <thead>
-          <tr className="bg-green-2-navbar text-white">
+    useEffect(() => {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Fecha
-            </th>
+        const fetchQuarantines = async () => {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Aves Afectadas
-            </th>
+            try {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Síntomas
-            </th>
+                const response = await fetch(
+                    "http://localhost:3000/api/quarantines/QuarantineAll"
+                );
 
-            <th className="border border-border px-4 py-2 text-left">
-              Diagnóstico
-            </th>
+                const resJson = await response.json();
 
-            <th className="border border-border px-4 py-2 text-left">
-              Tratamiento
-            </th>
+                setQuarantines(resJson.data || []);
 
-            <th className="border border-border px-4 py-2 text-left">
-              Dosis
-            </th>
+            } catch (error) {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Fecha de Finalización
-            </th>
+                console.error("Error:", error);
+                setQuarantines([]);
 
-          </tr>
-        </thead>
+            }
 
-        <tbody>
+        };
 
-          <tr className="hover:bg-fond transition-colors">
+        fetchQuarantines();
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-01
-            </td>
+    }, []);
 
-            <td className="border border-border px-4 py-2 text-title">
-              15
-            </td>
+    return (
 
-            <td className="border border-border px-4 py-2 text-title">
-              Tos
-            </td>
+        <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
-            <td className="border border-border px-4 py-2 text-title">
-              Gripe Aviar
-            </td>
+            <h2 className="text-xl font-semibold mb-4 text-title">
+                Lista de Cuarentenas
+            </h2>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Antibiótico
-            </td>
+            <table className="w-full border-collapse">
 
-            <td className="border border-border px-4 py-2 text-title">
-              10 ml
-            </td>
+                <thead>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-10
-            </td>
+                    <tr className="bg-green-2-navbar text-white">
 
-          </tr>
+                        <th className="border border-border px-4 py-2 text-left">
+                            ID
+                        </th>
 
-          <tr className="hover:bg-fond transition-colors">
+                        <th className="border border-border px-4 py-2 text-left">
+                            Fecha
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-20
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Aves Afectadas
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              10
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Síntomas
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Diarrea
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Diagnóstico
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Salmonelosis
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Tratamiento
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Tratamiento Oral
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Dosis
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              5 ml
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Fecha de Finalización
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-28
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Estado
+                        </th>
 
-          </tr>
+                    </tr>
 
-          <tr className="hover:bg-fond transition-colors">
+                </thead>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-06-05
-            </td>
+                <tbody>
 
-            <td className="border border-border px-4 py-2 text-title">
-              8
-            </td>
+                    {quarantines.length > 0 ? (
 
-            <td className="border border-border px-4 py-2 text-title">
-              Fiebre
-            </td>
+                        quarantines.map((quarantine: any) => (
 
-            <td className="border border-border px-4 py-2 text-title">
-              Infección Respiratoria
-            </td>
+                            <tr
+                                key={quarantine.id}
+                                className="hover:bg-fond transition-colors"
+                            >
 
-            <td className="border border-border px-4 py-2 text-title">
-              Vacunación
-            </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {quarantine.id}
+                                </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              1 dosis
-            </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {quarantine.quarantineDate}
+                                </td>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-06-12
-            </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {quarantine.affectedBirds}
+                                </td>
 
-          </tr>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {quarantine.symptoms}
+                                </td>
 
-        </tbody>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {quarantine.diagnosis}
+                                </td>
 
-      </table>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {quarantine.treatment}
+                                </td>
 
-    </div>
-  );
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {quarantine.dose}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {quarantine.endDate}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {quarantine.active ? "Activo" : "Inactivo"}
+                                </td>
+
+                            </tr>
+
+                        ))
+
+                    ) : (
+
+                        <tr>
+
+                            <td
+                                colSpan={9}
+                                className="border border-border px-4 py-6 text-center text-title"
+                            >
+                                No hay registros de cuarentena.
+                            </td>
+
+                        </tr>
+
+                    )}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    );
+
 }

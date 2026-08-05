@@ -109,9 +109,9 @@ const data = [
     group: "Inventario",
     items: [
       {
-        title: "Alimentos",
+        title: "Alimentos y medicamentos",
         icon: Package,
-        route: "food",
+        route: "supply",
       },
     ],
   },

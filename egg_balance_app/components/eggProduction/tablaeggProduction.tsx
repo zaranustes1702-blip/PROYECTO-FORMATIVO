@@ -1,145 +1,255 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function TablaEggProduction() {
-  return (
-    <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
+    const [eggProductions, setEggProductions] = useState<any[]>([]);
 
-      <table className="w-full border-collapse">
+    useEffect(() => {
+        const fetchEggProductions = async () => {
+            try {
+                const response = await fetch(
+                    "http://localhost:3000/api/egg-productions/EggProductionAll"
+                );
 
-        <thead>
-          <tr className="bg-green-2-navbar text-white">
+                const resJson = await response.json();
 
-            <th className="border border-border px-4 py-2 text-left">
-              Fecha
-            </th>
+                setEggProductions(resJson.data || []);
+            } catch (error) {
+                console.error("Error:", error);
+                setEggProductions([]);
+            }
+        };
 
-            <th className="border border-border px-4 py-2 text-left">
-              Aves
-            </th>
+        fetchEggProductions();
+    }, []);
 
-            <th className="border border-border px-4 py-2 text-left">
-              Huevos AM
-            </th>
+    return (
+        <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
-            <th className="border border-border px-4 py-2 text-left">
-              Huevos PM
-            </th>
+            <h2 className="text-xl font-semibold mb-4 text-title">
+                Lista de Producción de Huevos
+            </h2>
 
-            <th className="border border-border px-4 py-2 text-left">
-              Total Diario
-            </th>
+            <table className="w-full border-collapse">
 
-            <th className="border border-border px-4 py-2 text-left">
-              Huevos Rotos
-            </th>
+                <thead>
 
-            <th className="border border-border px-4 py-2 text-left">
-              Tipo de Huevo
-            </th>
+                    <tr className="bg-green-2-navbar text-white">
 
-          </tr>
-        </thead>
+                        <th className="border border-border px-4 py-2 text-left">
+                            ID
+                        </th>
 
-        <tbody>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Fecha
+                        </th>
 
-          <tr className="hover:bg-fond transition-colors">
+                        <th className="border border-border px-4 py-2 text-left">
+                            Hora
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-01
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Lote
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              500
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Aves
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              220
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Responsable
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              230
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Rol
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              450
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Recolectados AM
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              5
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Recolectados PM
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              AAA
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Jumbo
+                        </th>
 
-          </tr>
+                        <th className="border border-border px-4 py-2 text-left">
+                            AAA
+                        </th>
 
-          <tr className="hover:bg-fond transition-colors">
+                        <th className="border border-border px-4 py-2 text-left">
+                            AA
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-02
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            A
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              500
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            B
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              225
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            C
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              235
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Huevos Rotos
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              460
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Total Día
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              3
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Huevos Buenos
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              AA
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Total Semana
+                        </th>
 
-          </tr>
+                        <th className="border border-border px-4 py-2 text-left">
+                            % Producción
+                        </th>
 
-          <tr className="hover:bg-fond transition-colors">
+                        <th className="border border-border px-4 py-2 text-left">
+                            Observaciones
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              2025-05-03
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Estado
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              500
-            </td>
+                    </tr>
 
-            <td className="border border-border px-4 py-2 text-title">
-              230
-            </td>
+                </thead>
 
-            <td className="border border-border px-4 py-2 text-title">
-              240
-            </td>
+                <tbody>
 
-            <td className="border border-border px-4 py-2 text-title">
-              470
-            </td>
+                    {eggProductions.length > 0 ? (
 
-            <td className="border border-border px-4 py-2 text-title">
-              4
-            </td>
+                        eggProductions.map((egg: any) => (
 
-            <td className="border border-border px-4 py-2 text-title">
-              A
-            </td>
+                            <tr
+                                key={egg.id}
+                                className="hover:bg-fond transition-colors"
+                            >
 
-          </tr>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.id}
+                                </td>
 
-        </tbody>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.productionDate}
+                                </td>
 
-      </table>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.productionHour}
+                                </td>
 
-    </div>
-  );
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.batch}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.birdQuantity}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.responsible}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.responsibleRole}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.collectedAM}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.collectedPM}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.jumboEggs}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.aaaEggs}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.aaEggs}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.aEggs}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.bEggs}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.cEggs}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.brokenEggs}
+                                </td>
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.totalDay}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.goodEggs}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.weeklyEggTotal}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.productionPercentage}%
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.observations}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {egg.active ? "Activo" : "Inactivo"}
+                                </td>
+
+                            </tr>
+
+                        ))
+
+                    ) : (
+
+                        <tr>
+
+                            <td
+                                colSpan={24}
+                                className="border border-border px-4 py-6 text-center text-title"
+                            >
+                                No hay registros de producción de huevos.
+                            </td>
+
+                        </tr>
+
+                    )}
+
+                </tbody>
+
+            </table>
+
+        </div>
+    );
 }

@@ -1,113 +1,148 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function TablaResponsible() {
-  return (
-    <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
-      <table className="w-full border-collapse">
+    const [responsibles, setResponsibles] = useState<any[]>([]);
 
-        <thead>
-          <tr className="bg-green-2-navbar text-white">
+    useEffect(() => {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Nombre
-            </th>
+        const fetchResponsibles = async () => {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Documento
-            </th>
+            try {
 
-            <th className="border border-border px-4 py-2 text-left">
-              Ficha
-            </th>
+                const response = await fetch(
+                    "http://localhost:3000/api/responsibles/ResponsibleAll"
+                );
 
-            <th className="border border-border px-4 py-2 text-left">
-              Rol
-            </th>
+                const resJson = await response.json();
 
-            <th className="border border-border px-4 py-2 text-left">
-              Tipo
-            </th>
+                setResponsibles(resJson.data || []);
 
-          </tr>
-        </thead>
+            } catch (error) {
 
-        <tbody>
+                console.error("Error:", error);
+                setResponsibles([]);
 
-          <tr className="hover:bg-fond transition-colors">
+            }
 
-            <td className="border border-border px-4 py-2 text-title">
-              Juan Pérez
-            </td>
+        };
 
-            <td className="border border-border px-4 py-2 text-title">
-              123456
-            </td>
+        fetchResponsibles();
 
-            <td className="border border-border px-4 py-2 text-title">
-              3285039
-            </td>
+    }, []);
 
-            <td className="border border-border px-4 py-2 text-title">
-              Instructor
-            </td>
+    return (
 
-            <td className="border border-border px-4 py-2 text-title">
-              Instructor
-            </td>
+        <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
-          </tr>
+            <h2 className="text-xl font-semibold mb-4 text-title">
+                Lista de Responsables
+            </h2>
 
-          <tr className="hover:bg-fond transition-colors">
+            <table className="w-full border-collapse">
 
-            <td className="border border-border px-4 py-2 text-title">
-              María López
-            </td>
+                <thead>
 
-            <td className="border border-border px-4 py-2 text-title">
-              654321
-            </td>
+                    <tr className="bg-green-2-navbar text-white">
 
-            <td className="border border-border px-4 py-2 text-title">
-              3285039
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            ID
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Aprendiz
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Nombre
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Aprendiz
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Documento
+                        </th>
 
-          </tr>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Ficha
+                        </th>
 
-          <tr className="hover:bg-fond transition-colors">
+                        <th className="border border-border px-4 py-2 text-left">
+                            Rol
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Carlos Ruiz
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Tipo
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              789456
-            </td>
+                        <th className="border border-border px-4 py-2 text-left">
+                            Estado
+                        </th>
 
-            <td className="border border-border px-4 py-2 text-title">
-              3285039
-            </td>
+                    </tr>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Gestor
-            </td>
+                </thead>
 
-            <td className="border border-border px-4 py-2 text-title">
-              Gestor
-            </td>
+                <tbody>
 
-          </tr>
+                    {responsibles.length > 0 ? (
 
-        </tbody>
+                        responsibles.map((responsible: any) => (
 
-      </table>
+                            <tr
+                                key={responsible.id}
+                                className="hover:bg-fond transition-colors"
+                            >
 
-    </div>
-  );
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {responsible.id}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {responsible.fullName}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {responsible.documentNumber}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {responsible.trainingRecord}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {responsible.role}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {responsible.responsibleType}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {responsible.active ? "Activo" : "Inactivo"}
+                                </td>
+
+                            </tr>
+
+                        ))
+
+                    ) : (
+
+                        <tr>
+
+                            <td
+                                colSpan={7}
+                                className="border border-border px-4 py-6 text-center text-title"
+                            >
+                                No hay responsables registrados.
+                            </td>
+
+                        </tr>
+
+                    )}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    );
+
 }

@@ -1,52 +1,185 @@
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
+
+const { Response } = require("../functions/response");
+
 dotenv.config();
-const Response  = require("../functions/response");
 
-const JWT_SECRET = process.env.JWT_SECRET || "";
+const JWT_KEY_SECRET = process.env.JWT_KEY_SECRET || "";
 
 
+// Login
 const login = (req, res) => {
 
     const { userName, password } = req.body;
-    
-    var errors = [];
 
     if (userName == "" || password == "") {
 
         res.status(400);
 
         const response = new Response(
-            "Error en el login",
+            "Error en login",
             null,
-            "Usuario y contraseña no tienen info"
+            "Usuario o contraseña vacíos"
         );
 
         return res.json(response);
+
     }
 
-    // Generar token
+
     const token = jwt.sign(
-        {
-            userName: userName
+        { 
+            user: userName 
         },
-        JWT_SECRET,
+        JWT_KEY_SECRET,
         {
             expiresIn: "1h"
         }
     );
 
+
     const response = new Response(
-        "Login exitoso",
+        "Login successful",
         {
-            token: token
+            token
         },
         null
     );
 
-    return res.json(response);
+
+    return res.json(response.success);
+
 };
 
+
+
+// recuperar contraseña
+const resetPassword = (req, res) => {
+
+    const { email } = req.body;
+
+
+    if (email == "") {
+
+        res.status(400);
+
+        const response = new Response(
+            "Error recuperación contraseña",
+            null,
+            "El correo es obligatorio"
+        );
+
+        return res.json(response);
+
+    }
+
+
+    const response = new Response(
+        "Solicitud de recuperación enviada",
+        {
+            email
+        },
+        null
+    );
+
+
+    return res.json(response.success);
+
+};
+
+
+
+// validar recuperación de contraseña
+const validateResetPassword = (req, res) => {
+
+    const { token } = req.body;
+
+
+    if (token == "") {
+
+        res.status(400);
+
+        const response = new Response(
+            "Error validando recuperación",
+            null,
+            "Token requerido"
+        );
+
+        return res.json(response);
+
+    }
+
+
+    const response = new Response(
+        "Token válido",
+        {
+            token
+        },
+        null
+    );
+
+
+    return res.json(response.success);
+
+};
+
+
+
+// nueva contraseña
+const newPassword = (req, res) => {
+
+    const { password, confirmPassword } = req.body;
+
+
+    if (password == "" || confirmPassword == "") {
+
+        res.status(400);
+
+        const response = new Response(
+            "Error cambiando contraseña",
+            null,
+            "Las contraseñas son obligatorias"
+        );
+
+        return res.json(response);
+
+    }
+
+
+    if (password != confirmPassword) {
+
+        res.status(400);
+
+        const response = new Response(
+            "Error cambiando contraseña",
+            null,
+            "Las contraseñas no coinciden"
+        );
+
+        return res.json(response);
+
+    }
+
+
+    const response = new Response(
+        "Contraseña actualizada correctamente",
+        null,
+        null
+    );
+
+
+    return res.json(response.success);
+
+};
+
+
+
 module.exports = {
-    login
+
+    login,
+    resetPassword,
+    validateResetPassword,
+    newPassword
+
 };
