@@ -20,27 +20,8 @@ const eggproduction = db.define(
             allowNull: false
         },
 
-        batch: {
-            type: DataTypes.STRING(50),
-            allowNull: false
-        },
-
-        birdQuantity: {
-            type: DataTypes.INTEGER,
-            allowNull: false
-        },
-
         responsible: {
             type: DataTypes.STRING(100),
-            allowNull: false
-        },
-
-        responsibleRole: {
-            type: DataTypes.ENUM(
-                "Gestor",
-                "Instructor",
-                "Pasante"
-            ),
             allowNull: false
         },
 

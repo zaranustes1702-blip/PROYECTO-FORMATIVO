@@ -47,18 +47,6 @@ function FormCreateResponsible() {
                     />
                 </div>
 
-                <div className="flex flex-col">
-                    <label className="text-sm font-medium text-subtitle">
-                        Rol
-                    </label>
-
-                    <input
-                        type="text"
-                        name="role"
-                        className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                        required
-                    />
-                </div>
 
                 <div className="flex flex-col">
                     <label className="text-sm font-medium text-subtitle">

@@ -1,5 +1,9 @@
+"use client";
+
 function FormCreateHealth() {
+
     return (
+
         <div className="p-4 max-w-xl bg-white rounded-lg shadow border border-border">
 
             <h1 className="text-xl font-semibold mb-4 text-title">
@@ -8,106 +12,63 @@ function FormCreateHealth() {
 
             <form className="flex flex-col gap-3">
 
+
+                {/* FECHA */}
+
                 <div className="flex flex-col">
+
                     <label className="text-sm font-medium text-subtitle">
-                        Fecha de Detección
+                        Fecha de Sanidad
                     </label>
 
                     <input
                         type="date"
-                        name="detectionDate"
+                        name="Fec_Sanidad"
                         className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
                         required
                     />
+
                 </div>
 
+
+                {/* CANTIDAD DE VACUNAS */}
+
                 <div className="flex flex-col">
+
                     <label className="text-sm font-medium text-subtitle">
-                        Lote Afectado
+                        Cantidad de Vacunas
+                    </label>
+
+                    <input
+                        type="number"
+                        name="Cant_Vac_Sanidad"
+                        min="0"
+                        className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                        required
+                    />
+
+                </div>
+
+
+                {/* NOMBRE DE VACUNA */}
+
+                <div className="flex flex-col">
+
+                    <label className="text-sm font-medium text-subtitle">
+                        Nombre de la Vacuna
                     </label>
 
                     <input
                         type="text"
-                        name="affectedBatch"
+                        name="Nom_Vac_Sanidad"
                         className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
                         required
                     />
+
                 </div>
 
-                <div className="flex flex-col">
-                    <label className="text-sm font-medium text-subtitle">
-                        Síntomas
-                    </label>
 
-                    <input
-                        type="text"
-                        name="symptoms"
-                        className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                        required
-                    />
-                </div>
-
-                <div className="flex flex-col">
-                    <label className="text-sm font-medium text-subtitle">
-                        Diagnóstico
-                    </label>
-
-                    <input
-                        type="text"
-                        name="diagnosis"
-                        className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                        required
-                    />
-                </div>
-
-                <div className="flex flex-col">
-                    <label className="text-sm font-medium text-subtitle">
-                        Tratamiento
-                    </label>
-
-                    <input
-                        type="text"
-                        name="treatmentApplied"
-                        className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                        required
-                    />
-                </div>
-
-                <div className="flex flex-col">
-                    <label className="text-sm font-medium text-subtitle">
-                        Responsable
-                    </label>
-
-                    <input
-                        type="text"
-                        name="responsiblePerson"
-                        className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                        required
-                    />
-                </div>
-
-                <div className="flex flex-col">
-                    <label className="text-sm font-medium text-subtitle">
-                        Observaciones
-                    </label>
-
-                    <textarea
-                        name="observations"
-                        className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                    />
-                </div>
-
-                <div className="flex flex-col">
-                    <label className="text-sm font-medium text-subtitle">
-                        Fecha de Recuperación
-                    </label>
-
-                    <input
-                        type="date"
-                        name="recoveryDate"
-                        className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                    />
-                </div>
+                {/* BOTÓN */}
 
                 <button
                     type="submit"
@@ -117,6 +78,7 @@ function FormCreateHealth() {
                 </button>
 
             </form>
+
         </div>
     );
 }

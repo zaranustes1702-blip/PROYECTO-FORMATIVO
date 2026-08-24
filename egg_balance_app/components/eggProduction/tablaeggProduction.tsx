@@ -50,19 +50,7 @@ export default function TablaEggProduction() {
                         </th>
 
                         <th className="border border-border px-4 py-2 text-left">
-                            Lote
-                        </th>
-
-                        <th className="border border-border px-4 py-2 text-left">
-                            Aves
-                        </th>
-
-                        <th className="border border-border px-4 py-2 text-left">
                             Responsable
-                        </th>
-
-                        <th className="border border-border px-4 py-2 text-left">
-                            Rol
                         </th>
 
                         <th className="border border-border px-4 py-2 text-left">
@@ -153,19 +141,7 @@ export default function TablaEggProduction() {
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
-                                    {egg.batch}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {egg.birdQuantity}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
                                     {egg.responsible}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {egg.responsibleRole}
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
@@ -203,6 +179,7 @@ export default function TablaEggProduction() {
                                 <td className="border border-border px-4 py-2 text-title">
                                     {egg.brokenEggs}
                                 </td>
+
                                 <td className="border border-border px-4 py-2 text-title">
                                     {egg.totalDay}
                                 </td>
@@ -236,7 +213,7 @@ export default function TablaEggProduction() {
                         <tr>
 
                             <td
-                                colSpan={24}
+                                colSpan={19}
                                 className="border border-border px-4 py-6 text-center text-title"
                             >
                                 No hay registros de producción de huevos.

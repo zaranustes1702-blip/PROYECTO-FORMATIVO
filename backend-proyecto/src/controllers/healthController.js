@@ -86,46 +86,23 @@ const createHealth = async (req, res) => {
     try {
 
         const {
-        detectionDate,
-        affectedBatch,
-        symptoms,
-        diagnosis,
-        treatmentApplied,
-        responsiblePerson,
-        observations,
-        recoveryDate
+            healthDate,
+            vaccineQuantity,
+            vaccineName
         } = req.body;
 
         var errors = [];
 
-        if (!detectionDate || detectionDate.trim() === "") {
-            errors.push("La fecha de detección no puede estar vacía");
+        if (!healthDate || healthDate.trim() === "") {
+            errors.push("La fecha de sanidad no puede estar vacía");
         }
 
-        if (!affectedBatch || affectedBatch.trim() === "") {
-            errors.push("El lote afectado no puede estar vacío");
+        if (!vaccineQuantity) {
+            errors.push("La cantidad de vacunas no puede estar vacía");
         }
 
-        if (!symptoms || symptoms.trim() === "") {
-            errors.push("Los síntomas no pueden estar vacíos");
-        }
-
-        if (!diagnosis || diagnosis.trim() === "") {
-            errors.push("El diagnóstico no puede estar vacío");
-        }
-
-        if (!treatmentApplied || treatmentApplied.trim() === "") {
-            errors.push("El tratamiento aplicado no puede estar vacío");
-        }
-
-        if (!responsiblePerson || responsiblePerson.trim() === "") {
-            errors.push("La persona responsable no puede estar vacía");
-        }
-        if (!observations || observations.trim() === "") {
-            errors.push("Las observaciones no pueden estar vacías");
-        }
-        if (!recoveryDate || recoveryDate.trim() === "") {
-            errors.push("La fecha de recuperación no puede estar vacía");
+        if (!vaccineName || vaccineName.trim() === "") {
+            errors.push("El nombre de la vacuna no puede estar vacío");
         }
 
 
@@ -139,14 +116,9 @@ const createHealth = async (req, res) => {
         }
 
         const data = {
-            detectionDate,
-            affectedBatch,
-            symptoms,
-            diagnosis,
-            treatmentApplied,
-            responsiblePerson,
-            observations,
-            recoveryDate
+            healthDate,
+            vaccineQuantity,
+            vaccineName
         };
 
         const health = await HealthCreate(data);
@@ -169,6 +141,7 @@ const createHealth = async (req, res) => {
     }
 };
 
+
 const updateHealth = async (req, res) => {
 
     try {
@@ -176,14 +149,9 @@ const updateHealth = async (req, res) => {
         const { id } = req.params;
 
         const {
-            detectionDate,
-            affectedBatch,
-            symptoms,
-            diagnosis,
-            treatmentApplied,
-            responsiblePerson,
-            observations,
-            recoveryDate
+            healthDate,
+            vaccineQuantity,
+            vaccineName
         } = req.body;
 
         var errors = [];
@@ -192,35 +160,18 @@ const updateHealth = async (req, res) => {
             errors.push("El ID del registro sanitario es obligatorio");
         }
 
-        if (!detectionDate || detectionDate.trim() === "") {
-            errors.push("La fecha de detección no puede estar vacía");
+        if (!healthDate || healthDate.trim() === "") {
+            errors.push("La fecha de sanidad no puede estar vacía");
         }
 
-        if (!affectedBatch || affectedBatch.trim() === "") {
-            errors.push("El lote afectado no puede estar vacío");
+        if (!vaccineQuantity) {
+            errors.push("La cantidad de vacunas no puede estar vacía");
         }
 
-        if (!symptoms || symptoms.trim() === "") {
-            errors.push("Los síntomas no pueden estar vacíos");
+        if (!vaccineName || vaccineName.trim() === "") {
+            errors.push("El nombre de la vacuna no puede estar vacío");
         }
 
-        if (!diagnosis || diagnosis.trim() === "") {
-            errors.push("El diagnóstico no puede estar vacío");
-        }
-
-        if (!treatmentApplied || treatmentApplied.trim() === "") {
-            errors.push("El tratamiento aplicado no puede estar vacío");
-        }
-
-        if (!responsiblePerson || responsiblePerson.trim() === "") {
-            errors.push("La persona responsable no puede estar vacía");
-        }
-        if (!observations || observations.trim() === "") {
-            errors.push("Las observaciones no pueden estar vacías");
-        }
-        if (!recoveryDate || recoveryDate.trim() === "") {
-            errors.push("La fecha de recuperación no puede estar vacía");
-        }
 
         if (errors.length > 0) {
 
@@ -232,14 +183,9 @@ const updateHealth = async (req, res) => {
         }
 
         const data = {
-            detectionDate,
-            affectedBatch,
-            symptoms,
-            diagnosis,
-            treatmentApplied,
-            responsiblePerson,
-            observations,
-            recoveryDate
+            healthDate,
+            vaccineQuantity,
+            vaccineName
         };
 
         const health = await HealthUpdate(id, data);
@@ -261,7 +207,6 @@ const updateHealth = async (req, res) => {
         res.json(errorResponse.json);
     }
 };
-
 const deleteHealth = async (req, res) => {
 
     try {

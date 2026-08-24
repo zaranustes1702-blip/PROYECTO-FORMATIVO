@@ -1,4 +1,4 @@
-import Link from "next/link";
+"use client";
 
 import {
   Bird,
@@ -11,7 +11,7 @@ import {
   Wheat,
   Warehouse,
   Scale,
-  ChevronRight,
+  ChevronDown,
   User,
 } from "lucide-react";
 
@@ -26,6 +26,8 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubItem,
+  SidebarMenuSubButton,
+  SidebarMenuButton,
   SidebarRail,
 } from "@/components/ui/sidebar";
 
@@ -34,6 +36,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+
+import { usePathname, useRouter } from "next/navigation";
 
 const data = [
   {
@@ -134,160 +138,251 @@ const data = [
 ];
 
 export function AppSidebar() {
-  return (
-    <Sidebar collapsible="icon">
+  const router = useRouter();
+  const pathname = usePathname();
 
+  // Verifica si la ruta actual pertenece al módulo
+  const isActive = (route: string) => {
+    return pathname === `/dashboard/${route}` ||
+      pathname?.startsWith(`/dashboard/${route}/`);
+  };
+
+  return (
+    <Sidebar
+      variant="inset"
+      collapsible="icon"
+      className="relative flex h-full flex-col border-r bg-white text-[#3A2A1A]"
+    >
+
+      {/* ===================================================== */}
       {/* HEADER */}
-      <SidebarHeader>
+      {/* ===================================================== */}
+
+      <SidebarHeader className="bg-white">
+
         <SidebarMenu>
+
           <SidebarMenuItem>
 
-            <button
-              type="button"
+            <SidebarMenuButton
+              size="lg"
               className="
-                flex
-                w-full
-                items-center
-                gap-2
-                rounded-md
-                p-2
-                text-left
-                transition-colors
-                hover:bg-sidebar-accent
-                hover:text-sidebar-accent-foreground
+                bg-white
+                text-[#3A2A1A]
+                hover:bg-[#F2E9D4]
+                hover:text-[#3A2A1A]
+                group-data-[collapsible=icon]:justify-center
               "
             >
-              <Egg />
 
-              <div className="grid flex-1 text-left text-sm leading-tight">
+              <Egg className="size-5 shrink-0" />
+
+              <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+
                 <span className="truncate font-semibold">
                   Egg Balance
                 </span>
 
-                <span className="truncate text-xs">
+                <span className="truncate text-xs text-[#666161]">
                   Sistema Avícola
                 </span>
+
               </div>
-            </button>
+
+            </SidebarMenuButton>
 
           </SidebarMenuItem>
+
         </SidebarMenu>
+
       </SidebarHeader>
 
+
+      {/* ===================================================== */}
       {/* CONTENIDO */}
-      <SidebarContent>
+      {/* ===================================================== */}
+
+      <SidebarContent className="bg-white text-[#3A2A1A]">
 
         {data.map((group) => (
 
           <SidebarGroup key={group.group}>
 
-            <SidebarGroupLabel>
-              {group.group}
+            {/* TÍTULO DEL GRUPO */}
+
+            <SidebarGroupLabel
+              className="
+                flex
+                items-center
+                text-xs
+                font-bold
+                uppercase
+                tracking-wider
+                text-[#A5937B]
+                group-data-[collapsible=icon]:justify-center
+                group-data-[collapsible=icon]:px-0
+              "
+            >
+
+              <span className="group-data-[collapsible=icon]:hidden">
+                {group.group}
+              </span>
+
             </SidebarGroupLabel>
+
+
+            {/* MENÚ */}
 
             <SidebarMenu>
 
-              {group.items.map((item) => (
+              {group.items.map((item) => {
 
-                <Collapsible
-                  key={item.title}
-                  className="group/collapsible"
-                >
+                const active = isActive(item.route);
 
-                  <SidebarMenuItem>
+                return (
 
-                    {/* BOTÓN PRINCIPAL */}
-                    <CollapsibleTrigger
-                      className="
-                        flex
-                        w-full
-                        items-center
-                        gap-2
-                        rounded-md
-                        px-2
-                        py-2
-                        text-sm
-                        transition-colors
-                        hover:bg-sidebar-accent
-                        hover:text-sidebar-accent-foreground
-                      "
-                    >
+                  <Collapsible
+                    key={item.title}
+                    defaultOpen={active}
+                    className="group/collapsible"
+                  >
 
-                      <item.icon />
+                    <SidebarMenuItem>
 
-                      <span>
-                        {item.title}
-                      </span>
+                      {/* ================================================= */}
+                      {/* BOTÓN PRINCIPAL */}
+                      {/* ================================================= */}
 
-                      <ChevronRight
+                      <CollapsibleTrigger
+                        className="text-[#3A2A1A]"
+                      >
+
+                        <SidebarMenuButton
+                          tooltip={item.title}
+                          className={`
+                            cursor-pointer
+                            text-[#3A2A1A]
+                            hover:bg-[#F2E9D4]
+                            hover:text-[#3A2A1A]
+                            group-data-[collapsible=icon]:justify-center
+                            ${
+                              active
+                                ? "bg-[#F2E9D4] text-[#3A2A1A] hover:bg-[#F2E9D4]"
+                                : ""
+                            }
+                          `}
+                        >
+
+                          <item.icon className="size-5 shrink-0" />
+
+                          <span className="group-data-[collapsible=icon]:hidden">
+                            {item.title}
+                          </span>
+
+                          <ChevronDown
+                            className="
+                              ml-auto
+                              size-4
+                              transition-transform
+                              duration-200
+                              group-data-[collapsible=icon]:hidden
+                              group-data-[state=open]/collapsible:rotate-180
+                            "
+                          />
+
+                        </SidebarMenuButton>
+
+                      </CollapsibleTrigger>
+
+
+                      {/* ================================================= */}
+                      {/* SUBMENÚ */}
+                      {/* ================================================= */}
+
+                      <CollapsibleContent
                         className="
-                          ml-auto
-                          transition-transform
-                          duration-200
-                          group-data-[state=open]/collapsible:rotate-90
+                          group-data-[collapsible=icon]:hidden
                         "
-                      />
+                      >
 
-                    </CollapsibleTrigger>
+                        <SidebarMenuSub>
 
-                    {/* SUBMENÚ */}
-                    <CollapsibleContent>
+                          {/* CREAR */}
 
-                      <SidebarMenuSub>
+                          <SidebarMenuSubItem>
 
-                        {/* CREAR */}
-                        <SidebarMenuSubItem>
-                          <Link
-                            href={`/dashboard/${item.route}/crear`}
-                            className="
-                              flex
-                              h-7
-                              w-full
-                              items-center
-                              rounded-md
-                              px-2
-                              text-sm
-                              text-sidebar-foreground
-                              transition-colors
-                              hover:bg-sidebar-accent
-                              hover:text-sidebar-accent-foreground
-                            "
-                          >
-                            Crear
-                          </Link>
-                        </SidebarMenuSubItem>
+                            <SidebarMenuSubButton
+                              className={`
+                                cursor-pointer
+                                text-[#666161]
+                                hover:bg-[#F2E9D4]
+                                hover:text-[#3A2A1A]
+                                ${
+                                  pathname ===
+                                  `/dashboard/${item.route}/crear`
+                                    ? "bg-[#F2E9D4] text-[#3A2A1A]"
+                                    : ""
+                                }
+                              `}
+                              onClick={() =>
+                                router.push(
+                                  `/dashboard/${item.route}/crear`
+                                )
+                              }
+                            >
 
-                        {/* LISTAR */}
-                        <SidebarMenuSubItem>
-                          <Link
-                            href={`/dashboard/${item.route}/listar`}
-                            className="
-                              flex
-                              h-7
-                              w-full
-                              items-center
-                              rounded-md
-                              px-2
-                              text-sm
-                              text-sidebar-foreground
-                              transition-colors
-                              hover:bg-sidebar-accent
-                              hover:text-sidebar-accent-foreground
-                            "
-                          >
-                            Listar
-                          </Link>
-                        </SidebarMenuSubItem>
+                              <span>
+                                Crear
+                              </span>
 
-                      </SidebarMenuSub>
+                            </SidebarMenuSubButton>
 
-                    </CollapsibleContent>
+                          </SidebarMenuSubItem>
 
-                  </SidebarMenuItem>
 
-                </Collapsible>
+                          {/* LISTAR */}
 
-              ))}
+                          <SidebarMenuSubItem>
+
+                            <SidebarMenuSubButton
+                              className={`
+                                cursor-pointer
+                                text-[#666161]
+                                hover:bg-[#F2E9D4]
+                                hover:text-[#3A2A1A]
+                                ${
+                                  pathname ===
+                                  `/dashboard/${item.route}/listar`
+                                    ? "bg-[#F2E9D4] text-[#3A2A1A]"
+                                    : ""
+                                }
+                              `}
+                              onClick={() =>
+                                router.push(
+                                  `/dashboard/${item.route}/listar`
+                                )
+                              }
+                            >
+
+                              <span>
+                                Listar
+                              </span>
+
+                            </SidebarMenuSubButton>
+
+                          </SidebarMenuSubItem>
+
+                        </SidebarMenuSub>
+
+                      </CollapsibleContent>
+
+                    </SidebarMenuItem>
+
+                  </Collapsible>
+
+                );
+
+              })}
 
             </SidebarMenu>
 
@@ -297,40 +392,46 @@ export function AppSidebar() {
 
       </SidebarContent>
 
+
+      {/* ===================================================== */}
       {/* FOOTER */}
-      <SidebarFooter>
+      {/* ===================================================== */}
+
+      <SidebarFooter className="bg-white">
 
         <SidebarMenu>
 
           <SidebarMenuItem>
 
-            <button
-              type="button"
+            <SidebarMenuButton
+              tooltip="Administrador"
               className="
-                flex
-                w-full
-                items-center
-                gap-2
-                rounded-md
-                p-2
-                text-left
-                transition-colors
-                hover:bg-sidebar-accent
-                hover:text-sidebar-accent-foreground
+                bg-white
+                text-[#3A2A1A]
+                hover:bg-[#F2E9D4]
+                hover:text-[#3A2A1A]
+                group-data-[collapsible=icon]:justify-center
               "
             >
-              <User />
 
-              <span>
+              <User className="size-5 shrink-0" />
+
+              <span className="group-data-[collapsible=icon]:hidden">
                 Administrador
               </span>
-            </button>
+
+            </SidebarMenuButton>
 
           </SidebarMenuItem>
 
         </SidebarMenu>
 
       </SidebarFooter>
+
+
+      {/* ===================================================== */}
+      {/* RAIL */}
+      {/* ===================================================== */}
 
       <SidebarRail />
 

@@ -64,10 +64,6 @@ export default function TablaResponsible() {
                         </th>
 
                         <th className="border border-border px-4 py-2 text-left">
-                            Rol
-                        </th>
-
-                        <th className="border border-border px-4 py-2 text-left">
                             Tipo
                         </th>
 
@@ -104,10 +100,6 @@ export default function TablaResponsible() {
 
                                 <td className="border border-border px-4 py-2 text-title">
                                     {responsible.trainingRecord}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {responsible.role}
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
