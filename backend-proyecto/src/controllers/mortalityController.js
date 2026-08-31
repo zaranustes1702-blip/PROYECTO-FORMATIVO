@@ -9,17 +9,23 @@ const {
 const Response = require("../functions/response");
 
 const getMortalities = async (req, res) => {
-    try{
-        const mortalities = await getAllMortalities();
+  try {
+    const querylimit = req.query.limit
+    const queryoffset = req.query.offset
+    const limit = querylimit ? parseInt(querylimit) : 10;
+    const offset = queryoffset ? parseInt(queryoffset) : 0;
 
-        var response = new Response(
-            true,
-            "Registros de mortalidad obtenidos exitosamente",
-            mortalities
-        );
-        res.status(201);
-        res.json(response.json);
-    } catch (error) {
+    const mortalities = await getMortalities(limit, offset);
+
+    const response = new Response(
+      true,
+      "Registros de mortalidad obtenidos exitosamente",
+      mortalities,
+    );
+
+    res.status(200);
+    res.json(response.json);
+  } catch (error) {
         console.error("Error obteniendo registros de mortalidad:", error);
         const errorResponse = new Response(false, "Error interno del servidor", [
             { message: error.message || "Ocurrió un error inesperado" }

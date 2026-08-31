@@ -10,12 +10,16 @@ const visitCreate = async (data) => {
     }
 }
 
-const getAllVisits = async () => {
+const getAllVisits = async (limit, offset) => {
     try {
-        const visits = await visit.findAll();
+        const visits = await visit.findAll({
+            offset: offset,
+            limit: limit
+        });
         return visits;
-    }catch (error) {
-        console.error(error);
+    } catch (error) {
+        console.log(error);
+        throw error;
     }
 };
 

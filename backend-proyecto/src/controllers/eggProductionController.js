@@ -10,20 +10,23 @@ const {
 const Response = require("../functions/response");
 
 const getEggProductions = async (req, res) => {
-    try {
+  try {
+    const querylimit = req.query.limit
+    const queryoffset = req.query.offset
+    const limit = querylimit ? parseInt(querylimit) : 10;
+    const offset = queryoffset ? parseInt(queryoffset) : 0;
 
-        const eggProductions = await getAllEggProductions();
+    const eggProductions = await getAllEggProductions(limit, offset);
 
-        var response = new Response(
-            true,
-            "Producciones obtenidas exitosamente",
-            eggProductions
-        );
+    const response = new Response(
+      true,
+      "Producciones obtenidas exitosamente",
+      eggProductions,
+    );
 
-        res.status(201);
-        res.json(response.json);
-
-    } catch (error) {
+    res.status(200);
+    res.json(response.json);
+  } catch (error) {
 
         console.error("Error obteniendo producciones:", error);
 

@@ -1,304 +1,357 @@
-function FormCreateEggProduction() {
-    return (
-        <div className="p-4 max-w-4xl bg-white rounded-lg shadow border border-border">
+"use client";
 
-            <h1 className="text-xl font-semibold mb-6 text-title">
-                Formulario Producción de Huevos
-            </h1>
+import React, { useState } from "react";
+import NavBar from "@/components/NavBar";
+import { API_EGG_PRODUCTION_URL } from "@/api/config";
 
-            <form className="flex flex-col gap-6">
+export default function FormCreateEggProduction() {
+  const [productionDate, setProductionDate] = useState("");
+  const [barnId, setBarnId] = useState("");
+  const [responsible, setResponsible] = useState("");
+  const [collectedAM, setCollectedAM] = useState("");
+  const [collectedPM, setCollectedPM] = useState("");
+  const [jumboEggs, setJumboEggs] = useState("");
+  const [aaaEggs, setAaaEggs] = useState("");
+  const [aaEggs, setAaEggs] = useState("");
+  const [aEggs, setAEggs] = useState("");
+  const [bEggs, setBEggs] = useState("");
+  const [cEggs, setCEggs] = useState("");
+  const [brokenEggs, setBrokenEggs] = useState("");
+  const [observations, setObservations] = useState("");
+  const [active, setActive] = useState(true);
 
-                {/* INFORMACIÓN GENERAL */}
-                <div className="border border-border rounded-lg p-4">
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [mensajeExito, setMensajeExito] = useState("");
 
-                    <h2 className="font-semibold text-title mb-4">
-                        Información General
-                    </h2>
+  const abrirModal = () => {
+    setMensajeExito("");
+    setModalAbierto(true);
+  };
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  const cerrarModal = () => {
+    if (guardando) {
+      return;
+    }
 
-                        <div className="flex flex-col">
-                            <label className="text-sm font-medium text-title">
-                                Fecha
-                            </label>
+    setModalAbierto(false);
+  };
 
-                            <input
-                                type="date"
-                                name="productionDate"
-                                className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                            />
-                        </div>
+  const limpiarFormulario = () => {
+    setProductionDate("");
+    setBarnId("");
+    setResponsible("");
+    setCollectedAM("");
+    setCollectedPM("");
+    setJumboEggs("");
+    setAaaEggs("");
+    setAaEggs("");
+    setAEggs("");
+    setBEggs("");
+    setCEggs("");
+    setBrokenEggs("");
+    setObservations("");
+    setActive(true);
+  };
 
-                        <div className="flex flex-col">
-                            <label className="text-sm font-medium text-title">
-                                Hora
-                            </label>
+  const guardarProduccion = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
 
-                            <input
-                                type="time"
-                                name="productionHour"
-                                className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                            />
-                        </div>
+    setGuardando(true);
+    setMensajeExito("");
 
-                        <div className="flex flex-col">
-                            <label className="text-sm font-medium text-title">
-                                Lote
-                            </label>
+    const totalDay =
+      Number(collectedAM || 0) + Number(collectedPM || 0);
 
-                            <select
-                                className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                            >
-                                <option>Seleccione un lote</option>
-                            </select>
-                        </div>
+    const goodEggs =
+      Number(jumboEggs || 0) +
+      Number(aaaEggs || 0) +
+      Number(aaEggs || 0) +
+      Number(aEggs || 0) +
+      Number(bEggs || 0) +
+      Number(cEggs || 0);
 
-                        <div className="flex flex-col">
-                            <label className="text-sm font-medium text-title">
-                                Cantidad de Aves
-                            </label>
+    try {
+      const respuesta = await fetch(
+        `${API_EGG_PRODUCTION_URL}/CreateEggProduction`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            productionDate,
+            barnId: Number(barnId),
+            responsible,
+            collectedAM: Number(collectedAM),
+            collectedPM: Number(collectedPM),
+            jumboEggs: Number(jumboEggs),
+            aaaEggs: Number(aaaEggs),
+            aaEggs: Number(aaEggs),
+            aEggs: Number(aEggs),
+            bEggs: Number(bEggs),
+            cEggs: Number(cEggs),
+            brokenEggs: Number(brokenEggs),
+            totalDay,
+            goodEggs,
+            weeklyEggTotal: totalDay,
+            productionPercentage: 0,
+            observations,
+            active,
+          }),
+        }
+      );
 
-                            <input
-                                type="number"
-                                name="birdQuantity"
-                                className="border border-border rounded px-3 py-2 bg-gray-100"
-                                readOnly
-                            />
-                        </div>
+      const resultado = await respuesta.json();
 
-                        <div className="flex flex-col">
-                            <label className="text-sm font-medium text-title">
-                                Responsable
-                            </label>
+      if (!respuesta.ok) {
+        throw new Error(
+          resultado.message ||
+            resultado.mensaje ||
+            "No se pudo registrar la producción"
+        );
+      }
 
-                            <input
-                                type="text"
-                                name="responsible"
-                                className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                            />
-                        </div>
+      setMensajeExito("Producción registrada correctamente");
 
-                        <div className="flex flex-col">
-                            <label className="text-sm font-medium text-title">
-                                Rol
-                            </label>
+      limpiarFormulario();
 
-                            <select
-                                className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                            >
-                                <option>Gestor</option>
-                                <option>Instructor</option>
-                                <option>Pasante</option>
-                            </select>
-                        </div>
+      setTimeout(() => {
+        setModalAbierto(false);
+        setMensajeExito("");
+      }, 1500);
+    } catch (error) {
+      console.error("Error al registrar la producción:", error);
 
-                    </div>
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert("Ocurrió un error al registrar la producción");
+      }
+    } finally {
+      setGuardando(false);
+    }
+  };
 
+  return (
+    <>
+      <NavBar />
+
+      <main className="min-h-screen bg-fond">
+        <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-title text-3xl font-bold">
+                Gestión de Producción de Huevos
+              </h1>
+
+              <p className="text-parrafo mt-2">
+                Registra y administra la recolección diaria de huevos.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={abrirModal}
+              className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar"
+            >
+              Crear producción
+            </button>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 shadow-md">
+            <h2 className="text-title text-xl font-semibold">
+              Registro de producción
+            </h2>
+
+            <p className="text-parrafo mt-2">
+              Presiona el botón Crear producción para agregar un registro.
+            </p>
+          </div>
+        </section>
+      </main>
+
+      {modalAbierto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
+          <div className="bg-white max-h-[95vh] w-full max-w-3xl overflow-y-auto rounded-xl shadow-2xl">
+            <div className="border-border flex items-center justify-between border-b px-6 py-4">
+              <div>
+                <h2 className="text-title text-2xl font-bold">
+                  Registrar producción de huevos
+                </h2>
+
+                <p className="text-parrafo mt-1 text-sm">
+                  Completa la información solicitada.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={cerrarModal}
+                disabled={guardando}
+                className="text-title rounded-lg px-3 py-2 text-2xl font-bold transition hover:bg-fond disabled:opacity-50"
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={guardarProduccion} className="space-y-6 px-6 py-6">
+              {mensajeExito && (
+                <div className="border-border rounded-lg border bg-green-50 px-4 py-3 text-green-1-navbar">
+                  {mensajeExito}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="productionDate"
+                    className="text-title mb-2 block text-sm font-semibold"
+                  >
+                    Fecha
+                  </label>
+
+                  <input
+                    id="productionDate"
+                    type="date"
+                    value={productionDate}
+                    onChange={(event) => setProductionDate(event.target.value)}
+                    required
+                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
+                  />
                 </div>
 
-                {/* RECOLECCIÓN */}
-                <div className="border border-border rounded-lg p-4">
+                <div>
+                  <label
+                    htmlFor="barnId"
+                    className="text-title mb-2 block text-sm font-semibold"
+                  >
+                    ID del galpón
+                  </label>
 
-                    <h2 className="font-semibold text-title mb-4">
-                        Recolección
-                    </h2>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                        <div className="flex flex-col">
-                            <label className="text-sm font-medium text-title">
-                                Huevos Recolectados (Mañana)
-                            </label>
-
-                            <input
-                                type="number"
-                                className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                            />
-                        </div>
-
-                        <div className="flex flex-col">
-                            <label className="text-sm font-medium text-title">
-                                Huevos Recolectados (Tarde)
-                            </label>
-
-                            <input
-                                type="number"
-                                className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                            />
-                        </div>
-
-                    </div>
-
+                  <input
+                    id="barnId"
+                    type="number"
+                    min="1"
+                    value={barnId}
+                    onChange={(event) => setBarnId(event.target.value)}
+                    placeholder="Ejemplo: 1"
+                    required
+                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
+                  />
                 </div>
 
-                {/* CLASIFICACIÓN */}
-                <div className="border border-border rounded-lg p-4">
+                <div className="md:col-span-2">
+                  <label
+                    htmlFor="responsible"
+                    className="text-title mb-2 block text-sm font-semibold"
+                  >
+                    Responsable
+                  </label>
 
-                    <h2 className="font-semibold text-title mb-4">
-                        Clasificación
-                    </h2>
-
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-
-                        <div className="flex flex-col">
-                            <label>Jumbo</label>
-                            <input type="number" className="border border-border rounded px-3 py-2"/>
-                        </div>
-
-                        <div className="flex flex-col">
-                            <label>AAA</label>
-                            <input type="number" className="border border-border rounded px-3 py-2"/>
-                        </div>
-
-                        <div className="flex flex-col">
-                            <label>AA</label>
-                            <input type="number" className="border border-border rounded px-3 py-2"/>
-                        </div>
-
-                        <div className="flex flex-col">
-                            <label>A</label>
-                            <input type="number" className="border border-border rounded px-3 py-2"/>
-                        </div>
-
-                        <div className="flex flex-col">
-                            <label>B</label>
-                            <input type="number" className="border border-border rounded px-3 py-2"/>
-                        </div>
-
-                        <div className="flex flex-col">
-                            <label>C</label>
-                            <input type="number" className="border border-border rounded px-3 py-2"/>
-                        </div>
-
-                    </div>
-
+                  <input
+                    id="responsible"
+                    type="text"
+                    maxLength={100}
+                    value={responsible}
+                    onChange={(event) => setResponsible(event.target.value)}
+                    placeholder="Nombre del responsable"
+                    required
+                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
+                  />
                 </div>
 
-                {/* CONTROL */}
-                <div className="border border-border rounded-lg p-4">
+                {[
+                  { id: "collectedAM", label: "Recolectados AM", val: collectedAM, set: setCollectedAM },
+                  { id: "collectedPM", label: "Recolectados PM", val: collectedPM, set: setCollectedPM },
+                  { id: "jumboEggs", label: "Huevos Jumbo", val: jumboEggs, set: setJumboEggs },
+                  { id: "aaaEggs", label: "Huevos AAA", val: aaaEggs, set: setAaaEggs },
+                  { id: "aaEggs", label: "Huevos AA", val: aaEggs, set: setAaEggs },
+                  { id: "aEggs", label: "Huevos A", val: aEggs, set: setAEggs },
+                  { id: "bEggs", label: "Huevos B", val: bEggs, set: setBEggs },
+                  { id: "cEggs", label: "Huevos C", val: cEggs, set: setCEggs },
+                  { id: "brokenEggs", label: "Huevos rotos", val: brokenEggs, set: setBrokenEggs },
+                ].map((item) => (
+                  <div key={item.id}>
+                    <label
+                      htmlFor={item.id}
+                      className="text-title mb-2 block text-sm font-semibold"
+                    >
+                      {item.label}
+                    </label>
 
-                    <h2 className="font-semibold text-title mb-4">
-                        Control de Calidad
-                    </h2>
+                    <input
+                      id={item.id}
+                      type="number"
+                      min="0"
+                      value={item.val}
+                      onChange={(event) => item.set(event.target.value)}
+                      placeholder="0"
+                      required
+                      className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
+                    />
+                  </div>
+                ))}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label
+                    htmlFor="observations"
+                    className="text-title mb-2 block text-sm font-semibold"
+                  >
+                    Observaciones
+                  </label>
 
-                        <div className="flex flex-col">
-                            <label className="text-sm font-medium text-title">
-                                Huevos Rotos
-                            </label>
-
-                            <input
-                                type="number"
-                                className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                            />
-                        </div>
-
-                        <div className="flex flex-col">
-                            <label className="text-sm font-medium text-title">
-                                Observaciones
-                            </label>
-
-                            <textarea
-                                rows={3}
-                                className="border border-border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                            />
-                        </div>
-
-                    </div>
-
+                  <textarea
+                    id="observations"
+                    rows={3}
+                    maxLength={255}
+                    value={observations}
+                    onChange={(event) => setObservations(event.target.value)}
+                    placeholder="Notas o detalles adicionales"
+                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
+                  />
                 </div>
 
-                {/* RESUMEN */}
-                <div className="border border-border rounded-lg p-4 bg-fond">
+                <div className="md:col-span-2">
+                  <label className="flex cursor-pointer items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={active}
+                      onChange={(event) => setActive(event.target.checked)}
+                      className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    />
 
-                    <h2 className="font-semibold text-title mb-4">
-                        Resumen Automático
-                    </h2>
-
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-
-                        <div>
-                            <label className="text-sm text-subtitle">
-                                Total Mañana
-                            </label>
-
-                            <input
-                                readOnly
-                                className="border border-border rounded px-3 py-2 bg-gray-100 w-full"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="text-sm text-subtitle">
-                                Total Tarde
-                            </label>
-
-                            <input
-                                readOnly
-                                className="border border-border rounded px-3 py-2 bg-gray-100 w-full"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="text-sm text-subtitle">
-                                Total del Día
-                            </label>
-
-                            <input
-                                readOnly
-                                className="border border-border rounded px-3 py-2 bg-gray-100 w-full"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="text-sm text-subtitle">
-                                Huevos Buenos
-                            </label>
-
-                            <input
-                                readOnly
-                                className="border border-border rounded px-3 py-2 bg-gray-100 w-full"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="text-sm text-subtitle">
-                                Producción Semanal
-                            </label>
-
-                            <input
-                                readOnly
-                                className="border border-border rounded px-3 py-2 bg-gray-100 w-full"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="text-sm text-subtitle">
-                                % Producción
-                            </label>
-
-                            <input
-                                readOnly
-                                className="border border-border rounded px-3 py-2 bg-gray-100 w-full"
-                            />
-                        </div>
-
-                    </div>
-
+                    <span className="text-title text-sm font-semibold">
+                      Producción activa
+                    </span>
+                  </label>
                 </div>
+              </div>
 
+              <div className="border-border flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:justify-end">
                 <button
-                    type="submit"
-                    className="bg-green-2-navbar text-white py-2 rounded hover:bg-green-1-navbar transition-colors"
+                  type="button"
+                  onClick={cerrarModal}
+                  disabled={guardando}
+                  className="text-title rounded-lg border border-gray-300 px-5 py-3 font-semibold transition hover:bg-fond disabled:opacity-50"
                 >
-                    Crear Producción
+                  Cancelar
                 </button>
 
+                <button
+                  type="submit"
+                  disabled={guardando}
+                  className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar disabled:opacity-50"
+                >
+                  {guardando ? "Guardando..." : "Guardar producción"}
+                </button>
+              </div>
             </form>
-
+          </div>
         </div>
-    );
+      )}
+    </>
+  );
 }
-
-export default FormCreateEggProduction;

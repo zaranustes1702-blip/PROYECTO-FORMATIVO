@@ -9,14 +9,18 @@ const BirdBatchCreate = async (data) => {
     }
 }
 
-const getAllBirdBatches = async () => {
+const getAllBirdBatches = async (limit, offset) => {
     try {
-        const birdBatches = await birdBatch.findAll();
+        const birdBatches = await birdBatch.findAll({
+            offset: offset,
+            limit: limit
+        });
         return birdBatches;
     } catch (error) {
-        console.error(error);
+        console.log(error);
+        throw error;
     }
-};
+}
 
 const getIdBirdBatch = async (id) => {
     try {

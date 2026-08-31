@@ -12,16 +12,18 @@ const FeedingCreate = async (data) => {
 }
 
 // obtener todas las alimentaciones
-const getAllFeedings = async () => {
+const getAllFeedings = async (limit, offset) => {
     try {
-        const feedings = await feeding.findAll();
+        const feedings = await feeding.findAll({
+            offset: offset,
+            limit: limit
+        });
         return feedings;
     } catch (error) {
         console.log(error);
         throw error;
     }
-}
-
+};
 // obtener alimentación por id
 const getFeedingById = async (id) => {
     try {

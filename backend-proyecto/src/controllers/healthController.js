@@ -9,17 +9,23 @@ const {
 const Response = require("../functions/response");
 
 const getAllHealth = async (req, res) => {
-    try{
-        const healths = await getAllHealths();
-        
-        var response = new Response(
-            true, 
-            "Registros sanitarios obtenidos exitosamente", 
-            healths
-        ); 
-        res.status(201);
-        res.json(response.json);
-    } catch (error) {
+  try {
+    const querylimit = req.query.limit
+    const queryoffset = req.query.offset
+    const limit = querylimit ? parseInt(querylimit) : 10;
+    const offset = queryoffset ? parseInt(queryoffset) : 0;
+
+    const healths = await getAllHealth(limit, offset);
+
+    const response = new Response(
+      true,
+      "Registros sanitarios obtenidos exitosamente",
+      healths,
+    );
+
+    res.status(200);
+    res.json(response.json);
+  } catch (error) {
         console.error("Error obteniendo registros sanitarios:", error);
         const errorResponse = new Response(false, "Error interno del servidor", [
             { message: error.message || "Ocurrió un error inesperado" }

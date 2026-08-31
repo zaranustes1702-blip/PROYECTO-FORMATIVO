@@ -9,17 +9,23 @@ const {
 const Response = require("../functions/response");
 
 const getResponsibles = async (req, res) => {
-    try{
-        const responsibles = await getAllResponsibles();
+  try {
+    const querylimit = req.query.limit
+    const queryoffset = req.query.offset
+    const limit = querylimit ? parseInt(querylimit) : 10;
+    const offset = queryoffset ? parseInt(queryoffset) : 0;
 
-        var response = new Response(
-            true,
-            "Responsables obtenidos exitosamente",
-            responsibles
-        );
-        res.status(201);
-        res.json(response.json);
-    } catch (error) {
+    const responsibles = await getAllResponsibles(limit, offset);
+
+    const response = new Response(
+      true,
+      "Responsables obtenidos exitosamente",
+      responsibles,
+    );
+
+    res.status(200);
+    res.json(response.json);
+  } catch (error) {
         console.error("Error obteniendo responsables:", error);
         const errorResponse = new Response(false, "Error interno del servidor", [
             { message: error.message || "Ocurrió un error inesperado" }

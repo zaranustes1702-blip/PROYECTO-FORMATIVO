@@ -12,15 +12,18 @@ const QuarantineCreate = async (data) => {
 }  
 
 // obtener todos los usuarios
-const getAllQuarantines = async () => {
+const getAllQuarantines = async (limit, offset) => {
     try {
-        const quarantines = await quarantine.findAll();
+        const quarantines = await quarantine.findAll({
+            offset: offset,
+            limit: limit
+        });
         return quarantines;
     } catch (error) {
         console.log(error);
         throw error;
     }
-}
+};
 
 // obtener cuarentena por id
 const getQuarantineById = async (id) => {

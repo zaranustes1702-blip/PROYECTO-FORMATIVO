@@ -12,16 +12,18 @@ const BarnCreate = async (data) => {
 }
 
 // obtener todos los lotes
-const getAllBarns = async () => {
+const getAllBarns = async (limit, offset) => {
     try {
-        const barns = await barn.findAll();
+        const barns = await barn.findAll({
+            offset: offset,
+            limit: limit
+        });
         return barns;
     } catch (error) {
         console.log(error);
         throw error;
     }
 }
-
 // obtener lote por id
 const getBarnById = async (id) => {
     try {

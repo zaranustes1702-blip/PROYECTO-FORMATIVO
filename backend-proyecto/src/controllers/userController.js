@@ -13,7 +13,11 @@ const path = require("path");
 
 const getUsers = async (req, res) => {
   try {
-    const users = await getAllUsers();
+    const querylimit = req.query.limit
+    const queryoffset =req.query.offset
+    const limit = querylimit ? parseInt(querylimit) : 10; // Valor predeterminado si no se proporciona
+    const offset = queryoffset ? parseInt(queryoffset) : 0; // Valor predeterminado si no se proporciona
+    const users = await getAllUsers(limit, offset);
 
     const response = new Response(
       true,

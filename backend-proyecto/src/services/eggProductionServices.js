@@ -9,15 +9,18 @@ const EggProductionCreate = async (data) => {
     }
 };
 
-const getAllEggProductions = async () => {
+const getAllEggProductions = async (limit, offset) => {
     try {
-        const eggProductions = await eggProduction.findAll();
+        const eggProductions = await eggProduction.findAll({
+            offset: offset,
+            limit: limit
+        });
         return eggProductions;
     } catch (error) {
-        console.error(error);
+        console.log(error);
+        throw error;
     }
 };
-
 const getEggProductionById = async (id) => {
     try {
         const eggProductionId = await eggProduction.findOne({

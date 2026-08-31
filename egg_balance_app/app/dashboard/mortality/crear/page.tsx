@@ -1,11 +1,5 @@
 import FormCreateMortality from "@/components/mortality/formCreate";
 
-function CreateMortalityPage() {
-    return (
-        <div>
-            <FormCreateMortality />
-        </div>
-    );
+export default function CreateMortalityPage() {
+  return <FormCreateMortality />;
 }
-
-export default CreateMortalityPage;

@@ -1,11 +1,5 @@
 import FormCreateVisit from "@/components/visit/formCreate";
 
-function CreateVisitPage() {
-    return (
-        <div>
-            <FormCreateVisit />
-        </div>
-    );
+export default function CreateVisitPage() {
+  return <FormCreateVisit />;
 }
-
-export default CreateVisitPage;

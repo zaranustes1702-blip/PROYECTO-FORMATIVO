@@ -12,16 +12,18 @@ const HealthCreate = async (data) => {
 }
 
 // obtener todos los registros de salud
-const getAllHealths = async () => {
+const getAllHealths = async (limit, offset) => {
     try {
-        const healthRecords = await health.findAll();
-        return healthRecords;
+        const healths = await health.findAll({
+            offset: offset,
+            limit: limit
+        });
+        return healths;
     } catch (error) {
         console.log(error);
         throw error;
     }
-}
-
+};
 // obtener registro de salud por id
 const getHealthById = async (id) => {
     try {

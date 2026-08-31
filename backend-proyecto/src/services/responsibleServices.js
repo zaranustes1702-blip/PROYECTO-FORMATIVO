@@ -12,15 +12,18 @@ const ResponsibleCreate = async (data) => {
 }
 
 // obtener todos los responsables
-const getAllResponsibles = async () => {
+const getAllResponsibles = async (limit, offset) => {
     try {
-        const responsibles = await responsible.findAll();
+        const responsibles = await responsible.findAll({
+            offset: offset,
+            limit: limit
+        });
         return responsibles;
     } catch (error) {
         console.log(error);
         throw error;
     }
-}
+};
 
 // obtener responsable por id
 const getResponsibleById = async (id) => {

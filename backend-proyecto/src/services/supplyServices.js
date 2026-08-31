@@ -9,12 +9,16 @@ const supplyCreate = async (data) => {
     }
 };
 
-const getAllSupplies = async () => {
+const getAllSupplies = async (limit, offset) => {
     try {
-        const supplies = await supply.findAll();
+        const supplies = await supply.findAll({
+            offset: offset,
+            limit: limit
+        });
         return supplies;
     } catch (error) {
-        console.error(error);
+        console.log(error);
+        throw error;
     }
 };
 

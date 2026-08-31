@@ -9,21 +9,23 @@ const {
 const Response = require("../functions/response");
 
 const getBirdBatches = async (req, res) => {
+  try {
+    const querylimit = req.query.limit
+    const queryoffset = req.query.offset
+    const limit = querylimit ? parseInt(querylimit) : 10;
+    const offset = queryoffset ? parseInt(queryoffset) : 0;
 
-    try {
+    const birdBatches = await getAllBirdBatches(limit, offset);
 
-        const birdBatches = await getAllBirdBatches();
+    const response = new Response(
+      true,
+      "Lotes de aves obtenidos exitosamente",
+      birdBatches,
+    );
 
-        var response = new Response(
-            true,
-            "Lotes de aves obtenidos exitosamente",
-            birdBatches
-        );
-
-        res.status(201);
-        res.json(response.json);
-
-    } catch (error) {
+    res.status(200);
+    res.json(response.json);
+  } catch (error) {
 
         console.error("Error obteniendo lotes:", error);
 

@@ -9,20 +9,23 @@ const {
 const Response = require("../functions/response");
 
 const getSupplies = async (req, res) => {
-    try {
+  try {
+    const querylimit = req.query.limit
+    const queryoffset = req.query.offset
+    const limit = querylimit ? parseInt(querylimit) : 10;
+    const offset = queryoffset ? parseInt(queryoffset) : 0;
 
-        const supplies = await getAllSupplies();
+    const supplies = await getAllSupplies(limit, offset);
 
-        var response = new Response(
-            true,
-            "Insumos obtenidos exitosamente",
-            supplies
-        );
+    const response = new Response(
+      true,
+      "Insumos obtenidos exitosamente",
+      supplies,
+    );
 
-        res.status(201);
-        res.json(response.json);
-
-    } catch (error) {
+    res.status(200);
+    res.json(response.json);
+  } catch (error) {
 
         console.error("Error obteniendo insumos:", error);
 

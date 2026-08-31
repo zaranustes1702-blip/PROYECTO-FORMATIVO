@@ -12,12 +12,14 @@ const WeighingCreate = async (data) => {
 };
 
 // Obtener todos los pesajes
-const getAllWeighings = async () => {
+const getAllWeighings = async (limit, offset) => {
     try {
-        const weighings = await weighing.findAll();
+        const weighings = await weighing.findAll({
+            offset: offset,
+            limit: limit
+        });
         return weighings;
-    }
-    catch (error) {
+    } catch (error) {
         console.log(error);
         throw error;
     }

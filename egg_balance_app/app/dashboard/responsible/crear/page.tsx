@@ -1,12 +1,5 @@
 import FormCreateResponsible from "@/components/responsible/formCreate";
 
-function CreateResponsiblePage() {
-    return (
-        <div>
-
-            <FormCreateResponsible />
-        </div>
-    );
+export default function CreateResponsiblePage() {
+  return <FormCreateResponsible />;
 }
-
-export default CreateResponsiblePage;

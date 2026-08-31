@@ -9,17 +9,23 @@ const {
 const Response = require("../functions/response");
 
 const getQuarantines = async (req, res) => {
-    try{
-        const quarantines = await getAllQuarantines();
-        
-        var response = new Response(
-            true, 
-            "Cuarentenas obtenidas exitosamente", 
-            quarantines
-        ); 
-        res.status(201);
-        res.json(response.json);
-    } catch (error) {
+  try {
+    const querylimit = req.query.limit
+    const queryoffset = req.query.offset
+    const limit = querylimit ? parseInt(querylimit) : 10;
+    const offset = queryoffset ? parseInt(queryoffset) : 0;
+
+    const quarantines = await getAllQuarantines(limit, offset);
+
+    const response = new Response(
+      true,
+      "Cuarentenas obtenidas exitosamente",
+      quarantines,
+    );
+
+    res.status(200);
+    res.json(response.json);
+  } catch (error) {
         console.error("Error obteniendo cuarentenas:", error);
         const errorResponse = new Response(false, "Error interno del servidor", [
             { message: error.message || "Ocurrió un error inesperado" }

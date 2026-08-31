@@ -7,6 +7,7 @@ class Response {
 
     get json() {
         return {
+            ok: this.success,
             success: this.success,
             message: this.message,
             data: this.data

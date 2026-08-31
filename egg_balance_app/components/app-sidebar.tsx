@@ -254,44 +254,32 @@ export function AppSidebar() {
                       {/* ================================================= */}
 
                       <CollapsibleTrigger
-                        className="text-[#3A2A1A]"
+                        title={item.title}
+                        className={`
+                          flex w-full items-center gap-2 rounded-md px-3 py-2
+                          text-left text-[#3A2A1A] transition-colors
+                          hover:bg-[#F2E9D4] hover:text-[#3A2A1A]
+                          group-data-[collapsible=icon]:justify-center
+                          ${
+                            active
+                              ? "bg-[#F2E9D4] text-[#3A2A1A] hover:bg-[#F2E9D4]"
+                              : ""
+                          }
+                        `}
                       >
+                        <item.icon className="size-5 shrink-0" />
 
-                        <SidebarMenuButton
-                          tooltip={item.title}
-                          className={`
-                            cursor-pointer
-                            text-[#3A2A1A]
-                            hover:bg-[#F2E9D4]
-                            hover:text-[#3A2A1A]
-                            group-data-[collapsible=icon]:justify-center
-                            ${
-                              active
-                                ? "bg-[#F2E9D4] text-[#3A2A1A] hover:bg-[#F2E9D4]"
-                                : ""
-                            }
-                          `}
-                        >
+                        <span className="group-data-[collapsible=icon]:hidden">
+                          {item.title}
+                        </span>
 
-                          <item.icon className="size-5 shrink-0" />
-
-                          <span className="group-data-[collapsible=icon]:hidden">
-                            {item.title}
-                          </span>
-
-                          <ChevronDown
-                            className="
-                              ml-auto
-                              size-4
-                              transition-transform
-                              duration-200
-                              group-data-[collapsible=icon]:hidden
-                              group-data-[state=open]/collapsible:rotate-180
-                            "
-                          />
-
-                        </SidebarMenuButton>
-
+                        <ChevronDown
+                          className="
+                            ml-auto size-4 transition-transform duration-200
+                            group-data-[collapsible=icon]:hidden
+                            group-data-[state=open]/collapsible:rotate-180
+                          "
+                        />
                       </CollapsibleTrigger>
 
 
