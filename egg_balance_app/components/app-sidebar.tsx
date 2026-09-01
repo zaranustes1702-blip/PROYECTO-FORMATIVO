@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   Bird,
   ClipboardList,
@@ -70,7 +71,6 @@ const data = [
       },
     ],
   },
-
   {
     group: "Producción",
     items: [
@@ -81,7 +81,6 @@ const data = [
       },
     ],
   },
-
   {
     group: "Salud",
     items: [
@@ -97,7 +96,6 @@ const data = [
       },
     ],
   },
-
   {
     group: "Visitas",
     items: [
@@ -108,7 +106,6 @@ const data = [
       },
     ],
   },
-
   {
     group: "Inventario",
     items: [
@@ -119,7 +116,6 @@ const data = [
       },
     ],
   },
-
   {
     group: "Administración",
     items: [
@@ -137,14 +133,101 @@ const data = [
   },
 ];
 
+// Subcomponente aislado para controlar el estado abierto/cerrado de forma controlada
+function CollapsibleNavItem({
+  item,
+  isActive,
+  pathname,
+  router,
+}: {
+  item: { title: string; icon: any; route: string };
+  isActive: boolean;
+  pathname: string;
+  router: any;
+}) {
+  const [open, setOpen] = useState(isActive);
+
+  useEffect(() => {
+    if (isActive) {
+      setOpen(true);
+    }
+  }, [isActive]);
+
+  return (
+    <Collapsible
+      open={open}
+      onOpenChange={setOpen}
+      className="group/collapsible"
+    >
+      <SidebarMenuItem>
+        <CollapsibleTrigger
+          title={item.title}
+          className={`
+            flex w-full items-center gap-2 rounded-md px-3 py-2
+            text-left text-[#3A2A1A] transition-colors
+            hover:bg-[#F2E9D4] hover:text-[#3A2A1A]
+            group-data-[collapsible=icon]:justify-center
+            ${isActive ? "bg-[#F2E9D4] text-[#3A2A1A] hover:bg-[#F2E9D4]" : ""}
+          `}
+        >
+          <item.icon className="size-5 shrink-0" />
+
+          <span className="group-data-[collapsible=icon]:hidden">
+            {item.title}
+          </span>
+
+          <ChevronDown
+            className="
+              ml-auto size-4 transition-transform duration-200
+              group-data-[collapsible=icon]:hidden
+              group-data-[state=open]/collapsible:rotate-180
+            "
+          />
+        </CollapsibleTrigger>
+
+        <CollapsibleContent className="group-data-[collapsible=icon]:hidden">
+          <SidebarMenuSub>
+            {/* CREAR */}
+            <SidebarMenuSubItem>
+              <SidebarMenuSubButton
+                className={`
+                  cursor-pointer text-[#666161] hover:bg-[#F2E9D4] hover:text-[#3A2A1A]
+                  ${pathname === `/dashboard/${item.route}/crear` ? "bg-[#F2E9D4] text-[#3A2A1A]" : ""}
+                `}
+                onClick={() => router.push(`/dashboard/${item.route}/crear`)}
+              >
+                <span>Crear</span>
+              </SidebarMenuSubButton>
+            </SidebarMenuSubItem>
+
+            {/* LISTAR */}
+            <SidebarMenuSubItem>
+              <SidebarMenuSubButton
+                className={`
+                  cursor-pointer text-[#666161] hover:bg-[#F2E9D4] hover:text-[#3A2A1A]
+                  ${pathname === `/dashboard/${item.route}/listar` ? "bg-[#F2E9D4] text-[#3A2A1A]" : ""}
+                `}
+                onClick={() => router.push(`/dashboard/${item.route}/listar`)}
+              >
+                <span>Listar</span>
+              </SidebarMenuSubButton>
+            </SidebarMenuSubItem>
+          </SidebarMenuSub>
+        </CollapsibleContent>
+      </SidebarMenuItem>
+    </Collapsible>
+  );
+}
+
 export function AppSidebar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Verifica si la ruta actual pertenece al módulo
-  const isActive = (route: string) => {
-    return pathname === `/dashboard/${route}` ||
-      pathname?.startsWith(`/dashboard/${route}/`);
+  const checkIsActive = (route: string) => {
+    return (
+      pathname === `/dashboard/${route}` ||
+      pathname?.startsWith(`/dashboard/${route}/`)
+    );
   };
 
   return (
@@ -153,276 +236,73 @@ export function AppSidebar() {
       collapsible="icon"
       className="relative flex h-full flex-col border-r bg-white text-[#3A2A1A]"
     >
-
-      {/* ===================================================== */}
       {/* HEADER */}
-      {/* ===================================================== */}
-
       <SidebarHeader className="bg-white">
-
         <SidebarMenu>
-
           <SidebarMenuItem>
-
             <SidebarMenuButton
               size="lg"
               className="
-                bg-white
-                text-[#3A2A1A]
-                hover:bg-[#F2E9D4]
-                hover:text-[#3A2A1A]
+                bg-white text-[#3A2A1A] hover:bg-[#F2E9D4] hover:text-[#3A2A1A]
                 group-data-[collapsible=icon]:justify-center
               "
             >
-
               <Egg className="size-5 shrink-0" />
-
               <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-
-                <span className="truncate font-semibold">
-                  Egg Balance
-                </span>
-
-                <span className="truncate text-xs text-[#666161]">
-                  Sistema Avícola
-                </span>
-
+                <span className="truncate font-semibold">Egg Balance</span>
+                <span className="truncate text-xs text-[#666161]">Sistema Avícola</span>
               </div>
-
             </SidebarMenuButton>
-
           </SidebarMenuItem>
-
         </SidebarMenu>
-
       </SidebarHeader>
 
-
-      {/* ===================================================== */}
       {/* CONTENIDO */}
-      {/* ===================================================== */}
-
       <SidebarContent className="bg-white text-[#3A2A1A]">
-
         {data.map((group) => (
-
           <SidebarGroup key={group.group}>
-
-            {/* TÍTULO DEL GRUPO */}
-
             <SidebarGroupLabel
               className="
-                flex
-                items-center
-                text-xs
-                font-bold
-                uppercase
-                tracking-wider
-                text-[#A5937B]
-                group-data-[collapsible=icon]:justify-center
-                group-data-[collapsible=icon]:px-0
+                flex items-center text-xs font-bold uppercase tracking-wider text-[#A5937B]
+                group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0
               "
             >
-
-              <span className="group-data-[collapsible=icon]:hidden">
-                {group.group}
-              </span>
-
+              <span className="group-data-[collapsible=icon]:hidden">{group.group}</span>
             </SidebarGroupLabel>
 
-
-            {/* MENÚ */}
-
             <SidebarMenu>
-
-              {group.items.map((item) => {
-
-                const active = isActive(item.route);
-
-                return (
-
-                  <Collapsible
-                    key={item.title}
-                    defaultOpen={active}
-                    className="group/collapsible"
-                  >
-
-                    <SidebarMenuItem>
-
-                      {/* ================================================= */}
-                      {/* BOTÓN PRINCIPAL */}
-                      {/* ================================================= */}
-
-                      <CollapsibleTrigger
-                        title={item.title}
-                        className={`
-                          flex w-full items-center gap-2 rounded-md px-3 py-2
-                          text-left text-[#3A2A1A] transition-colors
-                          hover:bg-[#F2E9D4] hover:text-[#3A2A1A]
-                          group-data-[collapsible=icon]:justify-center
-                          ${
-                            active
-                              ? "bg-[#F2E9D4] text-[#3A2A1A] hover:bg-[#F2E9D4]"
-                              : ""
-                          }
-                        `}
-                      >
-                        <item.icon className="size-5 shrink-0" />
-
-                        <span className="group-data-[collapsible=icon]:hidden">
-                          {item.title}
-                        </span>
-
-                        <ChevronDown
-                          className="
-                            ml-auto size-4 transition-transform duration-200
-                            group-data-[collapsible=icon]:hidden
-                            group-data-[state=open]/collapsible:rotate-180
-                          "
-                        />
-                      </CollapsibleTrigger>
-
-
-                      {/* ================================================= */}
-                      {/* SUBMENÚ */}
-                      {/* ================================================= */}
-
-                      <CollapsibleContent
-                        className="
-                          group-data-[collapsible=icon]:hidden
-                        "
-                      >
-
-                        <SidebarMenuSub>
-
-                          {/* CREAR */}
-
-                          <SidebarMenuSubItem>
-
-                            <SidebarMenuSubButton
-                              className={`
-                                cursor-pointer
-                                text-[#666161]
-                                hover:bg-[#F2E9D4]
-                                hover:text-[#3A2A1A]
-                                ${
-                                  pathname ===
-                                  `/dashboard/${item.route}/crear`
-                                    ? "bg-[#F2E9D4] text-[#3A2A1A]"
-                                    : ""
-                                }
-                              `}
-                              onClick={() =>
-                                router.push(
-                                  `/dashboard/${item.route}/crear`
-                                )
-                              }
-                            >
-
-                              <span>
-                                Crear
-                              </span>
-
-                            </SidebarMenuSubButton>
-
-                          </SidebarMenuSubItem>
-
-
-                          {/* LISTAR */}
-
-                          <SidebarMenuSubItem>
-
-                            <SidebarMenuSubButton
-                              className={`
-                                cursor-pointer
-                                text-[#666161]
-                                hover:bg-[#F2E9D4]
-                                hover:text-[#3A2A1A]
-                                ${
-                                  pathname ===
-                                  `/dashboard/${item.route}/listar`
-                                    ? "bg-[#F2E9D4] text-[#3A2A1A]"
-                                    : ""
-                                }
-                              `}
-                              onClick={() =>
-                                router.push(
-                                  `/dashboard/${item.route}/listar`
-                                )
-                              }
-                            >
-
-                              <span>
-                                Listar
-                              </span>
-
-                            </SidebarMenuSubButton>
-
-                          </SidebarMenuSubItem>
-
-                        </SidebarMenuSub>
-
-                      </CollapsibleContent>
-
-                    </SidebarMenuItem>
-
-                  </Collapsible>
-
-                );
-
-              })}
-
+              {group.items.map((item) => (
+                <CollapsibleNavItem
+                  key={item.title}
+                  item={item}
+                  isActive={checkIsActive(item.route)}
+                  pathname={pathname}
+                  router={router}
+                />
+              ))}
             </SidebarMenu>
-
           </SidebarGroup>
-
         ))}
-
       </SidebarContent>
 
-
-      {/* ===================================================== */}
       {/* FOOTER */}
-      {/* ===================================================== */}
-
       <SidebarFooter className="bg-white">
-
         <SidebarMenu>
-
           <SidebarMenuItem>
-
             <SidebarMenuButton
-              tooltip="Administrador"
               className="
-                bg-white
-                text-[#3A2A1A]
-                hover:bg-[#F2E9D4]
-                hover:text-[#3A2A1A]
-                group-data-[collapsible=icon]:justify-center
-              "
+          bg-white text-[#3A2A1A] hover:bg-[#F2E9D4] hover:text-[#3A2A1A]
+          group-data-[collapsible=icon]:justify-center
+        "
             >
-
               <User className="size-5 shrink-0" />
-
-              <span className="group-data-[collapsible=icon]:hidden">
-                Administrador
-              </span>
-
+              <span className="group-data-[collapsible=icon]:hidden">Administrador</span>
             </SidebarMenuButton>
-
           </SidebarMenuItem>
-
         </SidebarMenu>
-
       </SidebarFooter>
 
-
-      {/* ===================================================== */}
-      {/* RAIL */}
-      {/* ===================================================== */}
-
       <SidebarRail />
-
     </Sidebar>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import NavBar from "@/components/NavBar";
 import { API_MORTALITY_URL } from "@/api/config";
 
@@ -11,11 +11,43 @@ export default function FormCreateMortality() {
   const [possibleCauseOfDeath, setPossibleCauseOfDeath] = useState("");
   const [necropsyPerformed, setNecropsyPerformed] = useState("false");
   const [observations, setObservations] = useState("");
+  const [lotId, setLotId] = useState("");
+  const [responsibleId, setResponsibleId] = useState("");
   const [active, setActive] = useState(true);
+
+  // Listados para cargar llaves foráneas (Lote y Responsable)
+  const [lotes, setLotes] = useState<any[]>([]);
+  const [responsables, setResponsables] = useState<any[]>([]);
 
   const [modalAbierto, setModalAbierto] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
+
+  useEffect(() => {
+    // Carga de lotes y responsables para los selects
+    const cargarDatosRelacionados = async () => {
+      try {
+        const [resLotes, resResp] = await Promise.all([
+          fetch("http://localhost:3000/api/lots/LotAll"),
+          fetch("http://localhost:3000/api/responsibles/ResponsibleAll"),
+        ]);
+
+        if (resLotes.ok) {
+          const dataLotes = await resLotes.json();
+          setLotes(Array.isArray(dataLotes) ? dataLotes : dataLotes.data || []);
+        }
+
+        if (resResp.ok) {
+          const dataResp = await resResp.json();
+          setResponsables(Array.isArray(dataResp) ? dataResp : dataResp.data || []);
+        }
+      } catch (error) {
+        console.error("Error al cargar datos foráneos:", error);
+      }
+    };
+
+    cargarDatosRelacionados();
+  }, []);
 
   const abrirModal = () => {
     setMensajeExito("");
@@ -26,7 +58,6 @@ export default function FormCreateMortality() {
     if (guardando) {
       return;
     }
-
     setModalAbierto(false);
   };
 
@@ -37,6 +68,8 @@ export default function FormCreateMortality() {
     setPossibleCauseOfDeath("");
     setNecropsyPerformed("false");
     setObservations("");
+    setLotId("");
+    setResponsibleId("");
     setActive(true);
   };
 
@@ -63,6 +96,8 @@ export default function FormCreateMortality() {
             possibleCauseOfDeath,
             necropsyPerformed: necropsyPerformed === "true",
             observations,
+            lotId: lotId ? Number(lotId) : null,
+            responsibleId: responsibleId ? Number(responsibleId) : null,
             active,
           }),
         }
@@ -162,12 +197,67 @@ export default function FormCreateMortality() {
 
             <form onSubmit={guardarMortalidad} className="space-y-6 px-6 py-6">
               {mensajeExito && (
-                <div className="border-border rounded-lg border bg-green-50 px-4 py-3 text-green-1-navbar">
+                <div className="border-border rounded-lg border bg-green-50 px-4 py-3 text-green-1-navbar font-semibold">
                   {mensajeExito}
                 </div>
               )}
 
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                {/* LOTE */}
+                <div>
+                  <label
+                    htmlFor="lotId"
+                    className="text-title mb-2 block text-sm font-semibold"
+                  >
+                    Lote de Aves
+                  </label>
+                  <select
+                    id="lotId"
+                    value={lotId}
+                    onChange={(event) => setLotId(event.target.value)}
+                    required
+                    className="border-border w-full rounded-lg border bg-white px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
+                  >
+                    <option value="">Seleccione un lote</option>
+                    {lotes.map((lote: any, index: number) => (
+                      <option
+                        key={lote.id || lote.Id_Lote || index}
+                        value={lote.id || lote.Id_Lote}
+                      >
+                        Lote #{lote.id || lote.Id_Lote} - {lote.Raz_Ave_Lote || lote.breed || "Aves"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* RESPONSABLE */}
+                <div>
+                  <label
+                    htmlFor="responsibleId"
+                    className="text-title mb-2 block text-sm font-semibold"
+                  >
+                    Responsable
+                  </label>
+                  <select
+                    id="responsibleId"
+                    value={responsibleId}
+                    onChange={(event) => setResponsibleId(event.target.value)}
+                    required
+                    className="border-border w-full rounded-lg border bg-white px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
+                  >
+                    <option value="">Seleccione un responsable</option>
+                    {responsables.map((resp: any, index: number) => (
+                      <option
+                        key={resp.id || resp.Id_Responsable || index}
+                        value={resp.id || resp.Id_Responsable}
+                      >
+                        {resp.name || resp.Nom_Responsable || "Responsable"} ({resp.role || resp.Tipo_Responsable || "Personal"})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* FECHA */}
                 <div>
                   <label
                     htmlFor="mortalityDate"
@@ -175,7 +265,6 @@ export default function FormCreateMortality() {
                   >
                     Fecha
                   </label>
-
                   <input
                     id="mortalityDate"
                     type="date"
@@ -186,6 +275,7 @@ export default function FormCreateMortality() {
                   />
                 </div>
 
+                {/* HORA */}
                 <div>
                   <label
                     htmlFor="mortalityTime"
@@ -193,7 +283,6 @@ export default function FormCreateMortality() {
                   >
                     Hora
                   </label>
-
                   <input
                     id="mortalityTime"
                     type="time"
@@ -204,26 +293,27 @@ export default function FormCreateMortality() {
                   />
                 </div>
 
+                {/* CANTIDAD DE MORTALIDAD */}
                 <div>
                   <label
                     htmlFor="dailyMortality"
                     className="text-title mb-2 block text-sm font-semibold"
                   >
-                    Mortalidad del día
+                    Mortalidad del día (Aves)
                   </label>
-
                   <input
                     id="dailyMortality"
                     type="number"
-                    min="0"
+                    min="1"
                     value={dailyMortality}
                     onChange={(event) => setDailyMortality(event.target.value)}
-                    placeholder="Cantidad de aves"
+                    placeholder="Cantidad de aves muertas"
                     required
                     className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
                   />
                 </div>
 
+                {/* POSIBLE CAUSA */}
                 <div>
                   <label
                     htmlFor="possibleCauseOfDeath"
@@ -231,29 +321,28 @@ export default function FormCreateMortality() {
                   >
                     Posible causa
                   </label>
-
                   <input
                     id="possibleCauseOfDeath"
                     type="text"
-                    maxLength={25}
+                    maxLength={100}
                     value={possibleCauseOfDeath}
                     onChange={(event) =>
                       setPossibleCauseOfDeath(event.target.value)
                     }
-                    placeholder="Ejemplo: Problemas respiratorios"
+                    placeholder="Ejemplo: Estrés calórico / Problemas respiratorios"
                     required
                     className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
                   />
                 </div>
 
+                {/* NECROPSIA */}
                 <div className="md:col-span-2">
                   <label
                     htmlFor="necropsyPerformed"
                     className="text-title mb-2 block text-sm font-semibold"
                   >
-                    Necropsia realizada
+                    Necropsia / Toma de muestra realizada
                   </label>
-
                   <select
                     id="necropsyPerformed"
                     value={necropsyPerformed}
@@ -263,11 +352,12 @@ export default function FormCreateMortality() {
                     required
                     className="border-border w-full rounded-lg border bg-white px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
                   >
-                    <option value="true">Sí</option>
                     <option value="false">No</option>
+                    <option value="true">Sí</option>
                   </select>
                 </div>
 
+                {/* OBSERVACIONES */}
                 <div className="md:col-span-2">
                   <label
                     htmlFor="observations"
@@ -275,7 +365,6 @@ export default function FormCreateMortality() {
                   >
                     Observaciones
                   </label>
-
                   <textarea
                     id="observations"
                     rows={3}
@@ -286,6 +375,7 @@ export default function FormCreateMortality() {
                   />
                 </div>
 
+                {/* ESTADO ACTIVO */}
                 <div className="md:col-span-2">
                   <label className="flex cursor-pointer items-center gap-3">
                     <input

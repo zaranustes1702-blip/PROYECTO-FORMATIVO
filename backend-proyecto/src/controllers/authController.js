@@ -1,149 +1,170 @@
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
+const bcrypt = require("bcrypt");
 
 const Response = require("../functions/response");
+const { getEmailUser } = require("../services/userServices");
 
 dotenv.config();
 
-const JWT_KEY_SECRET = process.env.JWT_KEY_SECRET || "";
+const JWT_KEY_SECRET = process.env.JWT_KEY_SECRET || "1234";
 
-// Login
-const login = (req, res) => {
-    const { userName, password } = req.body;
+// Inicio de sesión
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-    if (userName == "" || password == "") {
-        res.status(400);
+    if (email == "" || password == "") {
+      const response = new Response(
+        "Error en login",
+        null,
+        "Correo o contraseña vacíos",
+      );
 
-        const response = new Response(
-            "Error en login",
-            null,
-            "Usuario o contraseña vacíos"
-        );
-
-        return res.json(response);
+      return res.status(400).json(response);
     }
 
+    const user = await getEmailUser(email);
+
+    // Si no existe el usuario
+    if (!user) {
+      const response = new Response(
+        "Error en login",
+        null,
+        "Usuario y contraseña incorrectos",
+      );
+
+      return res.status(400).json(response.json);
+    }
+
+    // Comparar contraseña
+    const match = bcrypt.compareSync(password, user.password);
+
+    // Si la contraseña es incorrecta
+    if (!match) {
+      const response = new Response(
+        "Error en login",
+        null,
+        "Usuario y contraseña incorrectos",
+      );
+
+      return res.status(400).json(response.json || response);
+    }
+
+    // Generar token SOLO si la contraseña es correcta
     const token = jwt.sign(
-        {
-            user: userName
-        },
-        JWT_KEY_SECRET,
-        {
-            expiresIn: "1h"
-        }
+      {
+        id: user.userId,
+        user: email,
+      },
+      JWT_KEY_SECRET,
+      {
+        expiresIn: "1h",
+      },
     );
 
-    const response = new Response(
-        "Login successful",
-        {
-            token
-        },
-        null
-    );
+    const response = new Response("login successful", { token }, null);
 
-    response.success.ok = true;
+    return res.json(response.json || response);
+  } catch (error) {
+    console.error("Error en login:", error);
 
-    return res.json(response.success);
+    const errorResponse = new Response("Error interno del servidor", null, [
+      {
+        message: error.message || "Ocurrió un error inesperado",
+      },
+    ]);
+
+    return res.status(500).json(errorResponse.json || errorResponse);
+  }
 };
 
-// Recuperar contraseña
+// recuperar contraseña
 const resetPassword = (req, res) => {
-    const { email } = req.body;
-
-    if (email == "") {
-        res.status(400);
-
-        const response = new Response(
-            "Error recuperación contraseña",
-            null,
-            "El correo es obligatorio"
-        );
-
-        return res.json(response);
-    }
-
+  const { email } = req.body;
+  if (email == "") {
+    res.status(400);
     const response = new Response(
-        "Solicitud de recuperación enviada",
-        {
-            email
-        },
-        null
+      "Error recuperación contraseña",
+      null,
+      "El correo es obligatorio",
     );
-
-    response.success.ok = true;
-
-    return res.json(response.success);
+    return res.json(response);
+  }
+  const response = new Response(
+    "Solicitud de recuperación enviada",
+    { email },
+    null,
+  );
+  return res.json(response.success || response);
 };
 
-// Validar recuperación de contraseña
+//validar recuperación de contraseña
 const validateResetPassword = (req, res) => {
-    const { token } = req.body;
-
-    if (token == "") {
-        res.status(400);
-
-        const response = new Response(
-            "Error validando recuperación",
-            null,
-            "Token requerido"
-        );
-
-        return res.json(response);
-    }
-
+  const { token } = req.body;
+  if (token == "") {
+    res.status(400);
     const response = new Response(
-        "Token válido",
-        {
-            token
-        },
-        null
+      "Error validando recuperación",
+      null,
+      "Token requerido",
     );
 
-    response.success.ok = true;
+    return res.json(response);
+  }
 
-    return res.json(response.success);
+  const response = new Response(
+    "Token válido",
+    {
+      token,
+    },
+    null,
+  );
+
+  return res.json(response.success || response);
 };
 
-// Nueva contraseña
+//nueva contraseña
 const newPassword = (req, res) => {
-    const { password, confirmPassword } = req.body;
+  const { password, confirmPassword } = req.body;
 
-    if (password == "" || confirmPassword == "") {
-        res.status(400);
-
-        const response = new Response(
-            false,
-            "Error cambiando contraseña",
-            "Las contraseñas son obligatorias"
-        );
-
-        return res.json(response.json);
-    }
-
-    if (password != confirmPassword) {
-        res.status(400);
-
-        const response = new Response(
-            false,
-            "Error cambiando contraseña",
-            "Las contraseñas no coinciden"
-        );
-
-        return res.json(response.json);
-    }
+  if (password == "" || confirmPassword == "") {
+    res.status(400);
 
     const response = new Response(
-        true,
-        "Contraseña actualizada correctamente",
-        null
+      "Error cambiando contraseña",
+      null,
+      "Las contraseñas son obligatorias",
     );
 
-    return res.json(response.json);
+    return res.json(response);
+  }
+
+  if (password != confirmPassword) {
+    res.status(400);
+
+    const response = new Response(
+      "Error cambiando contraseña",
+      null,
+      "Las contraseñas no coinciden",
+    );
+
+    return res.json(response);
+  }
+
+  // Aquí puedes agregar la lógica para actualizar la contraseña en la base de datos
+  const response = new Response(
+    "Contraseña actualizada correctamente",
+    null,
+    null,
+  );
+
+  return res.json(response.success || response);
 };
 
 module.exports = {
-    login,
-    resetPassword,
-    validateResetPassword,
-    newPassword
+  login,
+  resetPassword,
+  validateResetPassword,
+  newPassword,
 };
