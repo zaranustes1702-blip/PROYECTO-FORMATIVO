@@ -1,263 +1,232 @@
 "use client";
 
-import React, { useState } from "react";
-import NavBar from "@/components/NavBar";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from "../ui/dialog";
+import { CirclePlus } from "lucide-react";
 import { API_HEALTH_URL } from "@/api/config";
 
 export default function FormCreateHealth() {
-  const [healthDate, setHealthDate] = useState("");
-  const [vaccineQuantity, setVaccineQuantity] = useState("");
-  const [vaccineName, setVaccineName] = useState("");
-  const [active, setActive] = useState(true);
-
-  const [modalAbierto, setModalAbierto] = useState(false);
+  const [open, setOpen] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
+  const [mensajeError, setMensajeError] = useState("");
 
-  const abrirModal = () => {
-    setMensajeExito("");
-    setModalAbierto(true);
-  };
+  const [formData, setFormData] = useState({
+    healthDate: "",
+    vaccineQuantity: "",
+    vaccineName: "",
+    active: "true",
+  });
 
-  const cerrarModal = () => {
-    if (guardando) {
-      return;
-    }
-
-    setModalAbierto(false);
-  };
-
-  const limpiarFormulario = () => {
-    setHealthDate("");
-    setVaccineQuantity("");
-    setVaccineName("");
-    setActive(true);
-  };
-
-  const guardarSalud = async (
-    event: React.FormEvent<HTMLFormElement>
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
-    event.preventDefault();
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
+  const resetInputs = () => {
+    setFormData({
+      healthDate: "",
+      vaccineQuantity: "",
+      vaccineName: "",
+      active: "true",
+    });
+  };
+
+  const handleOpenChange = (nuevoEstado: boolean) => {
+    if (guardando) return;
+    setOpen(nuevoEstado);
+    if (!nuevoEstado) {
+      resetInputs();
+      setMensajeExito("");
+      setMensajeError("");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setGuardando(true);
     setMensajeExito("");
+    setMensajeError("");
+
+    const datosEnviar = {
+      healthDate: formData.healthDate,
+      vaccineQuantity: Number(formData.vaccineQuantity) || 0,
+      vaccineName: formData.vaccineName.trim(),
+      active: formData.active === "true",
+    };
 
     try {
-      const respuesta = await fetch(
-        `${API_HEALTH_URL}/CreateHealth`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            healthDate,
-            vaccineQuantity: Number(vaccineQuantity),
-            vaccineName,
-            active,
-          }),
-        }
-      );
+      const response = await fetch(`${API_HEALTH_URL}/CreateHealth`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(datosEnviar),
+      });
 
-      const resultado = await respuesta.json();
+      let resultado: any = null;
+      try {
+        resultado = await response.json();
+      } catch {
+        // En caso de que la respuesta no contenga JSON
+      }
 
-      if (!respuesta.ok) {
+      if (!response.ok) {
         throw new Error(
-          resultado.message ||
-            resultado.mensaje ||
-            "No se pudo registrar el control de salud"
+          resultado?.message ||
+            resultado?.mensaje ||
+            resultado?.error ||
+            `Error ${response.status}: No se pudo registrar el control de salud`
         );
       }
 
-      setMensajeExito("Control de salud registrado correctamente");
-      limpiarFormulario();
+      setMensajeExito("¡Control de salud registrado correctamente!");
+      resetInputs();
 
       setTimeout(() => {
-        setModalAbierto(false);
+        setOpen(false);
         setMensajeExito("");
-      }, 1500);
-    } catch (error) {
-      console.error("Error al registrar el control de salud:", error);
-
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert("Ocurrió un error al registrar el control de salud");
-      }
+      }, 1800);
+    } catch (error: any) {
+      console.error("Error al registrar control de salud:", error);
+      setMensajeError(
+        error.message || "Ocurrió un error inesperado al conectar con el servidor"
+      );
     } finally {
       setGuardando(false);
     }
   };
 
   return (
-    <>
-      <NavBar />
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger className="inline-flex items-center text-green-1-navbar font-semibold hover:text-green-2-navbar cursor-pointer">
+        <CirclePlus className="w-8 h-8 mr-2 text-green-1-navbar" />
+        <span>Registrar Salud</span>
+      </DialogTrigger>
 
-      <main className="min-h-screen bg-fond">
-        <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[800px] border border-border shadow-xl">
+        <DialogHeader className="font-bold text-2xl text-center text-title">
+          Registrar Control de Salud
+        </DialogHeader>
+        <DialogDescription className="text-center text-parrafo">
+          Complete los campos para registrar los tratamientos y vacunaciones aplicadas.
+        </DialogDescription>
+
+        {mensajeExito && (
+          <div className="w-full rounded-md border border-green-600 bg-green-50 p-3 text-center text-sm font-semibold text-green-800 animate-in fade-in">
+            {mensajeExito}
+          </div>
+        )}
+
+        {mensajeError && (
+          <div className="w-full rounded-md border border-red-500 bg-red-50 p-3 text-center text-sm font-semibold text-red-700 animate-in fade-in">
+            {mensajeError}
+          </div>
+        )}
+
+        <form id="health-form" onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <h1 className="text-title text-3xl font-bold">
-                Gestión de Salud
-              </h1>
-
-              <p className="text-parrafo mt-2">
-                Registra los controles de salud y vacunación de las aves.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={abrirModal}
-              className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar"
-            >
-              Crear registro de salud
-            </button>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-md">
-            <h2 className="text-title text-xl font-semibold">
-              Registros de salud
-            </h2>
-
-            <p className="text-parrafo mt-2">
-              Presiona el botón Crear registro de salud para agregar un nuevo
-              control.
-            </p>
-          </div>
-        </section>
-      </main>
-
-      {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
-          <div className="bg-white max-h-[95vh] w-full max-w-3xl overflow-y-auto rounded-xl shadow-2xl">
-            <div className="border-border flex items-center justify-between border-b px-6 py-4">
-              <div>
-                <h2 className="text-title text-2xl font-bold">
-                  Registrar control de salud
-                </h2>
-
-                <p className="text-parrafo mt-1 text-sm">
-                  Completa la información solicitada.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={cerrarModal}
-                disabled={guardando}
-                className="text-title rounded-lg px-3 py-2 text-2xl font-bold transition hover:bg-fond disabled:opacity-50"
+              <label
+                htmlFor="healthDate"
+                className="block text-sm font-semibold text-title mb-1"
               >
-                ×
-              </button>
+                Fecha del Control:
+              </label>
+              <input
+                type="date"
+                id="healthDate"
+                name="healthDate"
+                value={formData.healthDate}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
             </div>
 
-            <form onSubmit={guardarSalud} className="space-y-6 px-6 py-6">
-              {mensajeExito && (
-                <div className="border-border rounded-lg border bg-green-50 px-4 py-3 text-green-1-navbar">
-                  {mensajeExito}
-                </div>
-              )}
+            <div>
+              <label
+                htmlFor="vaccineQuantity"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Cantidad de Vacunas:
+              </label>
+              <input
+                type="number"
+                id="vaccineQuantity"
+                name="vaccineQuantity"
+                value={formData.vaccineQuantity}
+                onChange={handleChange}
+                min="1"
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Ej: 500"
+              />
+            </div>
 
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="healthDate"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Fecha del control
-                  </label>
+            <div className="col-span-1 md:col-span-2">
+              <label
+                htmlFor="vaccineName"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Nombre de la Vacuna / Tratamiento:
+              </label>
+              <input
+                type="text"
+                id="vaccineName"
+                name="vaccineName"
+                value={formData.vaccineName}
+                onChange={handleChange}
+                maxLength={255}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Ej: Newcastle + Bronquitis B1"
+              />
+            </div>
 
-                  <input
-                    id="healthDate"
-                    type="date"
-                    value={healthDate}
-                    onChange={(event) => setHealthDate(event.target.value)}
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="vaccineQuantity"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Cantidad de vacunas
-                  </label>
-
-                  <input
-                    id="vaccineQuantity"
-                    type="number"
-                    min="1"
-                    value={vaccineQuantity}
-                    onChange={(event) =>
-                      setVaccineQuantity(event.target.value)
-                    }
-                    placeholder="Cantidad aplicada"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label
-                    htmlFor="vaccineName"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Nombre de la vacuna
-                  </label>
-
-                  <input
-                    id="vaccineName"
-                    type="text"
-                    maxLength={255}
-                    value={vaccineName}
-                    onChange={(event) => setVaccineName(event.target.value)}
-                    placeholder="Nombre de la vacuna aplicada"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="flex cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={active}
-                      onChange={(event) => setActive(event.target.checked)}
-                      className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
-
-                    <span className="text-title text-sm font-semibold">
-                      Registro activo
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="border-border flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={cerrarModal}
-                  disabled={guardando}
-                  className="text-title rounded-lg border border-gray-300 px-5 py-3 font-semibold transition hover:bg-fond disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={guardando}
-                  className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar disabled:opacity-50"
-                >
-                  {guardando ? "Guardando..." : "Guardar salud"}
-                </button>
-              </div>
-            </form>
+            <div className="col-span-1 md:col-span-2">
+              <label
+                htmlFor="active"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Estado:
+              </label>
+              <select
+                id="active"
+                name="active"
+                value={formData.active}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              >
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
+            </div>
           </div>
-        </div>
-      )}
-    </>
+        </form>
+
+        <DialogFooter>
+          <button
+            type="submit"
+            form="health-form"
+            disabled={guardando}
+            className="w-full bg-green-1-navbar text-white font-medium py-2 px-4 rounded-md hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+          >
+            {guardando ? "Guardando..." : "Guardar Control"}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

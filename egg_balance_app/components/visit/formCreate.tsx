@@ -1,325 +1,300 @@
 "use client";
 
-import React, { useState } from "react";
-import NavBar from "@/components/NavBar";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from "../ui/dialog";
+import { CirclePlus } from "lucide-react";
 import { API_VISIT_URL } from "@/api/config";
 
 export default function FormCreateVisit() {
-  const [visitDate, setVisitDate] = useState("");
-  const [visitorName, setVisitorName] = useState("");
-  const [institution, setInstitution] = useState("");
-  const [visitReason, setVisitReason] = useState("");
-  const [responsiblePerson, setResponsiblePerson] = useState("");
-  const [observations, setObservations] = useState("");
-  const [active, setActive] = useState(true);
-
-  const [modalAbierto, setModalAbierto] = useState(false);
+  const [open, setOpen] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
+  const [mensajeError, setMensajeError] = useState("");
 
-  const abrirModal = () => {
-    setMensajeExito("");
-    setModalAbierto(true);
-  };
+  const [formData, setFormData] = useState({
+    visitDate: "",
+    visitorName: "",
+    institution: "",
+    visitReason: "",
+    responsiblePerson: "",
+    observations: "",
+    active: "true",
+  });
 
-  const cerrarModal = () => {
-    if (guardando) {
-      return;
-    }
-
-    setModalAbierto(false);
-  };
-
-  const limpiarFormulario = () => {
-    setVisitDate("");
-    setVisitorName("");
-    setInstitution("");
-    setVisitReason("");
-    setResponsiblePerson("");
-    setObservations("");
-    setActive(true);
-  };
-
-  const guardarVisita = async (
-    event: React.FormEvent<HTMLFormElement>
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
-    event.preventDefault();
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
+  const resetInputs = () => {
+    setFormData({
+      visitDate: "",
+      visitorName: "",
+      institution: "",
+      visitReason: "",
+      responsiblePerson: "",
+      observations: "",
+      active: "true",
+    });
+  };
+
+  const handleOpenChange = (nuevoEstado: boolean) => {
+    if (guardando) return;
+    setOpen(nuevoEstado);
+    if (!nuevoEstado) {
+      resetInputs();
+      setMensajeExito("");
+      setMensajeError("");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setGuardando(true);
     setMensajeExito("");
+    setMensajeError("");
+
+    const datosEnviar = {
+      visitDate: formData.visitDate,
+      visitorName: formData.visitorName.trim(),
+      institution: formData.institution.trim(),
+      visitReason: formData.visitReason.trim(),
+      responsiblePerson: formData.responsiblePerson.trim(),
+      observations: formData.observations.trim(),
+      active: formData.active === "true",
+    };
 
     try {
-      const respuesta = await fetch(`${API_VISIT_URL}/CreateVisit`, {
+      const response = await fetch(`${API_VISIT_URL}/CreateVisit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          visitDate,
-          visitorName,
-          institution,
-          visitReason,
-          responsiblePerson,
-          observations,
-          active,
-        }),
+        body: JSON.stringify(datosEnviar),
       });
 
-      const resultado = await respuesta.json();
+      let resultado: any = null;
+      try {
+        resultado = await response.json();
+      } catch {
+        // En caso de que no devuelva JSON
+      }
 
-      if (!respuesta.ok) {
+      if (!response.ok) {
         throw new Error(
-          resultado.message ||
-            resultado.mensaje ||
-            "No se pudo registrar la visita"
+          resultado?.message ||
+            resultado?.mensaje ||
+            resultado?.error ||
+            `Error ${response.status}: No se pudo registrar la visita`
         );
       }
 
-      setMensajeExito("Visita registrada correctamente");
-      limpiarFormulario();
+      setMensajeExito("¡Visita registrada correctamente!");
+      resetInputs();
 
       setTimeout(() => {
-        setModalAbierto(false);
+        setOpen(false);
         setMensajeExito("");
-      }, 1500);
-    } catch (error) {
-      console.error("Error al registrar la visita:", error);
-
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert("Ocurrió un error al registrar la visita");
-      }
+      }, 1800);
+    } catch (error: any) {
+      console.error("Error al registrar visita:", error);
+      setMensajeError(
+        error.message || "Ocurrió un error inesperado al conectar con el servidor"
+      );
     } finally {
       setGuardando(false);
     }
   };
 
   return (
-    <>
-      <NavBar />
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger className="inline-flex items-center text-green-1-navbar font-semibold hover:text-green-2-navbar cursor-pointer">
+        <CirclePlus className="w-8 h-8 mr-2 text-green-1-navbar" />
+        <span>Registrar Visita</span>
+      </DialogTrigger>
 
-      <main className="min-h-screen bg-fond">
-        <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[850px] max-h-[90vh] overflow-y-auto border border-border shadow-xl">
+        <DialogHeader className="font-bold text-2xl text-center text-title">
+          Registrar Visita
+        </DialogHeader>
+        <DialogDescription className="text-center text-parrafo">
+          Complete los campos para registrar el ingreso de un visitante.
+        </DialogDescription>
+
+        {mensajeExito && (
+          <div className="w-full rounded-md border border-green-600 bg-green-50 p-3 text-center text-sm font-semibold text-green-800 animate-in fade-in">
+            {mensajeExito}
+          </div>
+        )}
+
+        {mensajeError && (
+          <div className="w-full rounded-md border border-red-500 bg-red-50 p-3 text-center text-sm font-semibold text-red-700 animate-in fade-in">
+            {mensajeError}
+          </div>
+        )}
+
+        <form id="visit-form" onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <h1 className="text-title text-3xl font-bold">
-                Gestión de Visitas
-              </h1>
-
-              <p className="text-parrafo mt-2">
-                Registra y controla el ingreso de visitantes a las instalaciones.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={abrirModal}
-              className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar"
-            >
-              Crear visita
-            </button>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-md">
-            <h2 className="text-title text-xl font-semibold">
-              Registro de visitas
-            </h2>
-
-            <p className="text-parrafo mt-2">
-              Presiona el botón Crear visita para agregar un registro.
-            </p>
-          </div>
-        </section>
-      </main>
-
-      {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
-          <div className="bg-white max-h-[95vh] w-full max-w-3xl overflow-y-auto rounded-xl shadow-2xl">
-            <div className="border-border flex items-center justify-between border-b px-6 py-4">
-              <div>
-                <h2 className="text-title text-2xl font-bold">
-                  Registrar visita
-                </h2>
-
-                <p className="text-parrafo mt-1 text-sm">
-                  Completa la información solicitada.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={cerrarModal}
-                disabled={guardando}
-                className="text-title rounded-lg px-3 py-2 text-2xl font-bold transition hover:bg-fond disabled:opacity-50"
+              <label
+                htmlFor="visitDate"
+                className="block text-sm font-semibold text-title mb-1"
               >
-                ×
-              </button>
+                Fecha:
+              </label>
+              <input
+                type="date"
+                id="visitDate"
+                name="visitDate"
+                value={formData.visitDate}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
             </div>
 
-            <form onSubmit={guardarVisita} className="space-y-6 px-6 py-6">
-              {mensajeExito && (
-                <div className="border-border rounded-lg border bg-green-50 px-4 py-3 text-green-1-navbar">
-                  {mensajeExito}
-                </div>
-              )}
+            <div>
+              <label
+                htmlFor="visitorName"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Nombre del Visitante:
+              </label>
+              <input
+                type="text"
+                id="visitorName"
+                name="visitorName"
+                value={formData.visitorName}
+                onChange={handleChange}
+                maxLength={100}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Nombre completo"
+              />
+            </div>
 
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="visitDate"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Fecha
-                  </label>
+            <div>
+              <label
+                htmlFor="institution"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Institución o Empresa:
+              </label>
+              <input
+                type="text"
+                id="institution"
+                name="institution"
+                value={formData.institution}
+                onChange={handleChange}
+                maxLength={100}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Empresa o entidad de procedencia"
+              />
+            </div>
 
-                  <input
-                    id="visitDate"
-                    type="date"
-                    value={visitDate}
-                    onChange={(event) => setVisitDate(event.target.value)}
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="responsiblePerson"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Responsable que Atiende:
+              </label>
+              <input
+                type="text"
+                id="responsiblePerson"
+                name="responsiblePerson"
+                value={formData.responsiblePerson}
+                onChange={handleChange}
+                maxLength={100}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Persona encargada de la atención"
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="visitorName"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Nombre del visitante
-                  </label>
+            <div className="md:col-span-2">
+              <label
+                htmlFor="visitReason"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Motivo de la Visita:
+              </label>
+              <input
+                type="text"
+                id="visitReason"
+                name="visitReason"
+                value={formData.visitReason}
+                onChange={handleChange}
+                maxLength={255}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Objetivo o motivo de la visita"
+              />
+            </div>
 
-                  <input
-                    id="visitorName"
-                    type="text"
-                    maxLength={100}
-                    value={visitorName}
-                    onChange={(event) => setVisitorName(event.target.value)}
-                    placeholder="Nombre completo"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div className="md:col-span-2">
+              <label
+                htmlFor="observations"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Observaciones:
+              </label>
+              <textarea
+                id="observations"
+                name="observations"
+                rows={3}
+                maxLength={255}
+                value={formData.observations}
+                onChange={handleChange}
+                placeholder="Detalles adicionales, medidas de bioseguridad o recomendaciones"
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="institution"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Institución
-                  </label>
-
-                  <input
-                    id="institution"
-                    type="text"
-                    maxLength={100}
-                    value={institution}
-                    onChange={(event) => setInstitution(event.target.value)}
-                    placeholder="Empresa o entidad"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="responsiblePerson"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Responsable
-                  </label>
-
-                  <input
-                    id="responsiblePerson"
-                    type="text"
-                    maxLength={100}
-                    value={responsiblePerson}
-                    onChange={(event) => setResponsiblePerson(event.target.value)}
-                    placeholder="Persona que atiende la visita"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label
-                    htmlFor="visitReason"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Motivo de la visita
-                  </label>
-
-                  <input
-                    id="visitReason"
-                    type="text"
-                    maxLength={255}
-                    value={visitReason}
-                    onChange={(event) => setVisitReason(event.target.value)}
-                    placeholder="Objetivo o motivo de la visita"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label
-                    htmlFor="observations"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Observaciones
-                  </label>
-
-                  <textarea
-                    id="observations"
-                    rows={3}
-                    maxLength={255}
-                    value={observations}
-                    onChange={(event) => setObservations(event.target.value)}
-                    placeholder="Detalles adicionales o recomendaciones"
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="flex cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={active}
-                      onChange={(event) => setActive(event.target.checked)}
-                      className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
-
-                    <span className="text-title text-sm font-semibold">
-                      Visita activa
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="border-border flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={cerrarModal}
-                  disabled={guardando}
-                  className="text-title rounded-lg border border-gray-300 px-5 py-3 font-semibold transition hover:bg-fond disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={guardando}
-                  className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar disabled:opacity-50"
-                >
-                  {guardando ? "Guardando..." : "Guardar visita"}
-                </button>
-              </div>
-            </form>
+            <div className="md:col-span-2">
+              <label
+                htmlFor="active"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Estado:
+              </label>
+              <select
+                id="active"
+                name="active"
+                value={formData.active}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              >
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
+            </div>
           </div>
-        </div>
-      )}
-    </>
+        </form>
+
+        <DialogFooter className="mt-4">
+          <button
+            type="submit"
+            form="visit-form"
+            disabled={guardando}
+            className="w-full bg-green-1-navbar text-white font-medium py-2 px-4 rounded-md hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+          >
+            {guardando ? "Guardando..." : "Guardar Visita"}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

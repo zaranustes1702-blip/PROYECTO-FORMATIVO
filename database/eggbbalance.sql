@@ -16,30 +16,57 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `approute`
+-- Table structure for table `app_routes`
 --
 
-DROP TABLE IF EXISTS `approute`;
+DROP TABLE IF EXISTS `app_routes`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `approute` (
-  `id_approute` int NOT NULL AUTO_INCREMENT,
-  `group` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `icon` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `route` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `active` tinyint NOT NULL DEFAULT '1',
-  PRIMARY KEY (`id_approute`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE `app_routes` (
+  `id_app_routes` int NOT NULL AUTO_INCREMENT,
+  `name_route` varchar(100) NOT NULL,
+  `route` varchar(255) NOT NULL,
+  `active` tinyint DEFAULT '1',
+  `icono` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id_app_routes`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `approute`
+-- Dumping data for table `app_routes`
 --
 
-LOCK TABLES `approute` WRITE;
-/*!40000 ALTER TABLE `approute` DISABLE KEYS */;
-/*!40000 ALTER TABLE `approute` ENABLE KEYS */;
+LOCK TABLES `app_routes` WRITE;
+/*!40000 ALTER TABLE `app_routes` DISABLE KEYS */;
+/*!40000 ALTER TABLE `app_routes` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `app_routes_roll`
+--
+
+DROP TABLE IF EXISTS `app_routes_roll`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `app_routes_roll` (
+  `id_app_routes_roll` int NOT NULL AUTO_INCREMENT,
+  `id_app_routes` int NOT NULL,
+  `id_roll` int NOT NULL,
+  PRIMARY KEY (`id_app_routes_roll`),
+  KEY `idx_app_routes` (`id_app_routes`),
+  KEY `idx_roll` (`id_roll`),
+  CONSTRAINT `fk_app_routes_roll_roll` FOREIGN KEY (`id_roll`) REFERENCES `roll` (`id_roll`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_app_routes_roll_route` FOREIGN KEY (`id_app_routes`) REFERENCES `app_routes` (`id_app_routes`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `app_routes_roll`
+--
+
+LOCK TABLES `app_routes_roll` WRITE;
+/*!40000 ALTER TABLE `app_routes_roll` DISABLE KEYS */;
+/*!40000 ALTER TABLE `app_routes_roll` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -59,7 +86,7 @@ CREATE TABLE `barn` (
   `createdAt` datetime DEFAULT NULL,
   `updatedAt` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -68,7 +95,7 @@ CREATE TABLE `barn` (
 
 LOCK TABLES `barn` WRITE;
 /*!40000 ALTER TABLE `barn` DISABLE KEYS */;
-INSERT INTO `barn` VALUES (2,'Galpón Recría','32 x 14 metros',600,'Dekalb White',1,'2026-07-17 23:13:11','2026-07-17 23:13:11'),(3,'Galpón Experimental','28 x 10 metros',350,'ISA Brown',1,'2026-07-17 23:13:25','2026-07-17 23:13:25'),(4,'Galpon 1','20x10',200,'Hylen',1,'2026-08-30 19:42:47','2026-08-30 19:42:47');
+INSERT INTO `barn` VALUES (2,'Galpón Recría','32 x 14 metros',600,'Dekalb White',1,'2026-07-17 23:13:11','2026-07-17 23:13:11'),(3,'Galpón Experimental','28 x 10 metros',350,'ISA Brown',1,'2026-07-17 23:13:25','2026-07-17 23:13:25'),(4,'Galpon 1','20x10',200,'Hylen',1,'2026-08-30 19:42:47','2026-08-30 19:42:47'),(5,'Galpon principal','20x22',200,'Hy-Line Brown',1,'2026-09-21 19:50:19','2026-09-21 19:50:19'),(6,'Galpon principal','20x22',2000,'Hy-Line Brown',1,'2026-09-21 19:53:56','2026-09-21 19:53:56'),(7,'Galpon principal','20x23',300,'Hy-Line Brown',1,'2026-09-21 19:55:38','2026-09-21 19:55:38'),(8,'Galpon principal','20x26',200,'Hy-Line Brown',1,'2026-09-21 19:59:52','2026-09-21 19:59:52');
 /*!40000 ALTER TABLE `barn` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -91,7 +118,7 @@ CREATE TABLE `birdbatch` (
   `createdAt` datetime DEFAULT NULL,
   `updatedAt` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -100,7 +127,7 @@ CREATE TABLE `birdbatch` (
 
 LOCK TABLES `birdbatch` WRITE;
 /*!40000 ALTER TABLE `birdbatch` DISABLE KEYS */;
-INSERT INTO `birdbatch` VALUES (1,'2026-08-05 00:00:00','L-001',180,342.5,24,'Newcastle, Gumboro, Bronquitis Infecciosa',1,'2026-08-05 16:00:12','2026-08-05 16:00:12');
+INSERT INTO `birdbatch` VALUES (1,'2026-08-05 00:00:00','L-001',180,342.5,24,'Newcastle, Gumboro, Bronquitis Infecciosa',1,'2026-08-05 16:00:12','2026-08-05 16:00:12'),(2,'2026-09-02 00:00:00','1',200,2.48,30,'bronquitis',1,'2026-09-17 12:56:08','2026-09-17 12:56:08'),(3,'2026-09-09 00:00:00','1',200,4.6,54,'covid',1,'2026-09-17 14:09:13','2026-09-17 14:09:13'),(4,'2026-09-22 00:00:00','1',90,0.31,12,'bronquitis',1,'2026-09-22 12:34:25','2026-09-22 12:34:25'),(5,'2026-09-16 00:00:00','2',200,0.68,43,'Bronquitiss aguda',1,'2026-09-23 17:34:48','2026-09-23 17:34:48');
 /*!40000 ALTER TABLE `birdbatch` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -166,7 +193,7 @@ CREATE TABLE `feeding` (
   `createdAt` datetime DEFAULT NULL,
   `updatedAt` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -175,7 +202,7 @@ CREATE TABLE `feeding` (
 
 LOCK TABLES `feeding` WRITE;
 /*!40000 ALTER TABLE `feeding` DISABLE KEYS */;
-INSERT INTO `feeding` VALUES (1,'2026-08-05',22.5,180,9,'Mañana','Zara Ñustes',1,'2026-08-05 16:43:23','2026-08-05 16:43:23'),(2,'2026-08-06',21.8,158.2,7.9,'Tarde','Carlos Andrés Pérez',1,'2026-08-05 16:43:33','2026-08-05 16:43:33');
+INSERT INTO `feeding` VALUES (1,'2026-08-05',22.5,180,9,'Mañana','Zara Ñustes',1,'2026-08-05 16:43:23','2026-08-05 16:43:23'),(2,'2026-08-06',21.8,158.2,7.9,'Tarde','Carlos Andrés Pérez',1,'2026-08-05 16:43:33','2026-08-05 16:43:33'),(3,'2026-09-22',0.08,0.08,1,'Mañana','jose',1,'2026-09-23 14:25:11','2026-09-23 14:25:11');
 /*!40000 ALTER TABLE `feeding` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -324,7 +351,7 @@ CREATE TABLE `responsible` (
   `updatedAt` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `documentNumber` (`documentNumber`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -333,7 +360,7 @@ CREATE TABLE `responsible` (
 
 LOCK TABLES `responsible` WRITE;
 /*!40000 ALTER TABLE `responsible` DISABLE KEYS */;
-INSERT INTO `responsible` VALUES (1,'Zara Ñustes','1088123456','2876543','Líder de Producción','Pasante',1,'2026-08-05 16:33:03','2026-08-05 16:33:03'),(2,'Carlos Andrés Pérez','1002456789','2890012','Instructor','Instructor',1,'2026-08-05 16:33:13','2026-08-05 16:33:13');
+INSERT INTO `responsible` VALUES (1,'Zara Ñustes','1088123456','2876543','Líder de Producción','Pasante',1,'2026-08-05 16:33:03','2026-08-05 16:33:03'),(2,'Carlos Andrés Pérez','1002456789','2890012','Instructor','Instructor',1,'2026-08-05 16:33:13','2026-08-05 16:33:13'),(3,'Zara Ñustes','1076737818','3285039','Encargado','Aprendiz',1,'2026-09-17 13:11:21','2026-09-17 13:11:21');
 /*!40000 ALTER TABLE `responsible` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -346,14 +373,10 @@ DROP TABLE IF EXISTS `roll`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `roll` (
   `id_roll` int NOT NULL AUTO_INCREMENT,
-  `slug` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `label` varchar(45) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `id_rollroute` int NOT NULL,
-  `active` tinyint NOT NULL DEFAULT '1',
-  PRIMARY KEY (`id_roll`),
-  KEY `fk_roll_rollroute` (`id_rollroute`),
-  CONSTRAINT `fk_roll_rollroute` FOREIGN KEY (`id_rollroute`) REFERENCES `rollroute` (`id_rollroute`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `slug` varchar(100) NOT NULL,
+  `name_roll` varchar(100) NOT NULL,
+  PRIMARY KEY (`id_roll`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -363,38 +386,6 @@ CREATE TABLE `roll` (
 LOCK TABLES `roll` WRITE;
 /*!40000 ALTER TABLE `roll` DISABLE KEYS */;
 /*!40000 ALTER TABLE `roll` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `rollroute`
---
-
-DROP TABLE IF EXISTS `rollroute`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `rollroute` (
-  `id_rollroute` int NOT NULL AUTO_INCREMENT,
-  `id_approute` int NOT NULL,
-  `is_admin` tinyint NOT NULL DEFAULT '0',
-  `is_superadmin` tinyint NOT NULL DEFAULT '0',
-  `is_gestor` tinyint NOT NULL DEFAULT '0',
-  `is_lider` tinyint NOT NULL DEFAULT '0',
-  `is_instructor` tinyint NOT NULL DEFAULT '0',
-  `is_pasante` tinyint NOT NULL DEFAULT '0',
-  `active` tinyint NOT NULL DEFAULT '1',
-  PRIMARY KEY (`id_rollroute`),
-  KEY `fk_rollroute_approute` (`id_approute`),
-  CONSTRAINT `fk_rollroute_approute` FOREIGN KEY (`id_approute`) REFERENCES `approute` (`id_approute`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `rollroute`
---
-
-LOCK TABLES `rollroute` WRITE;
-/*!40000 ALTER TABLE `rollroute` DISABLE KEYS */;
-/*!40000 ALTER TABLE `rollroute` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -475,17 +466,19 @@ CREATE TABLE `users` (
   `name` varchar(50) NOT NULL,
   `uuid` varchar(45) DEFAULT NULL,
   `email` varchar(50) NOT NULL,
+  `password` varchar(200) NOT NULL,
+  `salt` varchar(50) NOT NULL,
   `documentId` varchar(30) NOT NULL,
   `postJob` varchar(50) NOT NULL,
   `verifyEmail` tinyint NOT NULL DEFAULT '0',
   `active` tinyint DEFAULT NULL,
   `createdAt` datetime DEFAULT NULL,
   `updatedAt` datetime DEFAULT NULL,
-  `password` varchar(50) NOT NULL,
-  `idroll` int DEFAULT NULL,
   `solicito_newPassword` tinyint DEFAULT '0',
-  PRIMARY KEY (`userId`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `id_roll` int NOT NULL,
+  PRIMARY KEY (`userId`),
+  KEY `idx_user_roll` (`id_roll`)
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -494,7 +487,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (2,'Javier Ramirez',NULL,'jarl217@gmail.com','1076737818','Aprendiz',0,1,'2026-02-17 05:31:13','2026-07-16 05:31:13','',NULL,0),(3,'Zara Ñustes',NULL,'zara@gmail.com','1001234567','Administrador',0,1,'2026-07-16 06:37:26','2026-07-16 06:37:26','',NULL,0),(4,'Juan Pérez',NULL,'juan.perez2026@gmail.com','1023456789','Administrador',0,1,'2026-07-16 06:39:42','2026-07-16 06:39:42','',NULL,0),(5,'Zara Castro',NULL,'zaraes@sena.edu.co','100123467','Administrador',0,1,'2026-07-17 23:20:45','2026-07-17 23:22:17','',NULL,0),(6,'Juan Pérez',NULL,'juan@gmail.com','1234567890','Administrador',0,1,'2026-07-30 19:38:11','2026-07-30 19:38:11','',NULL,0),(7,'Zara Ñustes',NULL,'eggbalance857@gmail.com','123456789','Administrador',0,1,'2026-07-31 04:08:43','2026-07-31 04:08:43','',NULL,0);
+INSERT INTO `users` VALUES (2,'Javier Ramirez',NULL,'jarl217@gmail.com','','','1076737818','Aprendiz',0,1,'2026-02-17 05:31:13','2026-07-16 05:31:13',0,0),(3,'Zara Ñustes',NULL,'zara@gmail.com','','','1001234567','Administrador',0,1,'2026-07-16 06:37:26','2026-07-16 06:37:26',0,0),(4,'Juan Pérez',NULL,'juan.perez2026@gmail.com','','','1023456789','Administrador',0,1,'2026-07-16 06:39:42','2026-07-16 06:39:42',0,0),(5,'Zara Castro',NULL,'zaraes@sena.edu.co','','','100123467','Administrador',0,1,'2026-07-17 23:20:45','2026-07-17 23:22:17',0,0),(6,'Juan Pérez',NULL,'juan@gmail.com','','','1234567890','Administrador',0,1,'2026-07-30 19:38:11','2026-07-30 19:38:11',0,0),(7,'Zara Ñustes',NULL,'eggbalance857@gmail.com','','','123456789','Administrador',0,1,'2026-07-31 04:08:43','2026-07-31 04:08:43',0,0),(16,'Carlos Gomez',NULL,'carlos.gomez@test.com','$2b$10$XpzCFqaf6wdYfGvBuLrXg.q9c/IDPx221S89zwT8AJotkIzMqWDJS','$2b$10$XpzCFqaf6wdYfGvBuLrXg.','1005829102','Administrador',0,0,NULL,NULL,0,0),(17,'Zara ',NULL,'zaranustes1702@gmail.com','$2b$10$TMcx.BXRHeKAaujhJ4j9nOprfq.KbE2K5hqPA16hZZ0WpUKUN05HG','$2b$10$TMcx.BXRHeKAaujhJ4j9nO','1076737818','Aprendiz',0,1,NULL,NULL,0,0);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -572,4 +565,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-30 18:29:01
+-- Dump completed on 2026-09-23 13:08:22

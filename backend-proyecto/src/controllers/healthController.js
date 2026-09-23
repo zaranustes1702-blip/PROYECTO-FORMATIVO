@@ -10,12 +10,12 @@ const Response = require("../functions/response");
 
 const getAllHealth = async (req, res) => {
   try {
-    const querylimit = req.query.limit
-    const queryoffset = req.query.offset
+    const querylimit = req.query.limit;
+    const queryoffset = req.query.offset;
     const limit = querylimit ? parseInt(querylimit) : 10;
     const offset = queryoffset ? parseInt(queryoffset) : 0;
 
-    const healths = await getAllHealth(limit, offset);
+    const healths = await getAllHealths(limit, offset);
 
     const response = new Response(
       true,
@@ -34,8 +34,6 @@ const getAllHealth = async (req, res) => {
         res.json(errorResponse.json);
     }
 };
-
-
 
 const getAllHealthsById = async (req, res) => {
     try {
@@ -68,7 +66,6 @@ const getAllHealthsById = async (req, res) => {
             return;
         }
 
-
         var response = new Response(true, "Registro sanitario obtenido exitosamente", health);
 
         res.status(201);
@@ -100,25 +97,23 @@ const createHealth = async (req, res) => {
         var errors = [];
 
         if (!healthDate || healthDate.trim() === "") {
-            errors.push("La fecha de sanidad no puede estar vacía");
+            errors.push("La fecha de sanidad es obligatoria");
         }
 
         if (!vaccineQuantity) {
-            errors.push("La cantidad de vacunas no puede estar vacía");
+            errors.push("La cantidad de vacunas es obligatoria");
         }
 
         if (!vaccineName || vaccineName.trim() === "") {
-            errors.push("El nombre de la vacuna no puede estar vacío");
+            errors.push("El nombre de la vacuna es obligatorio");
         }
-
 
         if (errors.length > 0) {
 
             var response = new Response(false, "Error al crear el registro sanitario", errors);
 
             res.status(400);
-            res.json(response.json);
-            return;
+            return res.json(response.json);
         }
 
         const data = {
@@ -147,7 +142,6 @@ const createHealth = async (req, res) => {
     }
 };
 
-
 const updateHealth = async (req, res) => {
 
     try {
@@ -167,17 +161,16 @@ const updateHealth = async (req, res) => {
         }
 
         if (!healthDate || healthDate.trim() === "") {
-            errors.push("La fecha de sanidad no puede estar vacía");
+            errors.push("La fecha de sanidad es obligatoria");
         }
 
         if (!vaccineQuantity) {
-            errors.push("La cantidad de vacunas no puede estar vacía");
+            errors.push("La cantidad de vacunas es obligatoria");
         }
 
         if (!vaccineName || vaccineName.trim() === "") {
-            errors.push("El nombre de la vacuna no puede estar vacío");
+            errors.push("El nombre de la vacuna es obligatorio");
         }
-
 
         if (errors.length > 0) {
 
@@ -185,7 +178,6 @@ const updateHealth = async (req, res) => {
 
             res.status(400);
             return res.json(response.json);
-            return;
         }
 
         const data = {
@@ -213,6 +205,7 @@ const updateHealth = async (req, res) => {
         res.json(errorResponse.json);
     }
 };
+
 const deleteHealth = async (req, res) => {
 
     try {
@@ -231,9 +224,8 @@ const deleteHealth = async (req, res) => {
 
             res.status(400);
             return res.json(response.json);
-            return;
         }
-        data = { id };
+
         const health = await HealthDelete(id);
 
         var response = new Response(true, "Registro sanitario eliminado exitosamente", health);
@@ -243,7 +235,7 @@ const deleteHealth = async (req, res) => {
 
     } catch (error) {
 
-        console.error("Error al eliminar registro sanitario:", error);
+        console.error("Error en eliminar registro sanitario:", error);
 
         const errorResponse = new Response(false, "Error interno del servidor", [
             { message: error.message || "Ocurrió un error inesperado" }

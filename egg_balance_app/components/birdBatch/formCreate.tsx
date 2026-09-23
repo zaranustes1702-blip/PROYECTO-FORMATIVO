@@ -1,332 +1,307 @@
 "use client";
 
-import React, { useState } from "react";
-import NavBar from "@/components/NavBar";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from "../ui/dialog";
+import { CirclePlus } from "lucide-react";
 import { API_BIRD_BATCH_URL } from "@/api/config";
 
 export default function FormCreateBirdBatch() {
-  const [entryDate, setEntryDate] = useState("");
-  const [batchNumber, setBatchNumber] = useState("");
-  const [birdQuantity, setBirdQuantity] = useState("");
-  const [batchWeight, setBatchWeight] = useState("");
-  const [birdAgeWeeks, setBirdAgeWeeks] = useState("");
-  const [appliedVaccines, setAppliedVaccines] = useState("");
-  const [active, setActive] = useState(true);
-
-  const [modalAbierto, setModalAbierto] = useState(false);
+  const [open, setOpen] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
+  const [mensajeError, setMensajeError] = useState("");
 
-  const abrirModal = () => {
-    setMensajeExito("");
-    setModalAbierto(true);
-  };
+  const [formData, setFormData] = useState({
+    entryDate: "",
+    batchNumber: "",
+    birdQuantity: "",
+    batchWeight: "",
+    birdAgeWeeks: "",
+    appliedVaccines: "",
+    active: "true",
+  });
 
-  const cerrarModal = () => {
-    if (guardando) {
-      return;
-    }
-
-    setModalAbierto(false);
-  };
-
-  const limpiarFormulario = () => {
-    setEntryDate("");
-    setBatchNumber("");
-    setBirdQuantity("");
-    setBatchWeight("");
-    setBirdAgeWeeks("");
-    setAppliedVaccines("");
-    setActive(true);
-  };
-
-  const guardarLote = async (
-    event: React.FormEvent<HTMLFormElement>
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
-    event.preventDefault();
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
+  // Limpia únicamente los inputs sin alterar los avisos de éxito/error
+  const resetInputs = () => {
+    setFormData({
+      entryDate: "",
+      batchNumber: "",
+      birdQuantity: "",
+      batchWeight: "",
+      birdAgeWeeks: "",
+      appliedVaccines: "",
+      active: "true",
+    });
+  };
+
+  const handleOpenChange = (nuevoEstado: boolean) => {
+    if (guardando) return;
+    setOpen(nuevoEstado);
+    if (!nuevoEstado) {
+      resetInputs();
+      setMensajeExito("");
+      setMensajeError("");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setGuardando(true);
     setMensajeExito("");
+    setMensajeError("");
+
+    const datosEnviar = {
+      entryDate: formData.entryDate,
+      batchNumber: formData.batchNumber.trim(),
+      birdQuantity: Number(formData.birdQuantity) || 0,
+      batchWeight: Number(formData.batchWeight) || 0,
+      birdAgeWeeks: Number(formData.birdAgeWeeks) || 0,
+      appliedVaccines: formData.appliedVaccines.trim(),
+      active: formData.active === "true",
+    };
 
     try {
-      const respuesta = await fetch(
-        `${API_BIRD_BATCH_URL}/CreateBirdBatch`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            entryDate,
-            batchNumber,
-            birdQuantity: Number(birdQuantity),
-            batchWeight: Number(batchWeight),
-            birdAgeWeeks: Number(birdAgeWeeks),
-            appliedVaccines,
-            active,
-          }),
-        }
-      );
+      const response = await fetch(`${API_BIRD_BATCH_URL}/CreateBirdBatch`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(datosEnviar),
+      });
 
-      const resultado = await respuesta.json();
+      let resultado: any = null;
+      try {
+        resultado = await response.json();
+      } catch {
+        // En caso de que el backend responda con texto plano o sin cuerpo
+      }
 
-      if (!respuesta.ok) {
+      if (!response.ok) {
         throw new Error(
-          resultado.message ||
-            resultado.mensaje ||
-            "No se pudo registrar el lote de aves"
+          resultado?.message ||
+            resultado?.mensaje ||
+            resultado?.error ||
+            `Error ${response.status}: No se pudo registrar el lote de aves`
         );
       }
 
-      setMensajeExito("Lote de aves registrado correctamente");
-      limpiarFormulario();
+      // 1. Mostrar aviso exitoso y vaciar inputs
+      setMensajeExito("¡Lote de aves registrado correctamente!");
+      resetInputs();
 
+      // 2. Esperar 1.8 segundos para que el usuario visualice el mensaje antes de cerrar
       setTimeout(() => {
-        setModalAbierto(false);
+        setOpen(false);
         setMensajeExito("");
-      }, 1500);
-    } catch (error) {
-      console.error("Error al registrar el lote de aves:", error);
-
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert("Ocurrió un error al registrar el lote de aves");
-      }
+      }, 1800);
+    } catch (error: any) {
+      console.error("Error al registrar lote de aves:", error);
+      setMensajeError(
+        error.message || "Ocurrió un error inesperado al conectar con el servidor"
+      );
     } finally {
       setGuardando(false);
     }
   };
 
   return (
-    <>
-      <NavBar />
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger className="inline-flex items-center text-green-1-navbar font-semibold hover:text-green-2-navbar cursor-pointer">
+        <CirclePlus className="w-8 h-8 mr-2 text-green-1-navbar" />
+        <span>Agregar Lote</span>
+      </DialogTrigger>
 
-      <main className="min-h-screen bg-fond">
-        <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[800px] border border-border shadow-xl">
+        <DialogHeader className="font-bold text-2xl text-center text-title">
+          Crear Lote de Aves
+        </DialogHeader>
+        <DialogDescription className="text-center text-parrafo">
+          Complete los campos para registrar un nuevo lote de aves en la granja.
+        </DialogDescription>
+
+        {/* Notificación de éxito destacada */}
+        {mensajeExito && (
+          <div className="w-full rounded-md border border-green-600 bg-green-50 p-3 text-center text-sm font-semibold text-green-800 animate-in fade-in">
+            {mensajeExito}
+          </div>
+        )}
+
+        {/* Notificación de error si falla la API */}
+        {mensajeError && (
+          <div className="w-full rounded-md border border-red-500 bg-red-50 p-3 text-center text-sm font-semibold text-red-700 animate-in fade-in">
+            {mensajeError}
+          </div>
+        )}
+
+        <form id="bird-batch-form" onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <h1 className="text-title text-3xl font-bold">
-                Gestión de Lotes de Aves
-              </h1>
-
-              <p className="text-parrafo mt-2">
-                Registra los lotes de aves que ingresan a la granja.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={abrirModal}
-              className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar"
-            >
-              Crear lote
-            </button>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-md">
-            <h2 className="text-title text-xl font-semibold">
-              Registro de lotes
-            </h2>
-
-            <p className="text-parrafo mt-2">
-              Presiona el botón Crear lote para agregar un nuevo registro.
-            </p>
-          </div>
-        </section>
-      </main>
-
-      {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
-          <div className="bg-white max-h-[95vh] w-full max-w-3xl overflow-y-auto rounded-xl shadow-2xl">
-            <div className="border-border flex items-center justify-between border-b px-6 py-4">
-              <div>
-                <h2 className="text-title text-2xl font-bold">
-                  Registrar lote de aves
-                </h2>
-
-                <p className="text-parrafo mt-1 text-sm">
-                  Completa la información solicitada.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={cerrarModal}
-                disabled={guardando}
-                className="text-title rounded-lg px-3 py-2 text-2xl font-bold transition hover:bg-fond disabled:opacity-50"
+              <label
+                htmlFor="entryDate"
+                className="block text-sm font-semibold text-title mb-1"
               >
-                ×
-              </button>
+                Fecha de Ingreso:
+              </label>
+              <input
+                type="date"
+                id="entryDate"
+                name="entryDate"
+                value={formData.entryDate}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
             </div>
 
-            <form onSubmit={guardarLote} className="space-y-6 px-6 py-6">
-              {mensajeExito && (
-                <div className="border-border rounded-lg border bg-green-50 px-4 py-3 text-green-1-navbar">
-                  {mensajeExito}
-                </div>
-              )}
+            <div>
+              <label
+                htmlFor="batchNumber"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Número del Lote:
+              </label>
+              <input
+                type="text"
+                id="batchNumber"
+                name="batchNumber"
+                value={formData.batchNumber}
+                onChange={handleChange}
+                maxLength={255}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Ej: L001"
+              />
+            </div>
 
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="entryDate"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Fecha de ingreso
-                  </label>
+            <div>
+              <label
+                htmlFor="birdQuantity"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Cantidad de Aves:
+              </label>
+              <input
+                type="number"
+                id="birdQuantity"
+                name="birdQuantity"
+                value={formData.birdQuantity}
+                onChange={handleChange}
+                min="1"
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Ej: 2500"
+              />
+            </div>
 
-                  <input
-                    id="entryDate"
-                    type="date"
-                    value={entryDate}
-                    onChange={(event) => setEntryDate(event.target.value)}
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="batchWeight"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Peso del Lote (kg):
+              </label>
+              <input
+                type="number"
+                id="batchWeight"
+                name="batchWeight"
+                value={formData.batchWeight}
+                onChange={handleChange}
+                min="0"
+                step="0.01"
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Ej: 1250.50"
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="batchNumber"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Número del lote
-                  </label>
+            <div>
+              <label
+                htmlFor="birdAgeWeeks"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Edad en Semanas:
+              </label>
+              <input
+                type="number"
+                id="birdAgeWeeks"
+                name="birdAgeWeeks"
+                value={formData.birdAgeWeeks}
+                onChange={handleChange}
+                min="0"
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Ej: 18"
+              />
+            </div>
 
-                  <input
-                    id="batchNumber"
-                    type="text"
-                    maxLength={255}
-                    value={batchNumber}
-                    onChange={(event) => setBatchNumber(event.target.value)}
-                    placeholder="Ejemplo: L001"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="appliedVaccines"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Vacunas Aplicadas:
+              </label>
+              <input
+                type="text"
+                id="appliedVaccines"
+                name="appliedVaccines"
+                value={formData.appliedVaccines}
+                onChange={handleChange}
+                maxLength={255}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Ej: Gumboro, Newcastle, Bronquitis"
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="birdQuantity"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Cantidad de aves
-                  </label>
-
-                  <input
-                    id="birdQuantity"
-                    type="number"
-                    min="1"
-                    value={birdQuantity}
-                    onChange={(event) => setBirdQuantity(event.target.value)}
-                    placeholder="Cantidad de aves"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="batchWeight"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Peso del lote (kg)
-                  </label>
-
-                  <input
-                    id="batchWeight"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={batchWeight}
-                    onChange={(event) => setBatchWeight(event.target.value)}
-                    placeholder="Peso total del lote"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="birdAgeWeeks"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Edad de las aves en semanas
-                  </label>
-
-                  <input
-                    id="birdAgeWeeks"
-                    type="number"
-                    min="0"
-                    value={birdAgeWeeks}
-                    onChange={(event) => setBirdAgeWeeks(event.target.value)}
-                    placeholder="Edad en semanas"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="appliedVaccines"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Vacunas aplicadas
-                  </label>
-
-                  <input
-                    id="appliedVaccines"
-                    type="text"
-                    maxLength={255}
-                    value={appliedVaccines}
-                    onChange={(event) =>
-                      setAppliedVaccines(event.target.value)
-                    }
-                    placeholder="Ejemplo: Gumboro, Newcastle, Bronquitis"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="flex cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={active}
-                      onChange={(event) => setActive(event.target.checked)}
-                      className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
-
-                    <span className="text-title text-sm font-semibold">
-                      Lote activo
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="border-border flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={cerrarModal}
-                  disabled={guardando}
-                  className="text-title rounded-lg border border-gray-300 px-5 py-3 font-semibold transition hover:bg-fond disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={guardando}
-                  className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar disabled:opacity-50"
-                >
-                  {guardando ? "Guardando..." : "Guardar lote"}
-                </button>
-              </div>
-            </form>
+            <div className="col-span-2">
+              <label
+                htmlFor="active"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Estado:
+              </label>
+              <select
+                id="active"
+                name="active"
+                value={formData.active}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              >
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
+            </div>
           </div>
-        </div>
-      )}
-    </>
+        </form>
+
+        <DialogFooter>
+          <button
+            type="submit"
+            form="bird-batch-form"
+            disabled={guardando}
+            className="w-full bg-green-1-navbar text-white font-medium py-2 px-4 rounded-md hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+          >
+            {guardando ? "Guardando..." : "Guardar Lote"}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,285 +1,263 @@
 "use client";
 
-import React, { useState } from "react";
-import NavBar from "@/components/NavBar";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from "../ui/dialog";
+import { CirclePlus } from "lucide-react";
 import { API_BARN_URL } from "@/api/config";
 
-export default function FormCreateBarn() {
-  const [barnName, setBarnName] = useState("");
-  const [barnSize, setBarnSize] = useState("");
-  const [maxBirdCapacity, setMaxBirdCapacity] = useState("");
-  const [birdBreed, setBirdBreed] = useState("");
-  const [active, setActive] = useState(true);
-
-  const [modalAbierto, setModalAbierto] = useState(false);
+export default function FormCreationBarn() {
+  const [open, setOpen] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
+  const [mensajeError, setMensajeError] = useState("");
 
-  const abrirModal = () => {
-    setMensajeExito("");
-    setModalAbierto(true);
-  };
+  const [formData, setFormData] = useState({
+    barnName: "",
+    barnSize: "",
+    maxBirdCapacity: "",
+    birdBreed: "",
+    active: "true",
+  });
 
-  const cerrarModal = () => {
-    if (guardando) {
-      return;
-    }
-
-    setModalAbierto(false);
-  };
-
-  const limpiarFormulario = () => {
-    setBarnName("");
-    setBarnSize("");
-    setMaxBirdCapacity("");
-    setBirdBreed("");
-    setActive(true);
-  };
-
-  const guardarGalpon = async (
-    event: React.FormEvent<HTMLFormElement>
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
-    event.preventDefault();
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
+  // Limpia únicamente los inputs sin alterar los avisos de éxito/error
+  const resetInputs = () => {
+    setFormData({
+      barnName: "",
+      barnSize: "",
+      maxBirdCapacity: "",
+      birdBreed: "",
+      active: "true",
+    });
+  };
+
+  const handleOpenChange = (nuevoEstado: boolean) => {
+    if (guardando) return;
+    setOpen(nuevoEstado);
+    if (!nuevoEstado) {
+      resetInputs();
+      setMensajeExito("");
+      setMensajeError("");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setGuardando(true);
     setMensajeExito("");
+    setMensajeError("");
+
+    const datosEnviar = {
+      barnName: formData.barnName.trim(),
+      barnSize: formData.barnSize.trim(),
+      maxBirdCapacity: Number(formData.maxBirdCapacity) || 0,
+      birdBreed: formData.birdBreed,
+      active: formData.active === "true",
+    };
 
     try {
-      const respuesta = await fetch(`${API_BARN_URL}/CreateBarn`, {
+      const response = await fetch(`${API_BARN_URL}/CreateBarn`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          barnName,
-          barnSize,
-          maxBirdCapacity: Number(maxBirdCapacity),
-          birdBreed,
-          active,
-        }),
+        body: JSON.stringify(datosEnviar),
       });
 
-      const resultado = await respuesta.json();
+      let resultado: any = null;
+      try {
+        resultado = await response.json();
+      } catch {
+        // En caso de que el backend responda con texto plano o sin cuerpo
+      }
 
-      if (!respuesta.ok) {
+      if (!response.ok) {
         throw new Error(
-          resultado.message ||
-            resultado.mensaje ||
-            "No se pudo registrar el galpón"
+          resultado?.message ||
+            resultado?.mensaje ||
+            resultado?.error ||
+            `Error ${response.status}: No se pudo registrar el galpón`
         );
       }
 
-      setMensajeExito("Galpón registrado correctamente");
+      // 1. Mostrar aviso exitoso y vaciar inputs
+      setMensajeExito("¡Galpón registrado correctamente!");
+      resetInputs();
 
-      limpiarFormulario();
-
+      // 2. Esperar 1.8 segundos para que el usuario visualice el mensaje antes de cerrar
       setTimeout(() => {
-        setModalAbierto(false);
+        setOpen(false);
         setMensajeExito("");
-      }, 1500);
-    } catch (error) {
-      console.error("Error al registrar el galpón:", error);
-
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert("Ocurrió un error al registrar el galpón");
-      }
+      }, 1800);
+    } catch (error: any) {
+      console.error("Error al registrar galpón:", error);
+      setMensajeError(
+        error.message || "Ocurrió un error inesperado al conectar con el servidor"
+      );
     } finally {
       setGuardando(false);
     }
   };
 
   return (
-    <>
-      <NavBar />
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger className="inline-flex items-center text-green-1-navbar font-semibold hover:text-green-2-navbar cursor-pointer">
+        <CirclePlus className="w-8 h-8 mr-2 text-green-1-navbar" />
+        <span>Agregar Galpón</span>
+      </DialogTrigger>
 
-      <main className="min-h-screen bg-fond">
-        <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[800px] border border-border shadow-xl">
+        <DialogHeader className="font-bold text-2xl text-center text-title">
+          Crear Galpón
+        </DialogHeader>
+        <DialogDescription className="text-center text-parrafo">
+          Complete los campos para registrar un nuevo galpón avícola.
+        </DialogDescription>
+
+        {/* Notificación de éxito destacada */}
+        {mensajeExito && (
+          <div className="w-full rounded-md border border-green-600 bg-green-50 p-3 text-center text-sm font-semibold text-green-800 animate-in fade-in">
+            {mensajeExito}
+          </div>
+        )}
+
+        {/* Notificación de error si falla la API */}
+        {mensajeError && (
+          <div className="w-full rounded-md border border-red-500 bg-red-50 p-3 text-center text-sm font-semibold text-red-700 animate-in fade-in">
+            {mensajeError}
+          </div>
+        )}
+
+        <form id="barn-form" onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <h1 className="text-title text-3xl font-bold">
-                Gestión de Galpones
-              </h1>
-
-              <p className="text-parrafo mt-2">
-                Registra y administra los galpones de la granja.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={abrirModal}
-              className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar"
-            >
-              Crear galpón
-            </button>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-md">
-            <h2 className="text-title text-xl font-semibold">
-              Registro de galpones
-            </h2>
-
-            <p className="text-parrafo mt-2">
-              Presiona el botón Crear galpón para agregar un registro.
-            </p>
-          </div>
-        </section>
-      </main>
-
-      {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
-          <div className="bg-white max-h-[95vh] w-full max-w-3xl overflow-y-auto rounded-xl shadow-2xl">
-            <div className="border-border flex items-center justify-between border-b px-6 py-4">
-              <div>
-                <h2 className="text-title text-2xl font-bold">
-                  Registrar galpón
-                </h2>
-
-                <p className="text-parrafo mt-1 text-sm">
-                  Completa la información solicitada.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={cerrarModal}
-                disabled={guardando}
-                className="text-title rounded-lg px-3 py-2 text-2xl font-bold transition hover:bg-fond disabled:opacity-50"
+              <label
+                htmlFor="barnName"
+                className="block text-sm font-semibold text-title mb-1"
               >
-                ×
-              </button>
+                Nombre del Galpón:
+              </label>
+              <input
+                type="text"
+                id="barnName"
+                name="barnName"
+                value={formData.barnName}
+                onChange={handleChange}
+                maxLength={30}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Ej: Galpón Principal"
+              />
             </div>
 
-            <form onSubmit={guardarGalpon} className="space-y-6 px-6 py-6">
-              {mensajeExito && (
-                <div className="border-border rounded-lg border bg-green-50 px-4 py-3 text-green-1-navbar">
-                  {mensajeExito}
-                </div>
-              )}
+            <div>
+              <label
+                htmlFor="barnSize"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Tamaño del Galpón:
+              </label>
+              <input
+                type="text"
+                id="barnSize"
+                name="barnSize"
+                value={formData.barnSize}
+                onChange={handleChange}
+                maxLength={30}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Ej: 20 x 10 metros"
+              />
+            </div>
 
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="barnName"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Nombre del galpón
-                  </label>
+            <div>
+              <label
+                htmlFor="maxBirdCapacity"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Capacidad Máxima (Aves):
+              </label>
+              <input
+                type="number"
+                id="maxBirdCapacity"
+                name="maxBirdCapacity"
+                value={formData.maxBirdCapacity}
+                onChange={handleChange}
+                min="1"
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Ej: 5000"
+              />
+            </div>
 
-                  <input
-                    id="barnName"
-                    type="text"
-                    maxLength={30}
-                    value={barnName}
-                    onChange={(event) => setBarnName(event.target.value)}
-                    placeholder="Ejemplo: Galpón principal"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="birdBreed"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Raza o Línea:
+              </label>
+              <select
+                id="birdBreed"
+                name="birdBreed"
+                value={formData.birdBreed}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              >
+                <option value="">Seleccione una raza o línea</option>
+                <option value="Hy-Line Brown">Hy-Line Brown</option>
+                <option value="Otra">Otra</option>
+              </select>
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="barnSize"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Tamaño del galpón
-                  </label>
-
-                  <input
-                    id="barnSize"
-                    type="text"
-                    maxLength={30}
-                    value={barnSize}
-                    onChange={(event) => setBarnSize(event.target.value)}
-                    placeholder="Ejemplo: 20 x 10 metros"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="maxBirdCapacity"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Capacidad máxima de aves
-                  </label>
-
-                  <input
-                    id="maxBirdCapacity"
-                    type="number"
-                    min="1"
-                    value={maxBirdCapacity}
-                    onChange={(event) =>
-                      setMaxBirdCapacity(event.target.value)
-                    }
-                    placeholder="Capacidad máxima"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="birdBreed"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Raza de las aves
-                  </label>
-
-                  <input
-                    id="birdBreed"
-                    type="text"
-                    maxLength={50}
-                    value={birdBreed}
-                    onChange={(event) => setBirdBreed(event.target.value)}
-                    placeholder="Raza alojada en el galpón"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="flex cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={active}
-                      onChange={(event) => setActive(event.target.checked)}
-                      className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
-
-                    <span className="text-title text-sm font-semibold">
-                      Galpón activo
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="border-border flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={cerrarModal}
-                  disabled={guardando}
-                  className="text-title rounded-lg border border-gray-300 px-5 py-3 font-semibold transition hover:bg-fond disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={guardando}
-                  className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar disabled:opacity-50"
-                >
-                  {guardando ? "Guardando..." : "Guardar galpón"}
-                </button>
-              </div>
-            </form>
+            <div className="col-span-2">
+              <label
+                htmlFor="active"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Estado:
+              </label>
+              <select
+                id="active"
+                name="active"
+                value={formData.active}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              >
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
+            </div>
           </div>
-        </div>
-      )}
-    </>
+        </form>
+
+        <DialogFooter>
+          <button
+            type="submit"
+            form="barn-form"
+            disabled={guardando}
+            className="w-full bg-green-1-navbar text-white font-medium py-2 px-4 rounded-md hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+          >
+            {guardando ? "Guardando..." : "Guardar Galpón"}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,357 +1,482 @@
 "use client";
 
-import React, { useState } from "react";
-import NavBar from "@/components/NavBar";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from "../ui/dialog";
+import { CirclePlus } from "lucide-react";
 import { API_EGG_PRODUCTION_URL } from "@/api/config";
 
 export default function FormCreateEggProduction() {
-  const [productionDate, setProductionDate] = useState("");
-  const [barnId, setBarnId] = useState("");
-  const [responsible, setResponsible] = useState("");
-  const [collectedAM, setCollectedAM] = useState("");
-  const [collectedPM, setCollectedPM] = useState("");
-  const [jumboEggs, setJumboEggs] = useState("");
-  const [aaaEggs, setAaaEggs] = useState("");
-  const [aaEggs, setAaEggs] = useState("");
-  const [aEggs, setAEggs] = useState("");
-  const [bEggs, setBEggs] = useState("");
-  const [cEggs, setCEggs] = useState("");
-  const [brokenEggs, setBrokenEggs] = useState("");
-  const [observations, setObservations] = useState("");
-  const [active, setActive] = useState(true);
-
-  const [modalAbierto, setModalAbierto] = useState(false);
+  const [open, setOpen] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
+  const [mensajeError, setMensajeError] = useState("");
 
-  const abrirModal = () => {
-    setMensajeExito("");
-    setModalAbierto(true);
-  };
+  const [formData, setFormData] = useState({
+    productionDate: "",
+    barnId: "",
+    responsible: "",
+    collectedAM: "",
+    collectedPM: "",
+    jumboEggs: "",
+    aaaEggs: "",
+    aaEggs: "",
+    aEggs: "",
+    bEggs: "",
+    cEggs: "",
+    brokenEggs: "",
+    observations: "",
+    active: "true",
+  });
 
-  const cerrarModal = () => {
-    if (guardando) {
-      return;
-    }
-
-    setModalAbierto(false);
-  };
-
-  const limpiarFormulario = () => {
-    setProductionDate("");
-    setBarnId("");
-    setResponsible("");
-    setCollectedAM("");
-    setCollectedPM("");
-    setJumboEggs("");
-    setAaaEggs("");
-    setAaEggs("");
-    setAEggs("");
-    setBEggs("");
-    setCEggs("");
-    setBrokenEggs("");
-    setObservations("");
-    setActive(true);
-  };
-
-  const guardarProduccion = async (
-    event: React.FormEvent<HTMLFormElement>
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
-    event.preventDefault();
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
+  const resetInputs = () => {
+    setFormData({
+      productionDate: "",
+      barnId: "",
+      responsible: "",
+      collectedAM: "",
+      collectedPM: "",
+      jumboEggs: "",
+      aaaEggs: "",
+      aaEggs: "",
+      aEggs: "",
+      bEggs: "",
+      cEggs: "",
+      brokenEggs: "",
+      observations: "",
+      active: "true",
+    });
+  };
+
+  const handleOpenChange = (nuevoEstado: boolean) => {
+    if (guardando) return;
+    setOpen(nuevoEstado);
+    if (!nuevoEstado) {
+      resetInputs();
+      setMensajeExito("");
+      setMensajeError("");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setGuardando(true);
     setMensajeExito("");
+    setMensajeError("");
 
-    const totalDay =
-      Number(collectedAM || 0) + Number(collectedPM || 0);
+    const colAM = Number(formData.collectedAM) || 0;
+    const colPM = Number(formData.collectedPM) || 0;
+    const totalDay = colAM + colPM;
 
-    const goodEggs =
-      Number(jumboEggs || 0) +
-      Number(aaaEggs || 0) +
-      Number(aaEggs || 0) +
-      Number(aEggs || 0) +
-      Number(bEggs || 0) +
-      Number(cEggs || 0);
+    const jEggs = Number(formData.jumboEggs) || 0;
+    const aaa = Number(formData.aaaEggs) || 0;
+    const aa = Number(formData.aaEggs) || 0;
+    const a = Number(formData.aEggs) || 0;
+    const b = Number(formData.bEggs) || 0;
+    const c = Number(formData.cEggs) || 0;
+    const goodEggs = jEggs + aaa + aa + a + b + c;
+
+    const datosEnviar = {
+      productionDate: formData.productionDate,
+      barnId: Number(formData.barnId) || 0,
+      responsible: formData.responsible.trim(),
+      collectedAM: colAM,
+      collectedPM: colPM,
+      jumboEggs: jEggs,
+      aaaEggs: aaa,
+      aaEggs: aa,
+      aEggs: a,
+      bEggs: b,
+      cEggs: c,
+      brokenEggs: Number(formData.brokenEggs) || 0,
+      totalDay,
+      goodEggs,
+      weeklyEggTotal: totalDay,
+      productionPercentage: 0,
+      observations: formData.observations.trim(),
+      active: formData.active === "true",
+    };
 
     try {
-      const respuesta = await fetch(
+      const response = await fetch(
         `${API_EGG_PRODUCTION_URL}/CreateEggProduction`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            productionDate,
-            barnId: Number(barnId),
-            responsible,
-            collectedAM: Number(collectedAM),
-            collectedPM: Number(collectedPM),
-            jumboEggs: Number(jumboEggs),
-            aaaEggs: Number(aaaEggs),
-            aaEggs: Number(aaEggs),
-            aEggs: Number(aEggs),
-            bEggs: Number(bEggs),
-            cEggs: Number(cEggs),
-            brokenEggs: Number(brokenEggs),
-            totalDay,
-            goodEggs,
-            weeklyEggTotal: totalDay,
-            productionPercentage: 0,
-            observations,
-            active,
-          }),
+          body: JSON.stringify(datosEnviar),
         }
       );
 
-      const resultado = await respuesta.json();
+      let resultado: any = null;
+      try {
+        resultado = await response.json();
+      } catch {
+        // En caso de que el backend responda con texto plano o sin cuerpo
+      }
 
-      if (!respuesta.ok) {
+      if (!response.ok) {
         throw new Error(
-          resultado.message ||
-            resultado.mensaje ||
-            "No se pudo registrar la producción"
+          resultado?.message ||
+            resultado?.mensaje ||
+            resultado?.error ||
+            `Error ${response.status}: No se pudo registrar la producción`
         );
       }
 
-      setMensajeExito("Producción registrada correctamente");
-
-      limpiarFormulario();
+      setMensajeExito("¡Producción registrada correctamente!");
+      resetInputs();
 
       setTimeout(() => {
-        setModalAbierto(false);
+        setOpen(false);
         setMensajeExito("");
-      }, 1500);
-    } catch (error) {
-      console.error("Error al registrar la producción:", error);
-
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert("Ocurrió un error al registrar la producción");
-      }
+      }, 1800);
+    } catch (error: any) {
+      console.error("Error al registrar producción:", error);
+      setMensajeError(
+        error.message || "Ocurrió un error inesperado al conectar con el servidor"
+      );
     } finally {
       setGuardando(false);
     }
   };
 
   return (
-    <>
-      <NavBar />
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger className="inline-flex items-center text-green-1-navbar font-semibold hover:text-green-2-navbar cursor-pointer">
+        <CirclePlus className="w-8 h-8 mr-2 text-green-1-navbar" />
+        <span>Registrar Producción</span>
+      </DialogTrigger>
 
-      <main className="min-h-screen bg-fond">
-        <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <DialogContent className="bg-white sm:max-w-[500px] md:max-w-[850px] max-h-[90vh] overflow-y-auto border border-border shadow-xl">
+        <DialogHeader className="font-bold text-2xl text-center text-title">
+          Registrar Producción de Huevos
+        </DialogHeader>
+        <DialogDescription className="text-center text-parrafo">
+          Complete los campos para registrar la recolección y clasificación diaria.
+        </DialogDescription>
+
+        {/* Notificación de éxito destacada */}
+        {mensajeExito && (
+          <div className="w-full rounded-md border border-green-600 bg-green-50 p-3 text-center text-sm font-semibold text-green-800 animate-in fade-in">
+            {mensajeExito}
+          </div>
+        )}
+
+        {/* Notificación de error si falla la API */}
+        {mensajeError && (
+          <div className="w-full rounded-md border border-red-500 bg-red-50 p-3 text-center text-sm font-semibold text-red-700 animate-in fade-in">
+            {mensajeError}
+          </div>
+        )}
+
+        <form id="egg-production-form" onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <h1 className="text-title text-3xl font-bold">
-                Gestión de Producción de Huevos
-              </h1>
-
-              <p className="text-parrafo mt-2">
-                Registra y administra la recolección diaria de huevos.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={abrirModal}
-              className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar"
-            >
-              Crear producción
-            </button>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-md">
-            <h2 className="text-title text-xl font-semibold">
-              Registro de producción
-            </h2>
-
-            <p className="text-parrafo mt-2">
-              Presiona el botón Crear producción para agregar un registro.
-            </p>
-          </div>
-        </section>
-      </main>
-
-      {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
-          <div className="bg-white max-h-[95vh] w-full max-w-3xl overflow-y-auto rounded-xl shadow-2xl">
-            <div className="border-border flex items-center justify-between border-b px-6 py-4">
-              <div>
-                <h2 className="text-title text-2xl font-bold">
-                  Registrar producción de huevos
-                </h2>
-
-                <p className="text-parrafo mt-1 text-sm">
-                  Completa la información solicitada.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={cerrarModal}
-                disabled={guardando}
-                className="text-title rounded-lg px-3 py-2 text-2xl font-bold transition hover:bg-fond disabled:opacity-50"
+              <label
+                htmlFor="productionDate"
+                className="block text-sm font-semibold text-title mb-1"
               >
-                ×
-              </button>
+                Fecha de Producción:
+              </label>
+              <input
+                type="date"
+                id="productionDate"
+                name="productionDate"
+                value={formData.productionDate}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
             </div>
 
-            <form onSubmit={guardarProduccion} className="space-y-6 px-6 py-6">
-              {mensajeExito && (
-                <div className="border-border rounded-lg border bg-green-50 px-4 py-3 text-green-1-navbar">
-                  {mensajeExito}
-                </div>
-              )}
+            <div>
+              <label
+                htmlFor="barnId"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                ID del Galpón:
+              </label>
+              <input
+                type="number"
+                id="barnId"
+                name="barnId"
+                min="1"
+                value={formData.barnId}
+                onChange={handleChange}
+                placeholder="Ej: 1"
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="productionDate"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Fecha
-                  </label>
+            <div className="md:col-span-2">
+              <label
+                htmlFor="responsible"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Responsable:
+              </label>
+              <input
+                type="text"
+                id="responsible"
+                name="responsible"
+                maxLength={100}
+                value={formData.responsible}
+                onChange={handleChange}
+                placeholder="Nombre del responsable"
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-                  <input
-                    id="productionDate"
-                    type="date"
-                    value={productionDate}
-                    onChange={(event) => setProductionDate(event.target.value)}
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="collectedAM"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Recolectados AM:
+              </label>
+              <input
+                type="number"
+                id="collectedAM"
+                name="collectedAM"
+                min="0"
+                value={formData.collectedAM}
+                onChange={handleChange}
+                placeholder="0"
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="barnId"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    ID del galpón
-                  </label>
+            <div>
+              <label
+                htmlFor="collectedPM"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Recolectados PM:
+              </label>
+              <input
+                type="number"
+                id="collectedPM"
+                name="collectedPM"
+                min="0"
+                value={formData.collectedPM}
+                onChange={handleChange}
+                placeholder="0"
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-                  <input
-                    id="barnId"
-                    type="number"
-                    min="1"
-                    value={barnId}
-                    onChange={(event) => setBarnId(event.target.value)}
-                    placeholder="Ejemplo: 1"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="jumboEggs"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Huevos Jumbo:
+              </label>
+              <input
+                type="number"
+                id="jumboEggs"
+                name="jumboEggs"
+                min="0"
+                value={formData.jumboEggs}
+                onChange={handleChange}
+                placeholder="0"
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-                <div className="md:col-span-2">
-                  <label
-                    htmlFor="responsible"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Responsable
-                  </label>
+            <div>
+              <label
+                htmlFor="aaaEggs"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Huevos AAA:
+              </label>
+              <input
+                type="number"
+                id="aaaEggs"
+                name="aaaEggs"
+                min="0"
+                value={formData.aaaEggs}
+                onChange={handleChange}
+                placeholder="0"
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-                  <input
-                    id="responsible"
-                    type="text"
-                    maxLength={100}
-                    value={responsible}
-                    onChange={(event) => setResponsible(event.target.value)}
-                    placeholder="Nombre del responsable"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="aaEggs"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Huevos AA:
+              </label>
+              <input
+                type="number"
+                id="aaEggs"
+                name="aaEggs"
+                min="0"
+                value={formData.aaEggs}
+                onChange={handleChange}
+                placeholder="0"
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-                {[
-                  { id: "collectedAM", label: "Recolectados AM", val: collectedAM, set: setCollectedAM },
-                  { id: "collectedPM", label: "Recolectados PM", val: collectedPM, set: setCollectedPM },
-                  { id: "jumboEggs", label: "Huevos Jumbo", val: jumboEggs, set: setJumboEggs },
-                  { id: "aaaEggs", label: "Huevos AAA", val: aaaEggs, set: setAaaEggs },
-                  { id: "aaEggs", label: "Huevos AA", val: aaEggs, set: setAaEggs },
-                  { id: "aEggs", label: "Huevos A", val: aEggs, set: setAEggs },
-                  { id: "bEggs", label: "Huevos B", val: bEggs, set: setBEggs },
-                  { id: "cEggs", label: "Huevos C", val: cEggs, set: setCEggs },
-                  { id: "brokenEggs", label: "Huevos rotos", val: brokenEggs, set: setBrokenEggs },
-                ].map((item) => (
-                  <div key={item.id}>
-                    <label
-                      htmlFor={item.id}
-                      className="text-title mb-2 block text-sm font-semibold"
-                    >
-                      {item.label}
-                    </label>
+            <div>
+              <label
+                htmlFor="aEggs"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Huevos A:
+              </label>
+              <input
+                type="number"
+                id="aEggs"
+                name="aEggs"
+                min="0"
+                value={formData.aEggs}
+                onChange={handleChange}
+                placeholder="0"
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-                    <input
-                      id={item.id}
-                      type="number"
-                      min="0"
-                      value={item.val}
-                      onChange={(event) => item.set(event.target.value)}
-                      placeholder="0"
-                      required
-                      className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                    />
-                  </div>
-                ))}
+            <div>
+              <label
+                htmlFor="bEggs"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Huevos B:
+              </label>
+              <input
+                type="number"
+                id="bEggs"
+                name="bEggs"
+                min="0"
+                value={formData.bEggs}
+                onChange={handleChange}
+                placeholder="0"
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-                <div className="md:col-span-2">
-                  <label
-                    htmlFor="observations"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Observaciones
-                  </label>
+            <div>
+              <label
+                htmlFor="cEggs"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Huevos C:
+              </label>
+              <input
+                type="number"
+                id="cEggs"
+                name="cEggs"
+                min="0"
+                value={formData.cEggs}
+                onChange={handleChange}
+                placeholder="0"
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-                  <textarea
-                    id="observations"
-                    rows={3}
-                    maxLength={255}
-                    value={observations}
-                    onChange={(event) => setObservations(event.target.value)}
-                    placeholder="Notas o detalles adicionales"
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div className="md:col-span-2">
+              <label
+                htmlFor="brokenEggs"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Huevos Rotos:
+              </label>
+              <input
+                type="number"
+                id="brokenEggs"
+                name="brokenEggs"
+                min="0"
+                value={formData.brokenEggs}
+                onChange={handleChange}
+                placeholder="0"
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-                <div className="md:col-span-2">
-                  <label className="flex cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={active}
-                      onChange={(event) => setActive(event.target.checked)}
-                      className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
+            <div className="md:col-span-2">
+              <label
+                htmlFor="observations"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Observaciones:
+              </label>
+              <textarea
+                id="observations"
+                name="observations"
+                rows={3}
+                maxLength={255}
+                value={formData.observations}
+                onChange={handleChange}
+                placeholder="Notas o detalles adicionales"
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-                    <span className="text-title text-sm font-semibold">
-                      Producción activa
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="border-border flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={cerrarModal}
-                  disabled={guardando}
-                  className="text-title rounded-lg border border-gray-300 px-5 py-3 font-semibold transition hover:bg-fond disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={guardando}
-                  className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar disabled:opacity-50"
-                >
-                  {guardando ? "Guardando..." : "Guardar producción"}
-                </button>
-              </div>
-            </form>
+            <div className="md:col-span-2">
+              <label
+                htmlFor="active"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Estado:
+              </label>
+              <select
+                id="active"
+                name="active"
+                value={formData.active}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              >
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
+            </div>
           </div>
-        </div>
-      )}
-    </>
+        </form>
+
+        <DialogFooter className="mt-4">
+          <button
+            type="submit"
+            form="egg-production-form"
+            disabled={guardando}
+            className="w-full bg-green-1-navbar text-white font-medium py-2 px-4 rounded-md hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+          >
+            {guardando ? "Guardando..." : "Guardar Producción"}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

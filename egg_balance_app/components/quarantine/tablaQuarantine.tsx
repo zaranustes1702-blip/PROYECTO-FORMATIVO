@@ -18,6 +18,8 @@ export default function TablaQuarantine() {
 
                 const resJson = await response.json();
 
+                console.log(resJson.data);
+
                 setQuarantines(resJson.data || []);
 
             } catch (error) {
@@ -76,7 +78,15 @@ export default function TablaQuarantine() {
                         </th>
 
                         <th className="border border-border px-4 py-2 text-left">
+                            Duración
+                        </th>
+
+                        <th className="border border-border px-4 py-2 text-left">
                             Fecha de Finalización
+                        </th>
+
+                        <th className="border border-border px-4 py-2 text-left">
+                            Observaciones
                         </th>
 
                         <th className="border border-border px-4 py-2 text-left">
@@ -91,10 +101,10 @@ export default function TablaQuarantine() {
 
                     {quarantines.length > 0 ? (
 
-                        quarantines.map((quarantine: any) => (
+                        quarantines.map((quarantine: any, index: number) => (
 
                             <tr
-                                key={quarantine.id}
+                                key={`quarantine-${quarantine.id || index}`}
                                 className="hover:bg-fond transition-colors"
                             >
 
@@ -103,7 +113,7 @@ export default function TablaQuarantine() {
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
-                                    {quarantine.quarantineDate}
+                                    {quarantine.quarantineDate ? new Date(quarantine.quarantineDate).toLocaleDateString() : "—"}
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
@@ -119,15 +129,23 @@ export default function TablaQuarantine() {
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
-                                    {quarantine.treatment}
+                                    {quarantine.treatmentApplied || "—"}
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
-                                    {quarantine.dose}
+                                    {quarantine.dosage || "—"}
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
-                                    {quarantine.endDate}
+                                    {quarantine.treatmentDuration || "—"}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {quarantine.quarantineEndDate ? new Date(quarantine.quarantineEndDate).toLocaleDateString() : "—"}
+                                </td>
+
+                                <td className="border border-border px-4 py-2 text-title">
+                                    {quarantine.observations || "—"}
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
@@ -143,7 +161,7 @@ export default function TablaQuarantine() {
                         <tr>
 
                             <td
-                                colSpan={9}
+                                colSpan={11}
                                 className="border border-border px-4 py-6 text-center text-title"
                             >
                                 No hay registros de cuarentena.

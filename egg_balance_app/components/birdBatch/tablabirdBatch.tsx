@@ -33,6 +33,17 @@ export default function TablaBirdBatch() {
 
     }, []);
 
+    const formatDate = (dateStr?: string) => {
+        if (!dateStr) return "—";
+        // Extrae directamente 'YYYY-MM-DD' para evitar desfases de zona horaria UTC
+        const cleanDate = dateStr.split("T")[0];
+        const [year, month, day] = cleanDate.split("-");
+        if (day && month && year) {
+            return `${day}/${month}/${year}`; // Formato legible: DD/MM/AAAA
+        }
+        return dateStr;
+    };
+
     return (
 
         <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
@@ -87,10 +98,10 @@ export default function TablaBirdBatch() {
 
                     {birdBatches.length > 0 ? (
 
-                        birdBatches.map((batch: any) => (
+                        birdBatches.map((batch: any, index: number) => (
 
                             <tr
-                                key={batch.id}
+                                key={batch.id || `batch-${index}`}
                                 className="hover:bg-fond transition-colors"
                             >
 
@@ -99,7 +110,7 @@ export default function TablaBirdBatch() {
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
-                                    {batch.entryDate}
+                                    {formatDate(batch.entryDate)}
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">

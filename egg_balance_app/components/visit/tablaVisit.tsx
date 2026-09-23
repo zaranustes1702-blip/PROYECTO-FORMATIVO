@@ -89,10 +89,10 @@ export default function TablaVisit() {
 
                     {visits.length > 0 ? (
 
-                        visits.map((visit: any) => (
+                        visits.map((visit: any, index: number) => (
 
                             <tr
-                                key={visit.id}
+                                key={visit.id || index}
                                 className="hover:bg-fond transition-colors"
                             >
 
@@ -109,7 +109,7 @@ export default function TablaVisit() {
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
-                                    {visit.institutionOrganization}
+                                    {visit.institutionOrganization || visit.institution}
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">

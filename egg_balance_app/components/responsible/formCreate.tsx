@@ -1,315 +1,283 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from "../ui/dialog";
+import { CirclePlus } from "lucide-react";
 import { API_RESPONSIBLE_URL } from "@/api/config";
 
 export default function FormCreateResponsible() {
-  const [fullName, setFullName] = useState("");
-  const [documentNumber, setDocumentNumber] = useState("");
-  const [trainingRecord, setTrainingRecord] = useState("");
-  const [role, setRole] = useState("");
-  const [responsibleType, setResponsibleType] = useState("");
-  const [active, setActive] = useState(true);
-
-  const [modalAbierto, setModalAbierto] = useState(false);
+  const [open, setOpen] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
+  const [mensajeError, setMensajeError] = useState("");
 
-  const abrirModal = () => {
-    setMensajeExito("");
-    setModalAbierto(true);
-  };
+  const [formData, setFormData] = useState({
+    fullName: "",
+    documentNumber: "",
+    trainingRecord: "",
+    role: "",
+    responsibleType: "",
+    active: "true",
+  });
 
-  const cerrarModal = () => {
-    if (guardando) {
-      return;
-    }
-
-    setModalAbierto(false);
-  };
-
-  const limpiarFormulario = () => {
-    setFullName("");
-    setDocumentNumber("");
-    setTrainingRecord("");
-    setRole("");
-    setResponsibleType("");
-    setActive(true);
-  };
-
-  const guardarResponsable = async (
-    event: React.FormEvent<HTMLFormElement>
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
-    event.preventDefault();
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
+  const resetInputs = () => {
+    setFormData({
+      fullName: "",
+      documentNumber: "",
+      trainingRecord: "",
+      role: "",
+      responsibleType: "",
+      active: "true",
+    });
+  };
+
+  const handleOpenChange = (nuevoEstado: boolean) => {
+    if (guardando) return;
+    setOpen(nuevoEstado);
+    if (!nuevoEstado) {
+      resetInputs();
+      setMensajeExito("");
+      setMensajeError("");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setGuardando(true);
     setMensajeExito("");
+    setMensajeError("");
+
+    const datosEnviar = {
+      fullName: formData.fullName.trim(),
+      documentNumber: formData.documentNumber.trim(),
+      trainingRecord: formData.trainingRecord.trim(),
+      role: formData.role.trim(),
+      responsibleType: formData.responsibleType,
+      active: formData.active === "true",
+    };
 
     try {
-      const respuesta = await fetch(
-        `${API_RESPONSIBLE_URL}/CreateResponsible`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            fullName,
-            documentNumber,
-            trainingRecord,
-            role,
-            responsibleType,
-            active,
-          }),
-        }
-      );
+      const response = await fetch(`${API_RESPONSIBLE_URL}/CreateResponsible`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(datosEnviar),
+      });
 
-      const resultado = await respuesta.json();
+      let resultado: any = null;
+      try {
+        resultado = await response.json();
+      } catch {
+        // En caso de que no devuelva JSON
+      }
 
-      if (!respuesta.ok) {
+      if (!response.ok) {
         throw new Error(
-          resultado.message ||
-            resultado.mensaje ||
-            "No se pudo registrar el responsable"
+          resultado?.message ||
+            resultado?.mensaje ||
+            resultado?.error ||
+            `Error ${response.status}: No se pudo registrar el responsable`
         );
       }
 
-      setMensajeExito("Responsable registrado correctamente");
-      limpiarFormulario();
+      setMensajeExito("¡Responsable registrado correctamente!");
+      resetInputs();
 
       setTimeout(() => {
-        setModalAbierto(false);
+        setOpen(false);
         setMensajeExito("");
-      }, 1500);
-    } catch (error) {
-      console.error("Error al registrar el responsable:", error);
-
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert("Ocurrió un error al registrar el responsable");
-      }
+      }, 1800);
+    } catch (error: any) {
+      console.error("Error al registrar responsable:", error);
+      setMensajeError(
+        error.message || "Ocurrió un error inesperado al conectar con el servidor"
+      );
     } finally {
       setGuardando(false);
     }
   };
 
   return (
-    <>
-      <section className="mx-auto max-w-7xl">
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Gestión de Responsables
-            </h1>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger className="inline-flex items-center text-green-1-navbar font-semibold hover:text-green-2-navbar cursor-pointer">
+        <CirclePlus className="w-8 h-8 mr-2 text-green-1-navbar" />
+        <span>Registrar Responsable</span>
+      </DialogTrigger>
 
-            <p className="mt-2 text-gray-600">
-              Registra las personas responsables de las actividades.
-            </p>
+      <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[800px] border border-border shadow-xl">
+        <DialogHeader className="font-bold text-2xl text-center text-title">
+          Registrar Responsable
+        </DialogHeader>
+        <DialogDescription className="text-center text-parrafo">
+          Complete la información para registrar una persona responsable.
+        </DialogDescription>
+
+        {mensajeExito && (
+          <div className="w-full rounded-md border border-green-600 bg-green-50 p-3 text-center text-sm font-semibold text-green-800 animate-in fade-in">
+            {mensajeExito}
           </div>
+        )}
 
-          <button
-            type="button"
-            onClick={abrirModal}
-            className="rounded-lg bg-green-600 px-5 py-3 font-semibold text-white shadow-md transition hover:bg-green-700"
-          >
-            Crear responsable
-          </button>
-        </div>
+        {mensajeError && (
+          <div className="w-full rounded-md border border-red-500 bg-red-50 p-3 text-center text-sm font-semibold text-red-700 animate-in fade-in">
+            {mensajeError}
+          </div>
+        )}
 
-        <div className="rounded-xl bg-white p-6 shadow-md">
-          <h2 className="text-xl font-semibold text-gray-800">
-            Registro de responsables
-          </h2>
-
-          <p className="mt-2 text-gray-600">
-            Presiona Crear responsable para agregar un nuevo registro.
-          </p>
-        </div>
-      </section>
-
-      {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
-          <div className="max-h-[95vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Registrar responsable
-                </h2>
-
-                <p className="mt-1 text-sm text-gray-500">
-                  Completa la información solicitada.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={cerrarModal}
-                disabled={guardando}
-                className="rounded-lg px-3 py-2 text-2xl font-bold text-gray-500 transition hover:bg-gray-100 disabled:opacity-50"
+        <form id="responsible-form" onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <label
+                htmlFor="fullName"
+                className="block text-sm font-semibold text-title mb-1"
               >
-                ×
-              </button>
+                Nombre Completo:
+              </label>
+              <input
+                type="text"
+                id="fullName"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                maxLength={100}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Nombre completo del responsable"
+              />
             </div>
 
-            <form
-              onSubmit={guardarResponsable}
-              className="space-y-6 px-6 py-6"
-            >
-              {mensajeExito && (
-                <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-green-700">
-                  {mensajeExito}
-                </div>
-              )}
+            <div>
+              <label
+                htmlFor="documentNumber"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Número de Documento:
+              </label>
+              <input
+                type="text"
+                id="documentNumber"
+                name="documentNumber"
+                value={formData.documentNumber}
+                onChange={handleChange}
+                maxLength={30}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Documento de identidad"
+              />
+            </div>
 
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                <div className="md:col-span-2">
-                  <label
-                    htmlFor="fullName"
-                    className="mb-2 block text-sm font-semibold text-gray-700"
-                  >
-                    Nombre completo
-                  </label>
+            <div>
+              <label
+                htmlFor="trainingRecord"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Número de Ficha:
+              </label>
+              <input
+                type="text"
+                id="trainingRecord"
+                name="trainingRecord"
+                value={formData.trainingRecord}
+                onChange={handleChange}
+                maxLength={50}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Ficha de formación"
+              />
+            </div>
 
-                  <input
-                    id="fullName"
-                    type="text"
-                    maxLength={100}
-                    value={fullName}
-                    onChange={(event) => setFullName(event.target.value)}
-                    placeholder="Nombre completo del responsable"
-                    required
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="role"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Rol o Cargo:
+              </label>
+              <input
+                type="text"
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                maxLength={100}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Ejemplo: Encargado del galpón"
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="documentNumber"
-                    className="mb-2 block text-sm font-semibold text-gray-700"
-                  >
-                    Número de documento
-                  </label>
+            <div>
+              <label
+                htmlFor="responsibleType"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Tipo de Responsable:
+              </label>
+              <select
+                id="responsibleType"
+                name="responsibleType"
+                value={formData.responsibleType}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              >
+                <option value="">Selecciona una opción</option>
+                <option value="Instructor">Instructor</option>
+                <option value="Aprendiz">Aprendiz</option>
+                <option value="Pasante">Pasante</option>
+                <option value="Gestor">Gestor</option>
+              </select>
+            </div>
 
-                  <input
-                    id="documentNumber"
-                    type="text"
-                    maxLength={30}
-                    value={documentNumber}
-                    onChange={(event) =>
-                      setDocumentNumber(event.target.value)
-                    }
-                    placeholder="Documento de identidad"
-                    required
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="trainingRecord"
-                    className="mb-2 block text-sm font-semibold text-gray-700"
-                  >
-                    Número de ficha
-                  </label>
-
-                  <input
-                    id="trainingRecord"
-                    type="text"
-                    maxLength={50}
-                    value={trainingRecord}
-                    onChange={(event) =>
-                      setTrainingRecord(event.target.value)
-                    }
-                    placeholder="Ficha de formación"
-                    required
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="role"
-                    className="mb-2 block text-sm font-semibold text-gray-700"
-                  >
-                    Rol o cargo
-                  </label>
-
-                  <input
-                    id="role"
-                    type="text"
-                    maxLength={100}
-                    value={role}
-                    onChange={(event) => setRole(event.target.value)}
-                    placeholder="Ejemplo: Encargado del galpón"
-                    required
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="responsibleType"
-                    className="mb-2 block text-sm font-semibold text-gray-700"
-                  >
-                    Tipo de responsable
-                  </label>
-
-                  <select
-                    id="responsibleType"
-                    value={responsibleType}
-                    onChange={(event) =>
-                      setResponsibleType(event.target.value)
-                    }
-                    required
-                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-200"
-                  >
-                    <option value="">Selecciona una opción</option>
-                    <option value="Instructor">Instructor</option>
-                    <option value="Aprendiz">Aprendiz</option>
-                    <option value="Pasante">Pasante</option>
-                    <option value="Gestor">Gestor</option>
-                  </select>
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="flex cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={active}
-                      onChange={(event) => setActive(event.target.checked)}
-                      className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
-
-                    <span className="text-sm font-semibold text-gray-700">
-                      Responsable activo
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="flex flex-col-reverse gap-3 border-t border-gray-200 pt-5 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={cerrarModal}
-                  disabled={guardando}
-                  className="rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-700 transition hover:bg-gray-100 disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={guardando}
-                  className="rounded-lg bg-green-600 px-5 py-3 font-semibold text-white shadow-md transition hover:bg-green-700 disabled:opacity-50"
-                >
-                  {guardando ? "Guardando..." : "Guardar responsable"}
-                </button>
-              </div>
-            </form>
+            <div className="col-span-1 md:col-span-2">
+              <label
+                htmlFor="active"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Estado:
+              </label>
+              <select
+                id="active"
+                name="active"
+                value={formData.active}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              >
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
+            </div>
           </div>
-        </div>
-      )}
-    </>
+        </form>
+
+        <DialogFooter>
+          <button
+            type="submit"
+            form="responsible-form"
+            disabled={guardando}
+            className="w-full bg-green-1-navbar text-white font-medium py-2 px-4 rounded-md hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+          >
+            {guardando ? "Guardando..." : "Guardar Responsable"}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

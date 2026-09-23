@@ -15,7 +15,7 @@ const getMortalities = async (req, res) => {
     const limit = querylimit ? parseInt(querylimit) : 10;
     const offset = queryoffset ? parseInt(queryoffset) : 0;
 
-    const mortalities = await getMortalities(limit, offset);
+    const mortalities = await getAllMortalities(limit, offset);
 
     const response = new Response(
       true,

@@ -21,6 +21,16 @@ export default function TableSupply() {
         fetchSupplies();
     }, []);
 
+    const formatDate = (dateStr?: string) => {
+        if (!dateStr) return "—";
+        const cleanDate = dateStr.split("T")[0];
+        const [year, month, day] = cleanDate.split("-");
+        if (day && month && year) {
+            return `${day}/${month}/${year}`;
+        }
+        return dateStr;
+    };
+
     return (
         <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
 
@@ -91,9 +101,9 @@ export default function TableSupply() {
                 <tbody>
 
                     {supplies.length > 0 ? (
-                        supplies.map((supply: any) => (
+                        supplies.map((supply: any, index: number) => (
                             <tr
-                                key={supply.id}
+                                key={`supply-${supply.id || index}`}
                                 className="hover:bg-fond transition-colors"
                             >
 
@@ -106,7 +116,7 @@ export default function TableSupply() {
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
-                                    {supply.entryDate}
+                                    {formatDate(supply.entryDate)}
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
@@ -134,7 +144,7 @@ export default function TableSupply() {
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
-                                    {supply.expirationDate}
+                                    {formatDate(supply.expirationDate)}
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
@@ -142,11 +152,11 @@ export default function TableSupply() {
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
-                                    {supply.weight}
+                                    {supply.weight || "—"}
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
-                                    {supply.observations}
+                                    {supply.observations || "—"}
                                 </td>
 
                             </tr>

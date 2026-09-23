@@ -1,482 +1,467 @@
 "use client";
 
-import React, { useState } from "react";
-import NavBar from "@/components/NavBar";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from "../ui/dialog";
+import { CirclePlus } from "lucide-react";
 import { API_SUPPLY_URL } from "@/api/config";
 
 export default function FormCreateSupply() {
-  const [id, setId] = useState("");
-  const [supplyType, setSupplyType] = useState("");
-  const [entryDate, setEntryDate] = useState("");
-  const [supplyName, setSupplyName] = useState("");
-  const [unitMeasure, setUnitMeasure] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [unitValue, setUnitValue] = useState("");
-  const [totalValue, setTotalValue] = useState("");
-  const [reference, setReference] = useState("");
-  const [expirationDate, setExpirationDate] = useState("");
-  const [balance, setBalance] = useState("");
-  const [observations, setObservations] = useState("");
-  const [weight, setWeight] = useState("");
-  const [active, setActive] = useState(true);
-
-  const [modalAbierto, setModalAbierto] = useState(false);
+  const [open, setOpen] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
+  const [mensajeError, setMensajeError] = useState("");
 
-  const abrirModal = () => {
-    setMensajeExito("");
-    setModalAbierto(true);
-  };
+  const [formData, setFormData] = useState({
+    id: "",
+    supplyType: "",
+    entryDate: "",
+    supplyName: "",
+    unitMeasure: "",
+    quantity: "",
+    unitValue: "",
+    totalValue: "",
+    reference: "",
+    expirationDate: "",
+    balance: "",
+    weight: "",
+    observations: "",
+    active: "true",
+  });
 
-  const cerrarModal = () => {
-    if (guardando) {
-      return;
-    }
-
-    setModalAbierto(false);
-  };
-
-  const limpiarFormulario = () => {
-    setId("");
-    setSupplyType("");
-    setEntryDate("");
-    setSupplyName("");
-    setUnitMeasure("");
-    setQuantity("");
-    setUnitValue("");
-    setTotalValue("");
-    setReference("");
-    setExpirationDate("");
-    setBalance("");
-    setObservations("");
-    setWeight("");
-    setActive(true);
-  };
-
-  const guardarSuministro = async (
-    event: React.FormEvent<HTMLFormElement>
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
-    event.preventDefault();
+    const { name, value } = e.target;
+    setFormData((prev) => {
+      const actualizados = { ...prev, [name]: value };
 
+      // Cálculo automático de totalValue si cambian cantidad o valor unitario
+      if (name === "quantity" || name === "unitValue") {
+        const cant = name === "quantity" ? Number(value) : Number(prev.quantity);
+        const val = name === "unitValue" ? Number(value) : Number(prev.unitValue);
+        if (!isNaN(cant) && !isNaN(val) && cant >= 0 && val >= 0) {
+          actualizados.totalValue = (cant * val).toFixed(2);
+        }
+      }
+
+      return actualizados;
+    });
+  };
+
+  const resetInputs = () => {
+    setFormData({
+      id: "",
+      supplyType: "",
+      entryDate: "",
+      supplyName: "",
+      unitMeasure: "",
+      quantity: "",
+      unitValue: "",
+      totalValue: "",
+      reference: "",
+      expirationDate: "",
+      balance: "",
+      weight: "",
+      observations: "",
+      active: "true",
+    });
+  };
+
+  const handleOpenChange = (nuevoEstado: boolean) => {
+    if (guardando) return;
+    setOpen(nuevoEstado);
+    if (!nuevoEstado) {
+      resetInputs();
+      setMensajeExito("");
+      setMensajeError("");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setGuardando(true);
     setMensajeExito("");
+    setMensajeError("");
+
+    const datosEnviar = {
+      id: formData.id.trim(),
+      supplyType: formData.supplyType.trim(),
+      entryDate: formData.entryDate,
+      supplyName: formData.supplyName.trim(),
+      unitMeasure: formData.unitMeasure.trim(),
+      quantity: Number(formData.quantity) || 0,
+      unitValue: Number(formData.unitValue) || 0,
+      totalValue: Number(formData.totalValue) || 0,
+      reference: formData.reference.trim(),
+      expirationDate: formData.expirationDate || null,
+      balance: Number(formData.balance) || 0,
+      weight: formData.weight ? Number(formData.weight) : null,
+      observations: formData.observations.trim(),
+      active: formData.active === "true",
+    };
 
     try {
-      const respuesta = await fetch(
-        `${API_SUPPLY_URL}/CreateSupply`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            id,
-            supplyType,
-            entryDate,
-            supplyName,
-            unitMeasure,
-            quantity: Number(quantity),
-            unitValue: Number(unitValue),
-            totalValue: Number(totalValue),
-            reference,
-            expirationDate: expirationDate || null,
-            balance: Number(balance),
-            observations,
-            weight: Number(weight),
-            active,
-          }),
-        }
-      );
+      const response = await fetch(`${API_SUPPLY_URL}/CreateSupply`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(datosEnviar),
+      });
 
-      const resultado = await respuesta.json();
+      let resultado: any = null;
+      try {
+        resultado = await response.json();
+      } catch {
+        // En caso de no recibir JSON
+      }
 
-      if (!respuesta.ok) {
+      if (!response.ok) {
         throw new Error(
-          resultado.message ||
-            resultado.mensaje ||
-            "No se pudo registrar el suministro"
+          resultado?.message ||
+            resultado?.mensaje ||
+            resultado?.error ||
+            `Error ${response.status}: No se pudo registrar el suministro`
         );
       }
 
-      setMensajeExito("Suministro registrado correctamente");
-      limpiarFormulario();
+      setMensajeExito("¡Suministro registrado correctamente!");
+      resetInputs();
 
       setTimeout(() => {
-        setModalAbierto(false);
+        setOpen(false);
         setMensajeExito("");
-      }, 1500);
-    } catch (error) {
-      console.error("Error al registrar el suministro:", error);
-
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert("Ocurrió un error al registrar el suministro");
-      }
+      }, 1800);
+    } catch (error: any) {
+      console.error("Error al registrar suministro:", error);
+      setMensajeError(
+        error.message || "Ocurrió un error inesperado al conectar con el servidor"
+      );
     } finally {
       setGuardando(false);
     }
   };
 
   return (
-    <>
-      <NavBar />
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger className="inline-flex items-center text-green-1-navbar font-semibold hover:text-green-2-navbar cursor-pointer">
+        <CirclePlus className="w-8 h-8 mr-2 text-green-1-navbar" />
+        <span>Registrar Suministro</span>
+      </DialogTrigger>
 
-      <main className="min-h-screen bg-fond">
-        <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[850px] max-h-[90vh] overflow-y-auto border border-border shadow-xl">
+        <DialogHeader className="font-bold text-2xl text-center text-title">
+          Registrar Suministro
+        </DialogHeader>
+        <DialogDescription className="text-center text-parrafo">
+          Complete los campos para registrar un nuevo insumo en el inventario.
+        </DialogDescription>
+
+        {mensajeExito && (
+          <div className="w-full rounded-md border border-green-600 bg-green-50 p-3 text-center text-sm font-semibold text-green-800 animate-in fade-in">
+            {mensajeExito}
+          </div>
+        )}
+
+        {mensajeError && (
+          <div className="w-full rounded-md border border-red-500 bg-red-50 p-3 text-center text-sm font-semibold text-red-700 animate-in fade-in">
+            {mensajeError}
+          </div>
+        )}
+
+        <form id="supply-form" onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <h1 className="text-title text-3xl font-bold">
-                Gestión de Suministros
-              </h1>
-
-              <p className="text-parrafo mt-2">
-                Registra y administra el inventario e insumos de la granja.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={abrirModal}
-              className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar"
-            >
-              Crear suministro
-            </button>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-md">
-            <h2 className="text-title text-xl font-semibold">
-              Registro de suministros
-            </h2>
-
-            <p className="text-parrafo mt-2">
-              Presiona el botón Crear suministro para agregar un registro.
-            </p>
-          </div>
-        </section>
-      </main>
-
-      {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
-          <div className="bg-white max-h-[95vh] w-full max-w-3xl overflow-y-auto rounded-xl shadow-2xl">
-            <div className="border-border flex items-center justify-between border-b px-6 py-4">
-              <div>
-                <h2 className="text-title text-2xl font-bold">
-                  Registrar suministro
-                </h2>
-
-                <p className="text-parrafo mt-1 text-sm">
-                  Completa la información solicitada.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={cerrarModal}
-                disabled={guardando}
-                className="text-title rounded-lg px-3 py-2 text-2xl font-bold transition hover:bg-fond disabled:opacity-50"
+              <label
+                htmlFor="id"
+                className="block text-sm font-semibold text-title mb-1"
               >
-                ×
-              </button>
+                Código / Identificador:
+              </label>
+              <input
+                type="text"
+                id="id"
+                name="id"
+                value={formData.id}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Código único del insumo"
+              />
             </div>
 
-            <form onSubmit={guardarSuministro} className="space-y-6 px-6 py-6">
-              {mensajeExito && (
-                <div className="border-border rounded-lg border bg-green-50 px-4 py-3 text-green-1-navbar">
-                  {mensajeExito}
-                </div>
-              )}
+            <div>
+              <label
+                htmlFor="supplyType"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Tipo de Suministro:
+              </label>
+              <input
+                type="text"
+                id="supplyType"
+                name="supplyType"
+                value={formData.supplyType}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Ej: Alimento, Medicamento, Vacuna"
+              />
+            </div>
 
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="id"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    ID
-                  </label>
+            <div>
+              <label
+                htmlFor="entryDate"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Fecha de Ingreso:
+              </label>
+              <input
+                type="date"
+                id="entryDate"
+                name="entryDate"
+                value={formData.entryDate}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-                  <input
-                    id="id"
-                    type="text"
-                    value={id}
-                    onChange={(event) => setId(event.target.value)}
-                    placeholder="Código o identificador"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="supplyName"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Nombre del Suministro:
+              </label>
+              <input
+                type="text"
+                id="supplyName"
+                name="supplyName"
+                value={formData.supplyName}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Nombre del producto o insumo"
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="supplyType"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Tipo de suministro
-                  </label>
+            <div>
+              <label
+                htmlFor="unitMeasure"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Unidad de Medida:
+              </label>
+              <input
+                type="text"
+                id="unitMeasure"
+                name="unitMeasure"
+                value={formData.unitMeasure}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Ej: kg, bulto, litro, dosis"
+              />
+            </div>
 
-                  <input
-                    id="supplyType"
-                    type="text"
-                    value={supplyType}
-                    onChange={(event) => setSupplyType(event.target.value)}
-                    placeholder="Ejemplo: Alimento, Vacuna, Material"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="quantity"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Cantidad:
+              </label>
+              <input
+                type="number"
+                id="quantity"
+                name="quantity"
+                min="0"
+                value={formData.quantity}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Cantidad ingresada"
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="entryDate"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Fecha de ingreso
-                  </label>
+            <div>
+              <label
+                htmlFor="unitValue"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Valor Unitario ($):
+              </label>
+              <input
+                type="number"
+                id="unitValue"
+                name="unitValue"
+                min="0"
+                step="0.01"
+                value={formData.unitValue}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Precio unitario"
+              />
+            </div>
 
-                  <input
-                    id="entryDate"
-                    type="date"
-                    value={entryDate}
-                    onChange={(event) => setEntryDate(event.target.value)}
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="totalValue"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Valor Total ($):
+              </label>
+              <input
+                type="number"
+                id="totalValue"
+                name="totalValue"
+                min="0"
+                step="0.01"
+                value={formData.totalValue}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Costo total acumulado"
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="supplyName"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Nombre del suministro
-                  </label>
+            <div>
+              <label
+                htmlFor="reference"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Referencia / Factura:
+              </label>
+              <input
+                type="text"
+                id="reference"
+                name="reference"
+                value={formData.reference}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="N° factura o lote proveedor"
+              />
+            </div>
 
-                  <input
-                    id="supplyName"
-                    type="text"
-                    value={supplyName}
-                    onChange={(event) => setSupplyName(event.target.value)}
-                    placeholder="Nombre del producto o insumo"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="expirationDate"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Fecha de Vencimiento (Opcional):
+              </label>
+              <input
+                type="date"
+                id="expirationDate"
+                name="expirationDate"
+                value={formData.expirationDate}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="unitMeasure"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Unidad de medida
-                  </label>
+            <div>
+              <label
+                htmlFor="balance"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Saldo / Stock Restante:
+              </label>
+              <input
+                type="number"
+                id="balance"
+                name="balance"
+                min="0"
+                value={formData.balance}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Saldo disponible"
+              />
+            </div>
 
-                  <input
-                    id="unitMeasure"
-                    type="text"
-                    value={unitMeasure}
-                    onChange={(event) => setUnitMeasure(event.target.value)}
-                    placeholder="Ejemplo: kg, bulto, litro, unidad"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="weight"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Peso en kg (Opcional):
+              </label>
+              <input
+                type="number"
+                id="weight"
+                name="weight"
+                min="0"
+                step="0.01"
+                value={formData.weight}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Peso total en kg"
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="quantity"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Cantidad
-                  </label>
+            <div className="md:col-span-2">
+              <label
+                htmlFor="observations"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Observaciones:
+              </label>
+              <textarea
+                id="observations"
+                name="observations"
+                rows={3}
+                maxLength={255}
+                value={formData.observations}
+                onChange={handleChange}
+                placeholder="Detalles sobre el empaque, lote o entrega"
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-                  <input
-                    id="quantity"
-                    type="number"
-                    min="0"
-                    value={quantity}
-                    onChange={(event) => setQuantity(event.target.value)}
-                    placeholder="Cantidad ingresada"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="unitValue"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Valor unitario
-                  </label>
-
-                  <input
-                    id="unitValue"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={unitValue}
-                    onChange={(event) => setUnitValue(event.target.value)}
-                    placeholder="Precio por unidad"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="totalValue"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Valor total
-                  </label>
-
-                  <input
-                    id="totalValue"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={totalValue}
-                    onChange={(event) => setTotalValue(event.target.value)}
-                    placeholder="Costo total acumulado"
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="reference"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Referencia
-                  </label>
-
-                  <input
-                    id="reference"
-                    type="text"
-                    value={reference}
-                    onChange={(event) => setReference(event.target.value)}
-                    placeholder="Referencia de factura o lote"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="expirationDate"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Fecha de vencimiento (opcional)
-                  </label>
-
-                  <input
-                    id="expirationDate"
-                    type="date"
-                    value={expirationDate}
-                    onChange={(event) => setExpirationDate(event.target.value)}
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="balance"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Saldo
-                  </label>
-
-                  <input
-                    id="balance"
-                    type="number"
-                    min="0"
-                    value={balance}
-                    onChange={(event) => setBalance(event.target.value)}
-                    placeholder="Stock restante / saldo"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="weight"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Peso (opcional)
-                  </label>
-
-                  <input
-                    id="weight"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={weight}
-                    onChange={(event) => setWeight(event.target.value)}
-                    placeholder="Peso en kg"
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label
-                    htmlFor="observations"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Observaciones
-                  </label>
-
-                  <textarea
-                    id="observations"
-                    rows={3}
-                    maxLength={255}
-                    value={observations}
-                    onChange={(event) => setObservations(event.target.value)}
-                    placeholder="Detalles sobre el proveedor, empaque o entrega"
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="flex cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={active}
-                      onChange={(event) => setActive(event.target.checked)}
-                      className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
-
-                    <span className="text-title text-sm font-semibold">
-                      Suministro activo
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="border-border flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={cerrarModal}
-                  disabled={guardando}
-                  className="text-title rounded-lg border border-gray-300 px-5 py-3 font-semibold transition hover:bg-fond disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={guardando}
-                  className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar disabled:opacity-50"
-                >
-                  {guardando ? "Guardando..." : "Guardar suministro"}
-                </button>
-              </div>
-            </form>
+            <div className="md:col-span-2">
+              <label
+                htmlFor="active"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Estado:
+              </label>
+              <select
+                id="active"
+                name="active"
+                value={formData.active}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              >
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
+            </div>
           </div>
-        </div>
-      )}
-    </>
+        </form>
+
+        <DialogFooter className="mt-4">
+          <button
+            type="submit"
+            form="supply-form"
+            disabled={guardando}
+            className="w-full bg-green-1-navbar text-white font-medium py-2 px-4 rounded-md hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+          >
+            {guardando ? "Guardando..." : "Guardar Suministro"}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

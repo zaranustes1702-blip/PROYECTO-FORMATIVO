@@ -1,388 +1,360 @@
 "use client";
 
-import React, { useState } from "react";
-import NavBar from "@/components/NavBar";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from "../ui/dialog";
+import { CirclePlus } from "lucide-react";
 import { API_QUARANTINE_URL } from "@/api/config";
 
 export default function FormCreateQuarantine() {
-  const [quarantineDate, setQuarantineDate] = useState("");
-  const [affectedBirds, setAffectedBirds] = useState("");
-  const [symptoms, setSymptoms] = useState("");
-  const [diagnosis, setDiagnosis] = useState("");
-  const [treatmentApplied, setTreatmentApplied] = useState("");
-  const [dosage, setDosage] = useState("");
-  const [treatmentDuration, setTreatmentDuration] = useState("");
-  const [observations, setObservations] = useState("");
-  const [quarantineEndDate, setQuarantineEndDate] = useState("");
-  const [active, setActive] = useState(true);
-
-  const [modalAbierto, setModalAbierto] = useState(false);
+  const [open, setOpen] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
+  const [mensajeError, setMensajeError] = useState("");
 
-  const abrirModal = () => {
-    setMensajeExito("");
-    setModalAbierto(true);
-  };
+  const [formData, setFormData] = useState({
+    quarantineDate: "",
+    affectedBirds: "",
+    symptoms: "",
+    diagnosis: "",
+    treatmentApplied: "",
+    dosage: "",
+    treatmentDuration: "",
+    quarantineEndDate: "",
+    observations: "",
+    active: "true",
+  });
 
-  const cerrarModal = () => {
-    if (guardando) {
-      return;
-    }
-
-    setModalAbierto(false);
-  };
-
-  const limpiarFormulario = () => {
-    setQuarantineDate("");
-    setAffectedBirds("");
-    setSymptoms("");
-    setDiagnosis("");
-    setTreatmentApplied("");
-    setDosage("");
-    setTreatmentDuration("");
-    setObservations("");
-    setQuarantineEndDate("");
-    setActive(true);
-  };
-
-  const guardarCuarentena = async (
-    event: React.FormEvent<HTMLFormElement>
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
-    event.preventDefault();
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
+  const resetInputs = () => {
+    setFormData({
+      quarantineDate: "",
+      affectedBirds: "",
+      symptoms: "",
+      diagnosis: "",
+      treatmentApplied: "",
+      dosage: "",
+      treatmentDuration: "",
+      quarantineEndDate: "",
+      observations: "",
+      active: "true",
+    });
+  };
+
+  const handleOpenChange = (nuevoEstado: boolean) => {
+    if (guardando) return;
+    setOpen(nuevoEstado);
+    if (!nuevoEstado) {
+      resetInputs();
+      setMensajeExito("");
+      setMensajeError("");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setGuardando(true);
     setMensajeExito("");
+    setMensajeError("");
+
+    const datosEnviar = {
+      quarantineDate: formData.quarantineDate,
+      affectedBirds: Number(formData.affectedBirds) || 0,
+      symptoms: formData.symptoms.trim(),
+      diagnosis: formData.diagnosis.trim(),
+      treatmentApplied: formData.treatmentApplied.trim(),
+      dosage: formData.dosage.trim(),
+      treatmentDuration: formData.treatmentDuration.trim(),
+      quarantineEndDate: formData.quarantineEndDate || null,
+      observations: formData.observations.trim(),
+      active: formData.active === "true",
+    };
 
     try {
-      const respuesta = await fetch(
-        `${API_QUARANTINE_URL}/CreateQuarantine`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            quarantineDate,
-            affectedBirds: Number(affectedBirds),
-            symptoms,
-            diagnosis,
-            treatmentApplied,
-            dosage,
-            treatmentDuration,
-            observations,
-            quarantineEndDate: quarantineEndDate || null,
-            active,
-          }),
-        }
-      );
+      const response = await fetch(`${API_QUARANTINE_URL}/CreateQuarantine`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(datosEnviar),
+      });
 
-      const resultado = await respuesta.json();
+      let resultado: any = null;
+      try {
+        resultado = await response.json();
+      } catch {
+        // En caso de que la respuesta venga sin JSON
+      }
 
-      if (!respuesta.ok) {
+      if (!response.ok) {
         throw new Error(
-          resultado.message ||
-            resultado.mensaje ||
-            "No se pudo registrar la cuarentena"
+          resultado?.message ||
+            resultado?.mensaje ||
+            resultado?.error ||
+            `Error ${response.status}: No se pudo registrar la cuarentena`
         );
       }
 
-      setMensajeExito("Cuarentena registrada correctamente");
-      limpiarFormulario();
+      setMensajeExito("¡Cuarentena registrada correctamente!");
+      resetInputs();
 
       setTimeout(() => {
-        setModalAbierto(false);
+        setOpen(false);
         setMensajeExito("");
-      }, 1500);
-    } catch (error) {
-      console.error("Error al registrar la cuarentena:", error);
-
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert("Ocurrió un error al registrar la cuarentena");
-      }
+      }, 1800);
+    } catch (error: any) {
+      console.error("Error al registrar cuarentena:", error);
+      setMensajeError(
+        error.message || "Ocurrió un error inesperado al conectar con el servidor"
+      );
     } finally {
       setGuardando(false);
     }
   };
 
   return (
-    <>
-      <NavBar />
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger className="inline-flex items-center text-green-1-navbar font-semibold hover:text-green-2-navbar cursor-pointer">
+        <CirclePlus className="w-8 h-8 mr-2 text-green-1-navbar" />
+        <span>Registrar Cuarentena</span>
+      </DialogTrigger>
 
-      <main className="min-h-screen bg-fond">
-        <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[850px] max-h-[90vh] overflow-y-auto border border-border shadow-xl">
+        <DialogHeader className="font-bold text-2xl text-center text-title">
+          Registrar Cuarentena
+        </DialogHeader>
+        <DialogDescription className="text-center text-parrafo">
+          Complete los campos para registrar el aislamiento y tratamiento de aves.
+        </DialogDescription>
+
+        {mensajeExito && (
+          <div className="w-full rounded-md border border-green-600 bg-green-50 p-3 text-center text-sm font-semibold text-green-800 animate-in fade-in">
+            {mensajeExito}
+          </div>
+        )}
+
+        {mensajeError && (
+          <div className="w-full rounded-md border border-red-500 bg-red-50 p-3 text-center text-sm font-semibold text-red-700 animate-in fade-in">
+            {mensajeError}
+          </div>
+        )}
+
+        <form id="quarantine-form" onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <h1 className="text-title text-3xl font-bold">
-                Gestión de Cuarentena
-              </h1>
-
-              <p className="text-parrafo mt-2">
-                Registra y haz seguimiento al aislamiento y tratamiento de aves.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={abrirModal}
-              className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar"
-            >
-              Crear cuarentena
-            </button>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-md">
-            <h2 className="text-title text-xl font-semibold">
-              Registro de cuarentena
-            </h2>
-
-            <p className="text-parrafo mt-2">
-              Presiona el botón Crear cuarentena para agregar un registro.
-            </p>
-          </div>
-        </section>
-      </main>
-
-      {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
-          <div className="bg-white max-h-[95vh] w-full max-w-3xl overflow-y-auto rounded-xl shadow-2xl">
-            <div className="border-border flex items-center justify-between border-b px-6 py-4">
-              <div>
-                <h2 className="text-title text-2xl font-bold">
-                  Registrar cuarentena
-                </h2>
-
-                <p className="text-parrafo mt-1 text-sm">
-                  Completa la información solicitada.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={cerrarModal}
-                disabled={guardando}
-                className="text-title rounded-lg px-3 py-2 text-2xl font-bold transition hover:bg-fond disabled:opacity-50"
+              <label
+                htmlFor="quarantineDate"
+                className="block text-sm font-semibold text-title mb-1"
               >
-                ×
-              </button>
+                Fecha de Inicio:
+              </label>
+              <input
+                type="date"
+                id="quarantineDate"
+                name="quarantineDate"
+                value={formData.quarantineDate}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
             </div>
 
-            <form onSubmit={guardarCuarentena} className="space-y-6 px-6 py-6">
-              {mensajeExito && (
-                <div className="border-border rounded-lg border bg-green-50 px-4 py-3 text-green-1-navbar">
-                  {mensajeExito}
-                </div>
-              )}
+            <div>
+              <label
+                htmlFor="affectedBirds"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Aves Afectadas:
+              </label>
+              <input
+                type="number"
+                id="affectedBirds"
+                name="affectedBirds"
+                min="1"
+                value={formData.affectedBirds}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Cantidad de aves"
+              />
+            </div>
 
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="quarantineDate"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Fecha de cuarentena
-                  </label>
+            <div>
+              <label
+                htmlFor="symptoms"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Síntomas:
+              </label>
+              <input
+                type="text"
+                id="symptoms"
+                name="symptoms"
+                value={formData.symptoms}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Síntomas observados"
+              />
+            </div>
 
-                  <input
-                    id="quarantineDate"
-                    type="date"
-                    value={quarantineDate}
-                    onChange={(event) => setQuarantineDate(event.target.value)}
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="diagnosis"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Diagnóstico:
+              </label>
+              <input
+                type="text"
+                id="diagnosis"
+                name="diagnosis"
+                value={formData.diagnosis}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Diagnóstico preliminar o final"
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="affectedBirds"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Aves afectadas
-                  </label>
+            <div>
+              <label
+                htmlFor="treatmentApplied"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Tratamiento Aplicado:
+              </label>
+              <input
+                type="text"
+                id="treatmentApplied"
+                name="treatmentApplied"
+                value={formData.treatmentApplied}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Medicamentos o medidas"
+              />
+            </div>
 
-                  <input
-                    id="affectedBirds"
-                    type="number"
-                    min="1"
-                    value={affectedBirds}
-                    onChange={(event) => setAffectedBirds(event.target.value)}
-                    placeholder="Cantidad de aves afectadas"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="dosage"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Dosificación:
+              </label>
+              <input
+                type="text"
+                id="dosage"
+                name="dosage"
+                value={formData.dosage}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Ej: 2ml por litro de agua"
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="symptoms"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Síntomas
-                  </label>
+            <div>
+              <label
+                htmlFor="treatmentDuration"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Duración del Tratamiento:
+              </label>
+              <input
+                type="text"
+                id="treatmentDuration"
+                name="treatmentDuration"
+                value={formData.treatmentDuration}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Ej: 5 días"
+              />
+            </div>
 
-                  <input
-                    id="symptoms"
-                    type="text"
-                    value={symptoms}
-                    onChange={(event) => setSymptoms(event.target.value)}
-                    placeholder="Síntomas observados"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="quarantineEndDate"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Fecha de Finalización (Opcional):
+              </label>
+              <input
+                type="date"
+                id="quarantineEndDate"
+                name="quarantineEndDate"
+                value={formData.quarantineEndDate}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="diagnosis"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Diagnóstico
-                  </label>
+            <div className="md:col-span-2">
+              <label
+                htmlFor="observations"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Observaciones:
+              </label>
+              <textarea
+                id="observations"
+                name="observations"
+                rows={3}
+                value={formData.observations}
+                onChange={handleChange}
+                placeholder="Notas o evolución del aislamiento"
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-                  <input
-                    id="diagnosis"
-                    type="text"
-                    value={diagnosis}
-                    onChange={(event) => setDiagnosis(event.target.value)}
-                    placeholder="Diagnóstico preliminar o final"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="treatmentApplied"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Tratamiento aplicado
-                  </label>
-
-                  <input
-                    id="treatmentApplied"
-                    type="text"
-                    value={treatmentApplied}
-                    onChange={(event) => setTreatmentApplied(event.target.value)}
-                    placeholder="Medicamentos o medidas"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="dosage"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Dosificación
-                  </label>
-
-                  <input
-                    id="dosage"
-                    type="text"
-                    value={dosage}
-                    onChange={(event) => setDosage(event.target.value)}
-                    placeholder="Ejemplo: 2ml por litro de agua"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="treatmentDuration"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Duración del tratamiento
-                  </label>
-
-                  <input
-                    id="treatmentDuration"
-                    type="text"
-                    value={treatmentDuration}
-                    onChange={(event) => setTreatmentDuration(event.target.value)}
-                    placeholder="Ejemplo: 5 días"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="quarantineEndDate"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Fecha de finalización (opcional)
-                  </label>
-
-                  <input
-                    id="quarantineEndDate"
-                    type="date"
-                    value={quarantineEndDate}
-                    onChange={(event) => setQuarantineEndDate(event.target.value)}
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label
-                    htmlFor="observations"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Observaciones
-                  </label>
-
-                  <textarea
-                    id="observations"
-                    rows={3}
-                    value={observations}
-                    onChange={(event) => setObservations(event.target.value)}
-                    placeholder="Notas o evolución del aislamiento"
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="flex cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={active}
-                      onChange={(event) => setActive(event.target.checked)}
-                      className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
-
-                    <span className="text-title text-sm font-semibold">
-                      Cuarentena activa
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="border-border flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={cerrarModal}
-                  disabled={guardando}
-                  className="text-title rounded-lg border border-gray-300 px-5 py-3 font-semibold transition hover:bg-fond disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={guardando}
-                  className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar disabled:opacity-50"
-                >
-                  {guardando ? "Guardando..." : "Guardar cuarentena"}
-                </button>
-              </div>
-            </form>
+            <div className="md:col-span-2">
+              <label
+                htmlFor="active"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Estado:
+              </label>
+              <select
+                id="active"
+                name="active"
+                value={formData.active}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              >
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
+            </div>
           </div>
-        </div>
-      )}
-    </>
+        </form>
+
+        <DialogFooter className="mt-4">
+          <button
+            type="submit"
+            form="quarantine-form"
+            disabled={guardando}
+            className="w-full bg-green-1-navbar text-white font-medium py-2 px-4 rounded-md hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+          >
+            {guardando ? "Guardando..." : "Guardar Cuarentena"}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

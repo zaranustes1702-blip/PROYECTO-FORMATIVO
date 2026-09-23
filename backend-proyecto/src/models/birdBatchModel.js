@@ -31,7 +31,7 @@ const birdbatch = db.define("birdbatch", {
         type: DataTypes.STRING,
         allowNull: false
     },
-        active: {
+    active: {
         type: DataTypes.BOOLEAN,
         defaultValue: true
     },

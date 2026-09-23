@@ -33,6 +33,16 @@ export default function TablaWeighing() {
 
     }, []);
 
+    const formatDate = (dateStr?: string) => {
+        if (!dateStr) return "—";
+        const cleanDate = dateStr.split("T")[0];
+        const [year, month, day] = cleanDate.split("-");
+        if (day && month && year) {
+            return `${day}/${month}/${year}`;
+        }
+        return dateStr;
+    };
+
     return (
 
         <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
@@ -91,10 +101,10 @@ export default function TablaWeighing() {
 
                     {weighings.length > 0 ? (
 
-                        weighings.map((weighing: any) => (
+                        weighings.map((weighing: any, index: number) => (
 
                             <tr
-                                key={weighing.id}
+                                key={`weighing-${weighing.id || index}`}
                                 className="hover:bg-fond transition-colors"
                             >
 
@@ -103,19 +113,19 @@ export default function TablaWeighing() {
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
-                                    {weighing.weighingDate}
+                                    {formatDate(weighing.weighingDate || weighing.date)}
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
-                                    {weighing.weighingTime}
+                                    {weighing.weighingTime || weighing.time || "—"}
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
-                                    {weighing.responsiblePerson}
+                                    {weighing.responsiblePerson || weighing.responsible || "—"}
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
-                                    {weighing.weighedBirds}
+                                    {weighing.weighedBirds || weighing.weighedHen || "—"}
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">

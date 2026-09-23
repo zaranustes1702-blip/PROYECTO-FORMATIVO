@@ -1,389 +1,360 @@
 "use client";
 
-import React, { useState } from "react";
-import NavBar from "@/components/NavBar";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from "../ui/dialog";
+import { CirclePlus } from "lucide-react";
 import { API_USER_URL } from "@/api/config";
 
 export default function FormCreateUser() {
-  const [name, setName] = useState("");
-  const [uuid, setUuid] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [documentId, setDocumentId] = useState("");
-  const [postJob, setPostJob] = useState("");
-  const [idroll, setIdroll] = useState("");
-  const [verifyEmail, setVerifyEmail] = useState(false);
-  const [active, setActive] = useState(false);
-  const [solicitoNewPassword, setSolicitoNewPassword] = useState(false);
-
-  const [modalAbierto, setModalAbierto] = useState(false);
+  const [open, setOpen] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
+  const [mensajeError, setMensajeError] = useState("");
 
-  const abrirModal = () => {
-    setMensajeExito("");
-    setModalAbierto(true);
-  };
+  const [formData, setFormData] = useState({
+    name: "",
+    uuid: "",
+    email: "",
+    password: "",
+    documentId: "",
+    postJob: "",
+    idroll: "",
+    verifyEmail: false,
+    active: false,
+    solicitoNewPassword: false,
+  });
 
-  const cerrarModal = () => {
-    if (guardando) {
-      return;
-    }
-
-    setModalAbierto(false);
-  };
-
-  const limpiarFormulario = () => {
-    setName("");
-    setUuid("");
-    setEmail("");
-    setPassword("");
-    setDocumentId("");
-    setPostJob("");
-    setIdroll("");
-    setVerifyEmail(false);
-    setActive(false);
-    setSolicitoNewPassword(false);
-  };
-
-  const guardarUsuario = async (
-    event: React.FormEvent<HTMLFormElement>
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
-    event.preventDefault();
+    const { name, value, type } = e.target;
+    if (type === "checkbox") {
+      const { checked } = e.target as HTMLInputElement;
+      setFormData((prev) => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
 
+  const resetInputs = () => {
+    setFormData({
+      name: "",
+      uuid: "",
+      email: "",
+      password: "",
+      documentId: "",
+      postJob: "",
+      idroll: "",
+      verifyEmail: false,
+      active: false,
+      solicitoNewPassword: false,
+    });
+  };
+
+  const handleOpenChange = (nuevoEstado: boolean) => {
+    if (guardando) return;
+    setOpen(nuevoEstado);
+    if (!nuevoEstado) {
+      resetInputs();
+      setMensajeExito("");
+      setMensajeError("");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setGuardando(true);
     setMensajeExito("");
+    setMensajeError("");
+
+    const datosEnviar = {
+      name: formData.name.trim(),
+      uuid: formData.uuid.trim() || null,
+      email: formData.email.trim(),
+      password: formData.password,
+      documentId: formData.documentId.trim(),
+      postJob: formData.postJob,
+      idroll: formData.idroll ? Number(formData.idroll) : null,
+      verifyEmail: formData.verifyEmail,
+      active: formData.active,
+      solicito_newPassword: formData.solicitoNewPassword,
+    };
 
     try {
-      const respuesta = await fetch(
-        `${API_USER_URL}/CreateUser`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name,
-            uuid: uuid || null,
-            email,
-            password,
-            documentId,
-            postJob,
-            idroll: idroll ? Number(idroll) : null,
-            verifyEmail,
-            active,
-            solicito_newPassword: solicitoNewPassword,
-          }),
-        }
-      );
+      const response = await fetch(`${API_USER_URL}/CreateUser`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(datosEnviar),
+      });
 
-      const resultado = await respuesta.json();
+      let resultado: any = null;
+      try {
+        resultado = await response.json();
+      } catch {
+        // En caso de que no devuelva JSON
+      }
 
-      if (!respuesta.ok) {
+      if (!response.ok) {
         throw new Error(
-          resultado.message ||
-            resultado.mensaje ||
-            "No se pudo registrar el usuario"
+          resultado?.message ||
+            resultado?.mensaje ||
+            resultado?.error ||
+            `Error ${response.status}: No se pudo registrar el usuario`
         );
       }
 
-      setMensajeExito("Usuario registrado correctamente");
-      limpiarFormulario();
+      setMensajeExito("¡Usuario registrado correctamente!");
+      resetInputs();
 
       setTimeout(() => {
-        setModalAbierto(false);
+        setOpen(false);
         setMensajeExito("");
-      }, 1500);
-    } catch (error) {
-      console.error("Error al registrar el usuario:", error);
-
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert("Ocurrió un error al registrar el usuario");
-      }
+      }, 1800);
+    } catch (error: any) {
+      console.error("Error al registrar usuario:", error);
+      setMensajeError(
+        error.message || "Ocurrió un error inesperado al conectar con el servidor"
+      );
     } finally {
       setGuardando(false);
     }
   };
 
   return (
-    <>
-      <NavBar />
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger className="inline-flex items-center text-green-1-navbar font-semibold hover:text-green-2-navbar cursor-pointer">
+        <CirclePlus className="w-8 h-8 mr-2 text-green-1-navbar" />
+        <span>Registrar Usuario</span>
+      </DialogTrigger>
 
-      <main className="min-h-screen bg-fond">
-        <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[850px] max-h-[90vh] overflow-y-auto border border-border shadow-xl">
+        <DialogHeader className="font-bold text-2xl text-center text-title">
+          Registrar Usuario
+        </DialogHeader>
+        <DialogDescription className="text-center text-parrafo">
+          Complete los campos para registrar un nuevo usuario en el sistema.
+        </DialogDescription>
+
+        {mensajeExito && (
+          <div className="w-full rounded-md border border-green-600 bg-green-50 p-3 text-center text-sm font-semibold text-green-800 animate-in fade-in">
+            {mensajeExito}
+          </div>
+        )}
+
+        {mensajeError && (
+          <div className="w-full rounded-md border border-red-500 bg-red-50 p-3 text-center text-sm font-semibold text-red-700 animate-in fade-in">
+            {mensajeError}
+          </div>
+        )}
+
+        <form id="user-form" onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <h1 className="text-title text-3xl font-bold">
-                Gestión de Usuarios
-              </h1>
-
-              <p className="text-parrafo mt-2">
-                Registra y administra las cuentas y permisos del personal.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={abrirModal}
-              className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar"
-            >
-              Crear usuario
-            </button>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-md">
-            <h2 className="text-title text-xl font-semibold">
-              Registro de usuarios
-            </h2>
-
-            <p className="text-parrafo mt-2">
-              Presiona el botón Crear usuario para agregar un registro.
-            </p>
-          </div>
-        </section>
-      </main>
-
-      {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
-          <div className="bg-white max-h-[95vh] w-full max-w-3xl overflow-y-auto rounded-xl shadow-2xl">
-            <div className="border-border flex items-center justify-between border-b px-6 py-4">
-              <div>
-                <h2 className="text-title text-2xl font-bold">
-                  Registrar usuario
-                </h2>
-
-                <p className="text-parrafo mt-1 text-sm">
-                  Completa la información solicitada.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={cerrarModal}
-                disabled={guardando}
-                className="text-title rounded-lg px-3 py-2 text-2xl font-bold transition hover:bg-fond disabled:opacity-50"
+              <label
+                htmlFor="name"
+                className="block text-sm font-semibold text-title mb-1"
               >
-                ×
-              </button>
+                Nombre Completo:
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                maxLength={50}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Nombre completo"
+              />
             </div>
 
-            <form onSubmit={guardarUsuario} className="space-y-6 px-6 py-6">
-              {mensajeExito && (
-                <div className="border-border rounded-lg border bg-green-50 px-4 py-3 text-green-1-navbar">
-                  {mensajeExito}
-                </div>
-              )}
+            <div>
+              <label
+                htmlFor="uuid"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                UUID (Opcional):
+              </label>
+              <input
+                type="text"
+                id="uuid"
+                name="uuid"
+                value={formData.uuid}
+                onChange={handleChange}
+                maxLength={45}
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Identificador único"
+              />
+            </div>
 
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="name"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Nombre
-                  </label>
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Correo Electrónico:
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                maxLength={50}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="correo@ejemplo.com"
+              />
+            </div>
 
-                  <input
-                    id="name"
-                    type="text"
-                    maxLength={50}
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    placeholder="Nombre completo"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Contraseña:
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                maxLength={50}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="••••••••"
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="uuid"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    UUID (opcional)
-                  </label>
+            <div>
+              <label
+                htmlFor="documentId"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Documento de Identidad:
+              </label>
+              <input
+                type="text"
+                id="documentId"
+                name="documentId"
+                value={formData.documentId}
+                onChange={handleChange}
+                maxLength={30}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Número de documento"
+              />
+            </div>
 
-                  <input
-                    id="uuid"
-                    type="text"
-                    maxLength={45}
-                    value={uuid}
-                    onChange={(event) => setUuid(event.target.value)}
-                    placeholder="Identificador único"
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="postJob"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Cargo:
+              </label>
+              <select
+                id="postJob"
+                name="postJob"
+                value={formData.postJob}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              >
+                <option value="">Seleccione un cargo</option>
+                <option value="Aprendiz">Aprendiz</option>
+                <option value="Instructor">Instructor</option>
+                <option value="Gestor">Gestor</option>
+                <option value="Gestor líder">Gestor líder</option>
+              </select>
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Correo electrónico
-                  </label>
+            <div className="md:col-span-2">
+              <label
+                htmlFor="idroll"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                ID del Rol (Opcional):
+              </label>
+              <input
+                type="number"
+                id="idroll"
+                name="idroll"
+                min="1"
+                value={formData.idroll}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Ejemplo: 1"
+              />
+            </div>
 
-                  <input
-                    id="email"
-                    type="email"
-                    maxLength={50}
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    placeholder="correo@ejemplo.com"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div className="flex flex-col gap-3 md:col-span-2 pt-2">
+              <label className="flex cursor-pointer items-center gap-3">
+                <input
+                  type="checkbox"
+                  name="verifyEmail"
+                  checked={formData.verifyEmail}
+                  onChange={handleChange}
+                  className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                />
+                <span className="text-title text-sm font-semibold">
+                  Correo verificado
+                </span>
+              </label>
 
-                <div>
-                  <label
-                    htmlFor="password"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Contraseña
-                  </label>
+              <label className="flex cursor-pointer items-center gap-3">
+                <input
+                  type="checkbox"
+                  name="active"
+                  checked={formData.active}
+                  onChange={handleChange}
+                  className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                />
+                <span className="text-title text-sm font-semibold">
+                  Usuario activo
+                </span>
+              </label>
 
-                  <input
-                    id="password"
-                    type="password"
-                    maxLength={50}
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    placeholder="••••••••"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="documentId"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Documento de identidad
-                  </label>
-
-                  <input
-                    id="documentId"
-                    type="text"
-                    maxLength={30}
-                    value={documentId}
-                    onChange={(event) => setDocumentId(event.target.value)}
-                    placeholder="Número de documento"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="postJob"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Cargo
-                  </label>
-
-                  <select
-                    id="postJob"
-                    value={postJob}
-                    onChange={(event) => setPostJob(event.target.value)}
-                    required
-                    className="border-border w-full rounded-lg border bg-white px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  >
-                    <option value="">Seleccione un cargo</option>
-                    <option value="Aprendiz">Aprendiz</option>
-                    <option value="Instructor">Instructor</option>
-                    <option value="Gestor">Gestor</option>
-                    <option value="Gestor líder">Gestor líder</option>
-                  </select>
-                </div>
-
-                <div className="md:col-span-2">
-                  <label
-                    htmlFor="idroll"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    ID del rol (opcional)
-                  </label>
-
-                  <input
-                    id="idroll"
-                    type="number"
-                    min="1"
-                    value={idroll}
-                    onChange={(event) => setIdroll(event.target.value)}
-                    placeholder="Ejemplo: 1"
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-4 md:col-span-2">
-                  <label className="flex cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={verifyEmail}
-                      onChange={(event) => setVerifyEmail(event.target.checked)}
-                      className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
-
-                    <span className="text-title text-sm font-semibold">
-                      Correo verificado
-                    </span>
-                  </label>
-
-                  <label className="flex cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={active}
-                      onChange={(event) => setActive(event.target.checked)}
-                      className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
-
-                    <span className="text-title text-sm font-semibold">
-                      Usuario activo
-                    </span>
-                  </label>
-
-                  <label className="flex cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={solicitoNewPassword}
-                      onChange={(event) =>
-                        setSolicitoNewPassword(event.target.checked)
-                      }
-                      className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
-
-                    <span className="text-title text-sm font-semibold">
-                      Solicita nueva contraseña
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="border-border flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={cerrarModal}
-                  disabled={guardando}
-                  className="text-title rounded-lg border border-gray-300 px-5 py-3 font-semibold transition hover:bg-fond disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={guardando}
-                  className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar disabled:opacity-50"
-                >
-                  {guardando ? "Guardando..." : "Guardar usuario"}
-                </button>
-              </div>
-            </form>
+              <label className="flex cursor-pointer items-center gap-3">
+                <input
+                  type="checkbox"
+                  name="solicitoNewPassword"
+                  checked={formData.solicitoNewPassword}
+                  onChange={handleChange}
+                  className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                />
+                <span className="text-title text-sm font-semibold">
+                  Solicita nueva contraseña
+                </span>
+              </label>
+            </div>
           </div>
-        </div>
-      )}
-    </>
+        </form>
+
+        <DialogFooter className="mt-4">
+          <button
+            type="submit"
+            form="user-form"
+            disabled={guardando}
+            className="w-full bg-green-1-navbar text-white font-medium py-2 px-4 rounded-md hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+          >
+            {guardando ? "Guardando..." : "Guardar Usuario"}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

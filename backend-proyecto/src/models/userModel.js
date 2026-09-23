@@ -54,7 +54,7 @@ const User = db.define(
       type: DataTypes.STRING(50),
       allowNull: false,
     },
-    idroll: {
+    id_roll: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },

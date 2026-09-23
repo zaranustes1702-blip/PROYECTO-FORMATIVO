@@ -33,6 +33,16 @@ export default function TablaFeeding() {
 
     }, []);
 
+    const formatDate = (dateStr?: string) => {
+        if (!dateStr) return "—";
+        const cleanDate = dateStr.split("T")[0];
+        const [year, month, day] = cleanDate.split("-");
+        if (day && month && year) {
+            return `${day}/${month}/${year}`;
+        }
+        return dateStr;
+    };
+
     return (
 
         <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
@@ -87,10 +97,10 @@ export default function TablaFeeding() {
 
                     {feedings.length > 0 ? (
 
-                        feedings.map((feeding: any) => (
+                        feedings.map((feeding: any, index: number) => (
 
                             <tr
-                                key={feeding.id}
+                                key={`feeding-${feeding.id || index}`}
                                 className="hover:bg-fond transition-colors"
                             >
 
@@ -99,7 +109,7 @@ export default function TablaFeeding() {
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
-                                    {feeding.feedingDate}
+                                    {formatDate(feeding.feedingDate || feeding.date)}
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
@@ -115,11 +125,11 @@ export default function TablaFeeding() {
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
-                                    {feeding.responsiblePerson}
+                                    {feeding.responsiblePerson || feeding.responsible || "—"}
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">
-                                    {feeding.shift}
+                                    {feeding.shift || "—"}
                                 </td>
 
                                 <td className="border border-border px-4 py-2 text-title">

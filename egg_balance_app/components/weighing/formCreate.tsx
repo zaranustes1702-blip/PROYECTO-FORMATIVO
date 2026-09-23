@@ -1,376 +1,347 @@
 "use client";
 
-import React, { useState } from "react";
-import NavBar from "@/components/NavBar";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from "../ui/dialog";
+import { CirclePlus } from "lucide-react";
 import { API_WEIGHING_URL } from "@/api/config";
 
 export default function FormCreateWeighing() {
-  const [weighingId, setWeighingId] = useState("");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [responsible, setResponsible] = useState("");
-  const [weighedHen, setWeighedHen] = useState("");
-  const [totalWeightKg, setTotalWeightKg] = useState("");
-  const [averageWeightGrams, setAverageWeightGrams] = useState("");
-  const [batchUniformityPercentage, setBatchUniformityPercentage] = useState("");
-  const [active, setActive] = useState(true);
-
-  const [modalAbierto, setModalAbierto] = useState(false);
+  const [open, setOpen] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
+  const [mensajeError, setMensajeError] = useState("");
 
-  const abrirModal = () => {
-    setMensajeExito("");
-    setModalAbierto(true);
-  };
+  const [formData, setFormData] = useState({
+    weighingId: "",
+    date: "",
+    time: "",
+    responsible: "",
+    weighedHen: "",
+    totalWeightKg: "",
+    averageWeightGrams: "",
+    batchUniformityPercentage: "",
+    active: "true",
+  });
 
-  const cerrarModal = () => {
-    if (guardando) {
-      return;
-    }
-
-    setModalAbierto(false);
-  };
-
-  const limpiarFormulario = () => {
-    setWeighingId("");
-    setDate("");
-    setTime("");
-    setResponsible("");
-    setWeighedHen("");
-    setTotalWeightKg("");
-    setAverageWeightGrams("");
-    setBatchUniformityPercentage("");
-    setActive(true);
-  };
-
-  const guardarPesaje = async (
-    event: React.FormEvent<HTMLFormElement>
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
-    event.preventDefault();
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
+  const resetInputs = () => {
+    setFormData({
+      weighingId: "",
+      date: "",
+      time: "",
+      responsible: "",
+      weighedHen: "",
+      totalWeightKg: "",
+      averageWeightGrams: "",
+      batchUniformityPercentage: "",
+      active: "true",
+    });
+  };
+
+  const handleOpenChange = (nuevoEstado: boolean) => {
+    if (guardando) return;
+    setOpen(nuevoEstado);
+    if (!nuevoEstado) {
+      resetInputs();
+      setMensajeExito("");
+      setMensajeError("");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setGuardando(true);
     setMensajeExito("");
+    setMensajeError("");
+
+    const datosEnviar = {
+      weighingId: formData.weighingId.trim(),
+      date: formData.date,
+      time: formData.time,
+      responsible: formData.responsible.trim(),
+      weighedHen: formData.weighedHen.trim(),
+      totalWeightKg: Number(formData.totalWeightKg) || 0,
+      averageWeightGrams: Number(formData.averageWeightGrams) || 0,
+      batchUniformityPercentage: Number(formData.batchUniformityPercentage) || 0,
+      active: formData.active === "true",
+    };
 
     try {
-      const respuesta = await fetch(`${API_WEIGHING_URL}/CreateWeighing`, {
+      const response = await fetch(`${API_WEIGHING_URL}/CreateWeighing`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          weighingId,
-          date,
-          time,
-          responsible,
-          weighedHen,
-          totalWeightKg: Number(totalWeightKg),
-          averageWeightGrams: Number(averageWeightGrams),
-          batchUniformityPercentage: Number(batchUniformityPercentage),
-          active,
-        }),
+        body: JSON.stringify(datosEnviar),
       });
 
-      const resultado = await respuesta.json();
+      let resultado: any = null;
+      try {
+        resultado = await response.json();
+      } catch {
+        // En caso de que no retorne JSON
+      }
 
-      if (!respuesta.ok) {
+      if (!response.ok) {
         throw new Error(
-          resultado.message ||
-            resultado.mensaje ||
-            "No se pudo registrar el pesaje"
+          resultado?.message ||
+            resultado?.mensaje ||
+            resultado?.error ||
+            `Error ${response.status}: No se pudo registrar el pesaje`
         );
       }
 
-      setMensajeExito("Pesaje registrado correctamente");
-      limpiarFormulario();
+      setMensajeExito("¡Pesaje registrado correctamente!");
+      resetInputs();
 
       setTimeout(() => {
-        setModalAbierto(false);
+        setOpen(false);
         setMensajeExito("");
-      }, 1500);
-    } catch (error) {
-      console.error("Error al registrar el pesaje:", error);
-
-      if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert("Ocurrió un error al registrar el pesaje");
-      }
+      }, 1800);
+    } catch (error: any) {
+      console.error("Error al registrar pesaje:", error);
+      setMensajeError(
+        error.message || "Ocurrió un error inesperado al conectar con el servidor"
+      );
     } finally {
       setGuardando(false);
     }
   };
 
   return (
-    <>
-      <NavBar />
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger className="inline-flex items-center text-green-1-navbar font-semibold hover:text-green-2-navbar cursor-pointer">
+        <CirclePlus className="w-8 h-8 mr-2 text-green-1-navbar" />
+        <span>Registrar Pesaje</span>
+      </DialogTrigger>
 
-      <main className="min-h-screen bg-fond">
-        <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[850px] max-h-[90vh] overflow-y-auto border border-border shadow-xl">
+        <DialogHeader className="font-bold text-2xl text-center text-title">
+          Registrar Pesaje
+        </DialogHeader>
+        <DialogDescription className="text-center text-parrafo">
+          Complete los campos para registrar el peso corporal y la uniformidad de las aves.
+        </DialogDescription>
+
+        {mensajeExito && (
+          <div className="w-full rounded-md border border-green-600 bg-green-50 p-3 text-center text-sm font-semibold text-green-800 animate-in fade-in">
+            {mensajeExito}
+          </div>
+        )}
+
+        {mensajeError && (
+          <div className="w-full rounded-md border border-red-500 bg-red-50 p-3 text-center text-sm font-semibold text-red-700 animate-in fade-in">
+            {mensajeError}
+          </div>
+        )}
+
+        <form id="weighing-form" onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <h1 className="text-title text-3xl font-bold">
-                Gestión de Pesajes
-              </h1>
-
-              <p className="text-parrafo mt-2">
-                Registra y controla el peso corporal y la uniformidad de las aves.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={abrirModal}
-              className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar"
-            >
-              Crear pesaje
-            </button>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-md">
-            <h2 className="text-title text-xl font-semibold">
-              Registro de pesajes
-            </h2>
-
-            <p className="text-parrafo mt-2">
-              Presiona el botón Crear pesaje para agregar un nuevo registro.
-            </p>
-          </div>
-        </section>
-      </main>
-
-      {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
-          <div className="bg-white max-h-[95vh] w-full max-w-3xl overflow-y-auto rounded-xl shadow-2xl">
-            <div className="border-border flex items-center justify-between border-b px-6 py-4">
-              <div>
-                <h2 className="text-title text-2xl font-bold">
-                  Registrar pesaje
-                </h2>
-
-                <p className="text-parrafo mt-1 text-sm">
-                  Completa la información solicitada.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={cerrarModal}
-                disabled={guardando}
-                className="text-title rounded-lg px-3 py-2 text-2xl font-bold transition hover:bg-fond disabled:opacity-50"
+              <label
+                htmlFor="weighingId"
+                className="block text-sm font-semibold text-title mb-1"
               >
-                ×
-              </button>
+                ID del Pesaje:
+              </label>
+              <input
+                type="text"
+                id="weighingId"
+                name="weighingId"
+                value={formData.weighingId}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Código o identificador"
+              />
             </div>
 
-            <form onSubmit={guardarPesaje} className="space-y-6 px-6 py-6">
-              {mensajeExito && (
-                <div className="border-border rounded-lg border bg-green-50 px-4 py-3 text-green-1-navbar">
-                  {mensajeExito}
-                </div>
-              )}
+            <div>
+              <label
+                htmlFor="date"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Fecha:
+              </label>
+              <input
+                type="date"
+                id="date"
+                name="date"
+                value={formData.date}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="weighingId"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    ID del pesaje
-                  </label>
+            <div>
+              <label
+                htmlFor="time"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Hora:
+              </label>
+              <input
+                type="time"
+                id="time"
+                name="time"
+                value={formData.time}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              />
+            </div>
 
-                  <input
-                    id="weighingId"
-                    type="text"
-                    value={weighingId}
-                    onChange={(event) => setWeighingId(event.target.value)}
-                    placeholder="Código o identificador"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="responsible"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Responsable:
+              </label>
+              <input
+                type="text"
+                id="responsible"
+                name="responsible"
+                value={formData.responsible}
+                onChange={handleChange}
+                maxLength={100}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Nombre del responsable"
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="date"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Fecha
-                  </label>
+            <div>
+              <label
+                htmlFor="weighedHen"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Gallina / Lote Pesado:
+              </label>
+              <input
+                type="text"
+                id="weighedHen"
+                name="weighedHen"
+                value={formData.weighedHen}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Identificación del lote o ave"
+              />
+            </div>
 
-                  <input
-                    id="date"
-                    type="date"
-                    value={date}
-                    onChange={(event) => setDate(event.target.value)}
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="totalWeightKg"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Peso Total (kg):
+              </label>
+              <input
+                type="number"
+                id="totalWeightKg"
+                name="totalWeightKg"
+                min="0"
+                step="0.01"
+                value={formData.totalWeightKg}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Peso en kilogramos"
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="time"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Hora
-                  </label>
+            <div>
+              <label
+                htmlFor="averageWeightGrams"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Peso Promedio (g):
+              </label>
+              <input
+                type="number"
+                id="averageWeightGrams"
+                name="averageWeightGrams"
+                min="0"
+                step="0.01"
+                value={formData.averageWeightGrams}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Peso promedio en gramos"
+              />
+            </div>
 
-                  <input
-                    id="time"
-                    type="time"
-                    value={time}
-                    onChange={(event) => setTime(event.target.value)}
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
+            <div>
+              <label
+                htmlFor="batchUniformityPercentage"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Uniformidad (%):
+              </label>
+              <input
+                type="number"
+                id="batchUniformityPercentage"
+                name="batchUniformityPercentage"
+                min="0"
+                max="100"
+                step="0.01"
+                value={formData.batchUniformityPercentage}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                placeholder="Porcentaje de uniformidad"
+              />
+            </div>
 
-                <div>
-                  <label
-                    htmlFor="responsible"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Responsable
-                  </label>
-
-                  <input
-                    id="responsible"
-                    type="text"
-                    maxLength={100}
-                    value={responsible}
-                    onChange={(event) => setResponsible(event.target.value)}
-                    placeholder="Nombre del responsable"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="weighedHen"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Gallina pesada
-                  </label>
-
-                  <input
-                    id="weighedHen"
-                    type="text"
-                    value={weighedHen}
-                    onChange={(event) => setWeighedHen(event.target.value)}
-                    placeholder="Identificación del lote o ave"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="totalWeightKg"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Peso total (kg)
-                  </label>
-
-                  <input
-                    id="totalWeightKg"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={totalWeightKg}
-                    onChange={(event) => setTotalWeightKg(event.target.value)}
-                    placeholder="Peso en kilogramos"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="averageWeightGrams"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Peso promedio (g)
-                  </label>
-
-                  <input
-                    id="averageWeightGrams"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={averageWeightGrams}
-                    onChange={(event) =>
-                      setAverageWeightGrams(event.target.value)
-                    }
-                    placeholder="Peso promedio en gramos"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="batchUniformityPercentage"
-                    className="text-title mb-2 block text-sm font-semibold"
-                  >
-                    Uniformidad (%)
-                  </label>
-
-                  <input
-                    id="batchUniformityPercentage"
-                    type="number"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                    value={batchUniformityPercentage}
-                    onChange={(event) =>
-                      setBatchUniformityPercentage(event.target.value)
-                    }
-                    placeholder="Porcentaje de uniformidad"
-                    required
-                    className="border-border w-full rounded-lg border px-4 py-3 outline-none transition focus:ring-2 focus:ring-green-200"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="flex cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={active}
-                      onChange={(event) => setActive(event.target.checked)}
-                      className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
-
-                    <span className="text-title text-sm font-semibold">
-                      Pesaje activo
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="border-border flex flex-col-reverse gap-3 border-t pt-5 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={cerrarModal}
-                  disabled={guardando}
-                  className="text-title rounded-lg border border-gray-300 px-5 py-3 font-semibold transition hover:bg-fond disabled:opacity-50"
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={guardando}
-                  className="bg-green-1-navbar text-white rounded-lg px-5 py-3 font-semibold shadow-md transition hover:bg-green-2-navbar disabled:opacity-50"
-                >
-                  {guardando ? "Guardando..." : "Guardar pesaje"}
-                </button>
-              </div>
-            </form>
+            <div className="md:col-span-2">
+              <label
+                htmlFor="active"
+                className="block text-sm font-semibold text-title mb-1"
+              >
+                Estado:
+              </label>
+              <select
+                id="active"
+                name="active"
+                value={formData.active}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              >
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
+            </div>
           </div>
-        </div>
-      )}
-    </>
+        </form>
+
+        <DialogFooter className="mt-4">
+          <button
+            type="submit"
+            form="weighing-form"
+            disabled={guardando}
+            className="w-full bg-green-1-navbar text-white font-medium py-2 px-4 rounded-md hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+          >
+            {guardando ? "Guardando..." : "Guardar Pesaje"}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
