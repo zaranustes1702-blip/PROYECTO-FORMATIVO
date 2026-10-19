@@ -81,12 +81,11 @@ CREATE TABLE `barn` (
   `barnName` varchar(30) NOT NULL,
   `barnSize` varchar(30) NOT NULL,
   `maxBirdCapacity` int NOT NULL,
-  `birdBreed` varchar(50) NOT NULL,
   `active` tinyint DEFAULT NULL,
   `createdAt` datetime DEFAULT NULL,
   `updatedAt` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -95,7 +94,7 @@ CREATE TABLE `barn` (
 
 LOCK TABLES `barn` WRITE;
 /*!40000 ALTER TABLE `barn` DISABLE KEYS */;
-INSERT INTO `barn` VALUES (2,'Galpón Recría','32 x 14 metros',600,'Dekalb White',1,'2026-07-17 23:13:11','2026-07-17 23:13:11'),(3,'Galpón Experimental','28 x 10 metros',350,'ISA Brown',1,'2026-07-17 23:13:25','2026-07-17 23:13:25'),(4,'Galpon 1','20x10',200,'Hylen',1,'2026-08-30 19:42:47','2026-08-30 19:42:47'),(5,'Galpon principal','20x22',200,'Hy-Line Brown',1,'2026-09-21 19:50:19','2026-09-21 19:50:19'),(6,'Galpon principal','20x22',2000,'Hy-Line Brown',1,'2026-09-21 19:53:56','2026-09-21 19:53:56'),(7,'Galpon principal','20x23',300,'Hy-Line Brown',1,'2026-09-21 19:55:38','2026-09-21 19:55:38'),(8,'Galpon principal','20x26',200,'Hy-Line Brown',1,'2026-09-21 19:59:52','2026-09-21 19:59:52');
+INSERT INTO `barn` VALUES (1,'Galpon Principal','5.7 x 5 metros',199,1,'2026-10-19 02:30:23','2026-10-19 02:30:23');
 /*!40000 ALTER TABLE `barn` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -117,8 +116,11 @@ CREATE TABLE `birdbatch` (
   `active` tinyint(1) DEFAULT '1',
   `createdAt` datetime DEFAULT NULL,
   `updatedAt` datetime DEFAULT NULL,
+  `birdBreed` varchar(255) DEFAULT NULL,
+  `endDate` datetime DEFAULT NULL,
+  `initialAverageWeightGrams` float DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -127,7 +129,7 @@ CREATE TABLE `birdbatch` (
 
 LOCK TABLES `birdbatch` WRITE;
 /*!40000 ALTER TABLE `birdbatch` DISABLE KEYS */;
-INSERT INTO `birdbatch` VALUES (1,'2026-08-05 00:00:00','L-001',180,342.5,24,'Newcastle, Gumboro, Bronquitis Infecciosa',1,'2026-08-05 16:00:12','2026-08-05 16:00:12'),(2,'2026-09-02 00:00:00','1',200,2.48,30,'bronquitis',1,'2026-09-17 12:56:08','2026-09-17 12:56:08'),(3,'2026-09-09 00:00:00','1',200,4.6,54,'covid',1,'2026-09-17 14:09:13','2026-09-17 14:09:13'),(4,'2026-09-22 00:00:00','1',90,0.31,12,'bronquitis',1,'2026-09-22 12:34:25','2026-09-22 12:34:25'),(5,'2026-09-16 00:00:00','2',200,0.68,43,'Bronquitiss aguda',1,'2026-09-23 17:34:48','2026-09-23 17:34:48');
+INSERT INTO `birdbatch` VALUES (1,'2026-10-16 00:00:00','1',199,266.66,16,'Marek, Newcastle, Bronquitis Infecciosa, Gumboro, Viruela Aviar, Encefalomielitis Aviar',1,'2026-10-19 02:38:26','2026-10-19 02:38:26','Hy-Line Brown','2027-10-16 00:00:00',NULL);
 /*!40000 ALTER TABLE `birdbatch` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -140,11 +142,11 @@ DROP TABLE IF EXISTS `eggproduction`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `eggproduction` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `productionDate` date NOT NULL,
-  `productionHour` time NOT NULL,
-  `responsible` varchar(100) NOT NULL,
-  `collectedAM` int NOT NULL,
-  `collectedPM` int NOT NULL,
+  `date` date NOT NULL,
+  `hourAm` time NOT NULL,
+  `responsible` varchar(100) DEFAULT NULL,
+  `collectedAM` int DEFAULT NULL,
+  `collectedPM` int DEFAULT NULL,
   `jumboEggs` int NOT NULL DEFAULT '0',
   `aaaEggs` int NOT NULL DEFAULT '0',
   `aaEggs` int NOT NULL DEFAULT '0',
@@ -160,6 +162,29 @@ CREATE TABLE `eggproduction` (
   `active` tinyint(1) DEFAULT '1',
   `createdAt` datetime DEFAULT CURRENT_TIMESTAMP,
   `updatedAt` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `id_lote` int NOT NULL DEFAULT '1',
+  `id_responsibleAm` int NOT NULL DEFAULT '1',
+  `id_responsiblePm` int NOT NULL DEFAULT '1',
+  `hourPm` time NOT NULL DEFAULT '00:00:00',
+  `shift` varchar(20) NOT NULL DEFAULT 'Mañana',
+  `jumboEggsAm` int NOT NULL DEFAULT '0',
+  `aaaEggsAm` int NOT NULL DEFAULT '0',
+  `aaEggsAm` int NOT NULL DEFAULT '0',
+  `aEggsAm` int NOT NULL DEFAULT '0',
+  `bEggsAm` int NOT NULL DEFAULT '0',
+  `cEggsAm` int NOT NULL DEFAULT '0',
+  `brokenEggsAm` int NOT NULL DEFAULT '0',
+  `goodEggsAm` int NOT NULL DEFAULT '0',
+  `totalAm` int NOT NULL DEFAULT '0',
+  `jumboEggsPm` int NOT NULL DEFAULT '0',
+  `aaaEggsPm` int NOT NULL DEFAULT '0',
+  `aaEggsPm` int NOT NULL DEFAULT '0',
+  `aEggsPm` int NOT NULL DEFAULT '0',
+  `bEggsPm` int NOT NULL DEFAULT '0',
+  `cEggsPm` int NOT NULL DEFAULT '0',
+  `brokenEggsPm` int NOT NULL DEFAULT '0',
+  `goodEggsPm` int NOT NULL DEFAULT '0',
+  `totalPm` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -170,7 +195,7 @@ CREATE TABLE `eggproduction` (
 
 LOCK TABLES `eggproduction` WRITE;
 /*!40000 ALTER TABLE `eggproduction` DISABLE KEYS */;
-INSERT INTO `eggproduction` VALUES (1,'2026-08-05','08:30:00','Zara Ñustes',82,79,5,25,60,40,18,10,3,161,158,1125,89,'Producción normal del día.',1,'2026-08-05 14:19:31','2026-08-05 14:19:31'),(2,'2026-08-05','08:30:00','Zara Ñustes',82,79,5,25,60,40,18,10,3,161,158,1125,89,'Producción normal del día.',1,'2026-08-05 14:35:21','2026-08-05 14:35:21');
+INSERT INTO `eggproduction` VALUES (1,'2026-10-17','05:00:00',NULL,NULL,NULL,0,0,0,0,0,0,5,87,82,0,43.72,'',1,'2026-10-19 03:15:14','2026-10-19 03:15:14',1,1,3,'22:00:00','Mañana',5,5,5,10,12,11,3,48,51,6,5,5,2,12,4,2,34,36),(2,'2026-10-18','04:00:00',NULL,NULL,NULL,0,0,0,0,0,0,6,159,153,0,79.9,'',1,'2026-10-19 03:16:28','2026-10-19 03:16:28',1,2,3,'14:00:00','Mañana',30,12,20,12,32,1,2,107,109,9,12,21,0,1,3,4,46,50);
 /*!40000 ALTER TABLE `eggproduction` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -182,17 +207,24 @@ DROP TABLE IF EXISTS `feeding`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `feeding` (
-  `id` int NOT NULL AUTO_INCREMENT,
+  `id_feeding` int NOT NULL AUTO_INCREMENT,
+  `id_supply` varchar(10) NOT NULL,
+  `id_stockEntry` int NOT NULL,
+  `id_responsable` int NOT NULL,
+  `shift` varchar(20) NOT NULL,
   `feedingDate` date NOT NULL,
-  `dailyConsumptionKg` float NOT NULL,
-  `remainingKg` float NOT NULL,
-  `remainingBags` float NOT NULL,
-  `shift` varchar(50) NOT NULL,
-  `responsiblePerson` varchar(30) NOT NULL,
-  `active` tinyint(1) DEFAULT '1',
-  `createdAt` datetime DEFAULT NULL,
-  `updatedAt` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  `feedingTime` time NOT NULL,
+  `quantity` decimal(10,2) NOT NULL,
+  `active` tinyint(1) NOT NULL DEFAULT '1',
+  `createdAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_feeding`),
+  KEY `id_supply` (`id_supply`),
+  KEY `id_stockEntry` (`id_stockEntry`),
+  KEY `id_responsable` (`id_responsable`),
+  CONSTRAINT `feeding_ibfk_1` FOREIGN KEY (`id_supply`) REFERENCES `supply` (`id_supply`),
+  CONSTRAINT `feeding_ibfk_2` FOREIGN KEY (`id_stockEntry`) REFERENCES `stockentry` (`id_stockEntry`),
+  CONSTRAINT `feeding_ibfk_3` FOREIGN KEY (`id_responsable`) REFERENCES `responsible` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -202,7 +234,7 @@ CREATE TABLE `feeding` (
 
 LOCK TABLES `feeding` WRITE;
 /*!40000 ALTER TABLE `feeding` DISABLE KEYS */;
-INSERT INTO `feeding` VALUES (1,'2026-08-05',22.5,180,9,'Mañana','Zara Ñustes',1,'2026-08-05 16:43:23','2026-08-05 16:43:23'),(2,'2026-08-06',21.8,158.2,7.9,'Tarde','Carlos Andrés Pérez',1,'2026-08-05 16:43:33','2026-08-05 16:43:33'),(3,'2026-09-22',0.08,0.08,1,'Mañana','jose',1,'2026-09-23 14:25:11','2026-09-23 14:25:11');
+INSERT INTO `feeding` VALUES (1,'1',1,1,'Mañana','2026-10-16','06:58:00',6.90,1,'2026-10-19 03:00:11','2026-10-19 03:00:11'),(2,'1',1,2,'Tarde','2026-10-16','14:00:00',6.90,1,'2026-10-19 03:00:44','2026-10-19 03:00:44'),(3,'1',1,3,'Noche','2026-10-16','22:01:00',9.10,1,'2026-10-19 03:01:15','2026-10-19 03:01:15');
 /*!40000 ALTER TABLE `feeding` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -221,7 +253,13 @@ CREATE TABLE `health` (
   `active` tinyint(1) DEFAULT '1',
   `createdAt` datetime DEFAULT CURRENT_TIMESTAMP,
   `updatedAt` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`)
+  `id_lote` int NOT NULL,
+  `id_supply` varchar(10) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id_lote` (`id_lote`),
+  KEY `id_supply` (`id_supply`),
+  CONSTRAINT `health_ibfk_1` FOREIGN KEY (`id_lote`) REFERENCES `birdbatch` (`id`),
+  CONSTRAINT `health_ibfk_2` FOREIGN KEY (`id_supply`) REFERENCES `supply` (`id_supply`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -231,7 +269,7 @@ CREATE TABLE `health` (
 
 LOCK TABLES `health` WRITE;
 /*!40000 ALTER TABLE `health` DISABLE KEYS */;
-INSERT INTO `health` VALUES (1,'2026-08-21 00:00:00',50,'Vacuna Newcastle',1,'2026-08-21 17:12:30','2026-08-21 17:12:30');
+INSERT INTO `health` VALUES (1,'2026-10-17 00:00:00',1,'Bronquitis',1,'2026-10-19 03:03:20','2026-10-19 03:03:20',1,'2');
 /*!40000 ALTER TABLE `health` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -274,17 +312,23 @@ DROP TABLE IF EXISTS `mortality`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `mortality` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `mortalityDate` date NOT NULL,
-  `mortalityTime` varchar(25) NOT NULL,
+  `mortalityDate` datetime NOT NULL,
+  `mortalityTime` varchar(255) NOT NULL,
   `dailyMortality` int NOT NULL,
-  `possibleCauseOfDeath` varchar(25) NOT NULL,
+  `possibleCauseOfDeath` varchar(255) NOT NULL,
   `necropsyPerformed` tinyint(1) NOT NULL,
   `observations` text,
   `active` tinyint(1) DEFAULT '1',
   `createdAt` datetime DEFAULT NULL,
   `updatedAt` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `id_lote` int NOT NULL,
+  `id_responsable` int NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id_lote` (`id_lote`),
+  KEY `id_responsable` (`id_responsable`),
+  CONSTRAINT `mortality_ibfk_1` FOREIGN KEY (`id_lote`) REFERENCES `birdbatch` (`id`),
+  CONSTRAINT `mortality_ibfk_2` FOREIGN KEY (`id_responsable`) REFERENCES `responsible` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -293,7 +337,7 @@ CREATE TABLE `mortality` (
 
 LOCK TABLES `mortality` WRITE;
 /*!40000 ALTER TABLE `mortality` DISABLE KEYS */;
-INSERT INTO `mortality` VALUES (1,'2026-08-05','08:30',2,'Enfermedad respiratoria',1,'Se encontraron síntomas respiratorios antes del fallecimiento.',1,'2026-08-05 16:26:31','2026-08-05 16:26:31'),(2,'2026-08-06','14:15',1,'Depredación',0,'Se encontró el ave fuera del galpón.',1,'2026-08-05 16:26:46','2026-08-05 16:26:46');
+INSERT INTO `mortality` VALUES (1,'2026-10-18 00:00:00','21:52',1,'Respiracion',1,'Se encontro muerta en la hora de la noche',1,'2026-10-19 02:52:51','2026-10-19 02:52:51',1,2);
 /*!40000 ALTER TABLE `mortality` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -307,19 +351,25 @@ DROP TABLE IF EXISTS `quarantine`;
 CREATE TABLE `quarantine` (
   `id` int NOT NULL AUTO_INCREMENT,
   `quarantineDate` datetime NOT NULL,
-  `affectedBirds` varchar(50) NOT NULL,
-  `symptoms` varchar(50) NOT NULL,
-  `diagnosis` varchar(50) NOT NULL,
-  `treatmentApplied` varchar(50) NOT NULL,
-  `dosage` varchar(50) NOT NULL,
-  `treatmentDuration` datetime NOT NULL,
-  `observations` varchar(100) NOT NULL,
+  `affectedBirds` int NOT NULL,
+  `symptoms` varchar(255) NOT NULL,
+  `diagnosis` varchar(255) NOT NULL,
+  `treatmentApplied` varchar(255) NOT NULL,
+  `dosage` varchar(255) NOT NULL,
+  `treatmentDuration` varchar(255) NOT NULL,
+  `observations` text,
   `quarantineEndDate` datetime DEFAULT NULL,
   `active` tinyint DEFAULT '0',
   `createdAt` datetime DEFAULT NULL,
   `updatedAt` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `id_lote` int NOT NULL,
+  `id_supply` varchar(10) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id_lote` (`id_lote`),
+  KEY `id_supply` (`id_supply`),
+  CONSTRAINT `quarantine_ibfk_1` FOREIGN KEY (`id_lote`) REFERENCES `birdbatch` (`id`),
+  CONSTRAINT `quarantine_ibfk_2` FOREIGN KEY (`id_supply`) REFERENCES `supply` (`id_supply`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -328,7 +378,7 @@ CREATE TABLE `quarantine` (
 
 LOCK TABLES `quarantine` WRITE;
 /*!40000 ALTER TABLE `quarantine` DISABLE KEYS */;
-INSERT INTO `quarantine` VALUES (1,'2026-07-17 00:00:00','18','Tos y dificultad respiratoria','Bronquitis infecciosa','Antibiótico','5 ml/L','2026-07-24 08:00:00','Mejoría después del tercer día','2026-07-24 00:00:00',1,'2026-07-17 22:18:19','2026-07-17 22:18:19'),(4,'2026-07-17 00:00:00','25','Tos y secreción nasal','Bronquitis infecciosa','Antibiótico','5 ml/L de agua','2026-07-24 00:00:00','Las aves estan muertas.','2026-07-24 00:00:00',1,'2026-07-17 23:51:25','2026-07-17 23:52:30');
+INSERT INTO `quarantine` VALUES (1,'2026-10-18 00:00:00',1,'Tos','Coriza','Antibiotico','1ml','5 dias','','2026-10-22 00:00:00',1,'2026-10-19 03:08:18','2026-10-19 03:08:18',1,'2');
 /*!40000 ALTER TABLE `quarantine` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -341,10 +391,10 @@ DROP TABLE IF EXISTS `responsible`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `responsible` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `fullName` varchar(25) NOT NULL,
+  `fullName` varchar(150) NOT NULL,
   `documentNumber` varchar(25) NOT NULL,
   `trainingRecord` varchar(25) NOT NULL,
-  `role` varchar(25) NOT NULL,
+  `role` varchar(100) NOT NULL,
   `responsibleType` varchar(25) NOT NULL,
   `active` tinyint(1) DEFAULT '1',
   `createdAt` datetime DEFAULT NULL,
@@ -360,7 +410,7 @@ CREATE TABLE `responsible` (
 
 LOCK TABLES `responsible` WRITE;
 /*!40000 ALTER TABLE `responsible` DISABLE KEYS */;
-INSERT INTO `responsible` VALUES (1,'Zara Ñustes','1088123456','2876543','Líder de Producción','Pasante',1,'2026-08-05 16:33:03','2026-08-05 16:33:03'),(2,'Carlos Andrés Pérez','1002456789','2890012','Instructor','Instructor',1,'2026-08-05 16:33:13','2026-08-05 16:33:13'),(3,'Zara Ñustes','1076737818','3285039','Encargado','Aprendiz',1,'2026-09-17 13:11:21','2026-09-17 13:11:21');
+INSERT INTO `responsible` VALUES (1,'Zara Daniela Ñustes Castro','1076737818','3285039','Encargada de unidad avicola','Pasante',1,'2026-10-19 02:45:34','2026-10-19 02:45:34'),(2,'Edwin Santiago Ñustes Castro','1076737412','3285039','Encargado de registrar','Gestor',1,'2026-10-19 02:46:19','2026-10-19 02:46:19'),(3,'Andres Mauricio Ñustes Castro','11111123454','3285039','Encargado de alimento','Pasante',1,'2026-10-19 02:47:44','2026-10-19 02:47:44');
 /*!40000 ALTER TABLE `responsible` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -389,6 +439,45 @@ LOCK TABLES `roll` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `stockentry`
+--
+
+DROP TABLE IF EXISTS `stockentry`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `stockentry` (
+  `id_stockEntry` int NOT NULL AUTO_INCREMENT,
+  `id_supply` varchar(10) NOT NULL,
+  `id_barn` int NOT NULL,
+  `cantidad_inicial` decimal(10,2) NOT NULL,
+  `cantidad_salida` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `disponible_entrada` decimal(10,2) NOT NULL,
+  `unid_entrada` varchar(50) NOT NULL,
+  `vencimiento` date NOT NULL,
+  `precio_total` decimal(10,2) NOT NULL,
+  `precio_unitario` decimal(10,2) NOT NULL,
+  `active` tinyint(1) NOT NULL DEFAULT '1',
+  `createdAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_stockEntry`),
+  KEY `id_supply` (`id_supply`),
+  KEY `id_barn` (`id_barn`),
+  CONSTRAINT `stockentry_ibfk_1` FOREIGN KEY (`id_supply`) REFERENCES `supply` (`id_supply`),
+  CONSTRAINT `stockentry_ibfk_2` FOREIGN KEY (`id_barn`) REFERENCES `barn` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `stockentry`
+--
+
+LOCK TABLES `stockentry` WRITE;
+/*!40000 ALTER TABLE `stockentry` DISABLE KEYS */;
+INSERT INTO `stockentry` VALUES (1,'1',1,100.00,22.90,77.10,'kg','2027-10-18',10000000.00,100000.00,1,'2026-10-19 02:57:11','2026-10-19 03:01:15'),(2,'2',1,0.40,0.00,0.40,'kg','2028-10-18',8000.00,20000.00,1,'2026-10-19 02:57:47','2026-10-19 02:57:47');
+/*!40000 ALTER TABLE `stockentry` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `supply`
 --
 
@@ -396,23 +485,16 @@ DROP TABLE IF EXISTS `supply`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `supply` (
-  `id` varchar(10) NOT NULL,
-  `supplyType` varchar(50) NOT NULL,
-  `entryDate` datetime NOT NULL,
+  `id_supply` varchar(10) NOT NULL,
   `supplyName` varchar(50) NOT NULL,
-  `unitMeasure` varchar(50) NOT NULL,
-  `quantity` int NOT NULL,
-  `unitValue` decimal(10,2) NOT NULL,
-  `totalValue` decimal(10,2) NOT NULL,
+  `supplyType` enum('medicamentos','alimentacion') NOT NULL,
   `reference` varchar(50) NOT NULL,
-  `expirationDate` datetime NOT NULL,
-  `balance` int NOT NULL,
+  `minimumStock` decimal(10,2) NOT NULL DEFAULT '0.00',
   `observations` varchar(255) DEFAULT NULL,
-  `weight` decimal(10,2) NOT NULL,
-  `active` tinyint(1) DEFAULT '1',
-  `createdAt` datetime DEFAULT NULL,
-  `updatedAt` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  `active` tinyint(1) NOT NULL DEFAULT '1',
+  `createdAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updatedAt` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_supply`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -422,7 +504,7 @@ CREATE TABLE `supply` (
 
 LOCK TABLES `supply` WRITE;
 /*!40000 ALTER TABLE `supply` DISABLE KEYS */;
-INSERT INTO `supply` VALUES ('INS001','Alimento','2026-08-04 00:00:00','Concentrado Ponedoras','Bulto',20,95000.00,1900000.00,'CP-001','2027-02-15 00:00:00',20,'Primer lote',40.00,1,'2026-08-04 14:34:55','2026-08-04 14:34:55'),('INS002','Medicamento','2026-08-04 00:00:00','Acetaminofen','unidad',10,5000.00,190000.00,'CP-001','2027-02-15 00:00:00',20,'Primer lote',40.00,1,'2026-08-04 14:36:46','2026-08-04 14:36:46');
+INSERT INTO `supply` VALUES ('1','Concentrado','alimentacion','100',10.00,'',1,'2026-10-19 02:53:51','2026-10-19 02:53:51'),('2','Vacuna(Bronquitis infecciosa aviar)','medicamentos','0.40',0.10,'',1,'2026-10-19 02:56:30','2026-10-19 02:56:30');
 /*!40000 ALTER TABLE `supply` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -475,10 +557,10 @@ CREATE TABLE `users` (
   `createdAt` datetime DEFAULT NULL,
   `updatedAt` datetime DEFAULT NULL,
   `solicito_newPassword` tinyint DEFAULT '0',
-  `id_roll` int NOT NULL,
+  `id_roll` int DEFAULT NULL,
   PRIMARY KEY (`userId`),
   KEY `idx_user_roll` (`id_roll`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -487,7 +569,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (2,'Javier Ramirez',NULL,'jarl217@gmail.com','','','1076737818','Aprendiz',0,1,'2026-02-17 05:31:13','2026-07-16 05:31:13',0,0),(3,'Zara Ñustes',NULL,'zara@gmail.com','','','1001234567','Administrador',0,1,'2026-07-16 06:37:26','2026-07-16 06:37:26',0,0),(4,'Juan Pérez',NULL,'juan.perez2026@gmail.com','','','1023456789','Administrador',0,1,'2026-07-16 06:39:42','2026-07-16 06:39:42',0,0),(5,'Zara Castro',NULL,'zaraes@sena.edu.co','','','100123467','Administrador',0,1,'2026-07-17 23:20:45','2026-07-17 23:22:17',0,0),(6,'Juan Pérez',NULL,'juan@gmail.com','','','1234567890','Administrador',0,1,'2026-07-30 19:38:11','2026-07-30 19:38:11',0,0),(7,'Zara Ñustes',NULL,'eggbalance857@gmail.com','','','123456789','Administrador',0,1,'2026-07-31 04:08:43','2026-07-31 04:08:43',0,0),(16,'Carlos Gomez',NULL,'carlos.gomez@test.com','$2b$10$XpzCFqaf6wdYfGvBuLrXg.q9c/IDPx221S89zwT8AJotkIzMqWDJS','$2b$10$XpzCFqaf6wdYfGvBuLrXg.','1005829102','Administrador',0,0,NULL,NULL,0,0),(17,'Zara ',NULL,'zaranustes1702@gmail.com','$2b$10$TMcx.BXRHeKAaujhJ4j9nOprfq.KbE2K5hqPA16hZZ0WpUKUN05HG','$2b$10$TMcx.BXRHeKAaujhJ4j9nO','1076737818','Aprendiz',0,1,NULL,NULL,0,0);
+INSERT INTO `users` VALUES (2,'Javier Ramirez',NULL,'jarl217@gmail.com','','','1076737818','Aprendiz',0,0,'2026-02-17 05:31:13','2026-07-16 05:31:13',0,0),(3,'Zara Ñustes',NULL,'zara@gmail.com','','','1001234567','Administrador',0,0,'2026-07-16 06:37:26','2026-07-16 06:37:26',0,0),(4,'Juan Pérez',NULL,'juan.perez2026@gmail.com','','','1023456789','Administrador',0,0,'2026-07-16 06:39:42','2026-07-16 06:39:42',0,0),(5,'Zara Castro',NULL,'zaraes@sena.edu.co','','','100123467','Administrador',0,0,'2026-07-17 23:20:45','2026-07-17 23:22:17',0,0),(6,'Juan Pérez',NULL,'juan@gmail.com','','','1234567890','Administrador',0,0,'2026-07-30 19:38:11','2026-07-30 19:38:11',0,0),(7,'Zara Ñustes',NULL,'eggbalance857@gmail.com','','','123456789','Administrador',0,0,'2026-07-31 04:08:43','2026-07-31 04:08:43',0,0),(16,'Carlos Gomez',NULL,'carlos.gomez@test.com','$2b$10$XpzCFqaf6wdYfGvBuLrXg.q9c/IDPx221S89zwT8AJotkIzMqWDJS','$2b$10$XpzCFqaf6wdYfGvBuLrXg.','1005829102','Administrador',0,1,NULL,NULL,0,0),(17,'Zara ',NULL,'zaranustes1702@gmail.com','$2b$10$TMcx.BXRHeKAaujhJ4j9nOprfq.KbE2K5hqPA16hZZ0WpUKUN05HG','$2b$10$TMcx.BXRHeKAaujhJ4j9nO','1076737818','Aprendiz',0,0,NULL,NULL,0,0),(18,'Santiago Ñustex',NULL,'zaranustes1702@gmail.com','$2b$10$tu8zlHEwfzN2PTTzoc8pfeygUOdMsZUWWpAKH8irQd1XT5vtYx7KG','$2b$10$tu8zlHEwfzN2PTTzoc8pfe','1076737818','Aprendiz',0,0,NULL,NULL,0,NULL),(19,'Zara Ñustes',NULL,'zaranustes1702@gmail.com','$2b$10$hxuB/LksWJLn0fnZ/1ZgPeMqwvOGVfCDeMdiaWqxEyiRAN0WRh8Bi','$2b$10$hxuB/LksWJLn0fnZ/1ZgPe','1076737818','Gestor líder',0,0,NULL,NULL,0,NULL),(20,'embo',NULL,'embo213@gmail.com','$2b$10$/urojlgmVQZ38yHs.uBMoeL4.BI/vqd7bpHp8mfpk/fQf8PdiXQXK','$2b$10$/urojlgmVQZ38yHs.uBMoe','224323','Instructor',0,1,NULL,NULL,0,NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -502,15 +584,15 @@ CREATE TABLE `visit` (
   `id` int NOT NULL AUTO_INCREMENT,
   `visitDate` datetime NOT NULL,
   `visitorName` varchar(50) NOT NULL,
-  `institutionOrganization` varchar(50) NOT NULL,
-  `visitReason` varchar(50) NOT NULL,
-  `observations` varchar(100) DEFAULT NULL,
-  `responsiblePerson` varchar(50) NOT NULL,
-  `active` tinyint DEFAULT '0',
+  `institutionOrganization` varchar(255) NOT NULL,
+  `visitReason` varchar(255) NOT NULL,
+  `observations` varchar(255) NOT NULL DEFAULT 'Sin observaciones',
+  `responsiblePerson` varchar(255) NOT NULL,
+  `active` tinyint(1) NOT NULL DEFAULT '1',
   `createdAt` datetime DEFAULT NULL,
   `updatedAt` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -519,7 +601,7 @@ CREATE TABLE `visit` (
 
 LOCK TABLES `visit` WRITE;
 /*!40000 ALTER TABLE `visit` DISABLE KEYS */;
-INSERT INTO `visit` VALUES (2,'2026-08-02 00:00:00','Carlos Rodríguez','Universidad del Tolima','Práctica académica','Se realizó un recorrido por los galpones y se explicó el proceso de producción de huevos.','María López',1,'2026-07-17 19:36:52','2026-07-17 19:36:52'),(3,'2026-08-10 00:00:00','Ana Gómez','ICA','Inspección sanitaria','Si se encontraron 2 muertas.','Juan Pérez',1,'2026-07-17 19:37:11','2026-07-17 19:40:42');
+INSERT INTO `visit` VALUES (1,'2026-10-17 00:00:00','SENA BOYACA','SENA','Ver los procesos en la unidad avicola','Todo salio bien','Zara Ñustes',1,'2026-10-19 03:45:36','2026-10-19 03:45:36');
 /*!40000 ALTER TABLE `visit` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -542,8 +624,11 @@ CREATE TABLE `weighing` (
   `active` tinyint DEFAULT '0',
   `createdAt` datetime DEFAULT NULL,
   `updatedAt` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `id_birdBatch` int DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `fk_weighing_birdbatch` (`id_birdBatch`),
+  CONSTRAINT `fk_weighing_birdbatch` FOREIGN KEY (`id_birdBatch`) REFERENCES `birdbatch` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -552,7 +637,7 @@ CREATE TABLE `weighing` (
 
 LOCK TABLES `weighing` WRITE;
 /*!40000 ALTER TABLE `weighing` DISABLE KEYS */;
-INSERT INTO `weighing` VALUES (3,'2026-07-19 00:00:00','18:20:30','Laura Mayo',165,312.5,1893.9,93.8,1,'2026-07-17 20:26:13','2026-07-17 20:27:21'),(4,'2026-07-17 00:00:00','08:30:00','jose',150,285.5,1903.3,94.5,1,'2026-07-17 23:56:06','2026-07-17 23:57:11');
+INSERT INTO `weighing` VALUES (1,'2026-10-16 00:00:00','06:00:00','Zara Daniela Ñustes Castro',199,266.66,1340,100,1,'2026-10-19 02:51:12','2026-10-19 02:51:12',1);
 /*!40000 ALTER TABLE `weighing` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -565,4 +650,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-09-23 13:08:22
+-- Dump completed on 2026-10-19 10:39:01
