@@ -12,6 +12,9 @@ const fs = require("fs");
 const path = require("path");
 const bcrypt = require("bcrypt");
 
+// Convierte el estado recibido (true/false o "true"/"false") a booleano
+const convertirActivo = (valor) => valor === true || valor === "true";
+
 const getUsers = async (req, res) => {
   try {
     const querylimit = req.query.limit;
@@ -80,7 +83,7 @@ const getAllUsersById = async (req, res) => {
 
 const createUser = async (req, res) => {
   try {
-    const { name, email, password, documentId, postJob, idroll } = req.body;
+    const { name, email, password, documentId, postJob, idroll, active } = req.body;
 
     let errors = [];
 
@@ -120,7 +123,7 @@ const createUser = async (req, res) => {
       documentId,
       postJob,
       idroll: idroll || null,
-      active: true,
+      active: active === undefined ? true : convertirActivo(active),
       verifyEmail: false,
     };
 
@@ -171,7 +174,7 @@ const createUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, password, documentId, postJob } = req.body;
+    const { name, email, password, documentId, postJob, active } = req.body;
 
     let errors = [];
 
@@ -210,6 +213,11 @@ const updateUser = async (req, res) => {
       documentId,
       postJob,
     };
+
+    // Solo actualiza el estado si se envía
+    if (active !== undefined) {
+      data.active = convertirActivo(active);
+    }
 
     if (password && password.trim() !== "") {
       const salt = bcrypt.genSaltSync(10);

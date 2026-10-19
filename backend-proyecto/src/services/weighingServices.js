@@ -1,4 +1,10 @@
 const weighing = require("../models/weighingModel");
+const birdBatch = require("../models/birdBatchModel");
+
+// Lote relacionado que se muestra junto a cada pesaje
+const relaciones = [
+    { model: birdBatch, attributes: ["id", "batchNumber"] }
+];
 
 const WeighingCreate = async (data) => {
     try {
@@ -15,6 +21,8 @@ const WeighingCreate = async (data) => {
 const getAllWeighings = async (limit, offset) => {
     try {
         const weighings = await weighing.findAll({
+            include: relaciones,
+            order: [["id", "DESC"]],
             offset: offset,
             limit: limit
         });
@@ -29,7 +37,8 @@ const getAllWeighings = async (limit, offset) => {
 const getWeighingById = async (id) => {
     try {
         const weighingId = await weighing.findOne({
-            where: { id }
+            where: { id },
+            include: relaciones
         });
 
         return weighingId;
@@ -67,7 +76,8 @@ const WeighingUpdate = async (id, data) => {
         );
 
         const updatedWeighing = await weighing.findOne({
-            where: { id }
+            where: { id },
+            include: relaciones
         });
 
         return updatedWeighing;

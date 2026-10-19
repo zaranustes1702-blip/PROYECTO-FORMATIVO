@@ -10,25 +10,28 @@ export default function App() {
       {/* Fondo suave: tono salvia orgánico muy tenue que resalta los textos y el verde */}
       <main className="min-h-screen bg-gradient-to-b from-[#EFF5F1] via-[#F2F5F3] to-[#E9F0EB]">
 
-        <section className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 xl:px-32 py-20 lg:py-24">
+        {/* 👇 Reducimos el padding superior: py-8 lg:py-12 en vez de py-20 lg:py-24 */}
+        <section className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 xl:px-32 pt-8 pb-16 lg:pt-12 lg:pb-20">
 
-          <div className="grid lg:grid-cols-2 gap-16 items-center min-h-[550px]">
+          {/* 👇 Quitamos min-h-[550px] que forzaba altura extra */}
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
 
             {/* TEXTO PRINCIPAL */}
             <div>
 
-              <p className="text-green-1-navbar font-semibold text-lg mb-4">
+              <p className="text-green-1-navbar font-semibold text-base md:text-lg mb-3">
                 Centro agropecuario "La granja" - Espinal
               </p>
 
-              <h1 className="text-4xl md:text-6xl font-bold text-title leading-tight mb-6">
-                El control de nuestra unidad avicola,
+              {/* 👇 h1 un poco más compacto en md para ganar altura */}
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-title leading-tight mb-5">
+                El control de nuestra unidad avícola,
                 <span className="text-green-1-navbar">
                   {" "}más fácil.
                 </span>
               </h1>
 
-              <p className="text-lg md:text-xl leading-8 text-parrafo max-w-xl mb-8">
+              <p className="text-base md:text-lg lg:text-xl leading-7 lg:leading-8 text-parrafo max-w-xl mb-7">
                 EggBalanceAPP centraliza la información de tus aves,
                 alimentación, pesaje y producción de huevos en un solo lugar.
               </p>
@@ -53,14 +56,13 @@ export default function App() {
 
             </div>
 
-
             {/* LOGO */}
             <div className="flex justify-center lg:justify-end">
 
               <img
                 src="/logoSENA.png"
                 alt="EggBalanceAPP"
-                className="w-full max-w-md object-contain drop-shadow-sm"
+                className="w-full max-w-sm lg:max-w-md object-contain drop-shadow-sm"
               />
 
             </div>
@@ -68,7 +70,6 @@ export default function App() {
           </div>
 
         </section>
-
 
         {/* FRASE INFERIOR */}
         <section className="bg-green-2-navbar py-10 shadow-sm">

@@ -55,8 +55,9 @@ const User = db.define(
       allowNull: false,
     },
     id_roll: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: null
     },
     solicito_newPassword: {
       type: DataTypes.BOOLEAN,

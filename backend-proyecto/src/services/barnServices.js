@@ -15,6 +15,7 @@ const BarnCreate = async (data) => {
 const getAllBarns = async (limit, offset) => {
     try {
         const barns = await barn.findAll({
+            order: [["id", "DESC"]],
             offset: offset,
             limit: limit
         });

@@ -1,11 +1,21 @@
 const { DataTypes } = require("sequelize");
 const db = require("../config/conectionDB");
+const birdbatch = require("./birdBatchModel");
+const supply = require("./supplyModel");
 
 const quarantine = db.define("quarantine", {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true
+    },
+    id_lote: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    id_supply: {
+        type: DataTypes.STRING(10),
+        allowNull: false
     },
     quarantineDate: {
         type: DataTypes.DATE,
@@ -59,5 +69,9 @@ const quarantine = db.define("quarantine", {
         freezeTableName: true
     }
 );
+
+// Relaciones (llaves foráneas)
+quarantine.belongsTo(birdbatch, { foreignKey: "id_lote", targetKey: "id" });
+quarantine.belongsTo(supply, { foreignKey: "id_supply", targetKey: "id_supply" });
 
 module.exports = quarantine;

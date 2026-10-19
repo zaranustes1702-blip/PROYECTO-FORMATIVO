@@ -1,11 +1,17 @@
 const { DataTypes } = require("sequelize");
 const db = require("../config/conectionDB");
+const birdBatch = require("./birdBatchModel");
 
 const weighing = db.define("weighing", {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true
+    },
+    // Lote de aves al que pertenece el pesaje (permite NULL por los pesajes anteriores)
+    id_birdBatch: {
+        type: DataTypes.INTEGER,
+        allowNull: true
     },
     weighingDate: {
         type: DataTypes.DATE,
@@ -52,5 +58,8 @@ const weighing = db.define("weighing", {
         freezeTableName: true
     }
 );
+
+// Relaciones (llaves foráneas)
+weighing.belongsTo(birdBatch, { foreignKey: "id_birdBatch", targetKey: "id" });
 
 module.exports = weighing;

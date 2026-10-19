@@ -110,6 +110,9 @@ const getAllBirdBatchesById = async (req, res) => {
     }
 };
 
+// Convierte el estado recibido (true/false o "true"/"false") a booleano
+const convertirActivo = (valor) => valor === true || valor === "true";
+
 const createBirdBatch = async (req, res) => {
 
     try {
@@ -120,7 +123,10 @@ const createBirdBatch = async (req, res) => {
             birdQuantity,
             batchWeight,
             birdAgeWeeks,
-            appliedVaccines
+            appliedVaccines,
+            birdBreed,
+            endDate,
+            active
         } = req.body;
 
         var errors = [];
@@ -138,7 +144,7 @@ const createBirdBatch = async (req, res) => {
         }
 
         if (!batchWeight) {
-            errors.push("El peso del lote es obligatorio");
+            errors.push("El peso inicial del lote es obligatorio");
         }
 
         if (!birdAgeWeeks) {
@@ -147,6 +153,16 @@ const createBirdBatch = async (req, res) => {
 
         if (!appliedVaccines || appliedVaccines.trim() === "") {
             errors.push("Las vacunas aplicadas son obligatorias");
+        }
+
+        if (!birdBreed || birdBreed.trim() === "") {
+            errors.push("La raza del ave es obligatoria");
+        }
+
+        if (!endDate) {
+            errors.push("La fecha de finalización es obligatoria");
+        } else if (entryDate && new Date(endDate) < new Date(entryDate)) {
+            errors.push("La fecha de finalización no puede ser anterior a la fecha de ingreso");
         }
 
         if (errors.length > 0) {
@@ -167,7 +183,10 @@ const createBirdBatch = async (req, res) => {
             birdQuantity,
             batchWeight,
             birdAgeWeeks,
-            appliedVaccines
+            appliedVaccines,
+            birdBreed,
+            endDate,
+            active: active === undefined ? true : convertirActivo(active)
         };
 
         const birdBatch = await BirdBatchCreate(data);
@@ -212,7 +231,10 @@ const updateBirdBatch = async (req, res) => {
             birdQuantity,
             batchWeight,
             birdAgeWeeks,
-            appliedVaccines
+            appliedVaccines,
+            birdBreed,
+            endDate,
+            active
         } = req.body;
 
         var errors = [];
@@ -234,7 +256,7 @@ const updateBirdBatch = async (req, res) => {
         }
 
         if (!batchWeight) {
-            errors.push("El peso del lote es obligatorio");
+            errors.push("El peso inicial del lote es obligatorio");
         }
 
         if (!birdAgeWeeks) {
@@ -243,6 +265,16 @@ const updateBirdBatch = async (req, res) => {
 
         if (!appliedVaccines || appliedVaccines.trim() === "") {
             errors.push("Las vacunas aplicadas son obligatorias");
+        }
+
+        if (!birdBreed || birdBreed.trim() === "") {
+            errors.push("La raza del ave es obligatoria");
+        }
+
+        if (!endDate) {
+            errors.push("La fecha de finalización es obligatoria");
+        } else if (entryDate && new Date(endDate) < new Date(entryDate)) {
+            errors.push("La fecha de finalización no puede ser anterior a la fecha de ingreso");
         }
 
         if (errors.length > 0) {
@@ -263,8 +295,15 @@ const updateBirdBatch = async (req, res) => {
             birdQuantity,
             batchWeight,
             birdAgeWeeks,
-            appliedVaccines
+            appliedVaccines,
+            birdBreed,
+            endDate
         };
+
+        // Solo actualiza el estado si se envía
+        if (active !== undefined) {
+            data.active = convertirActivo(active);
+        }
 
         const birdBatch = await BirdBatchUpdate(id, data);
 

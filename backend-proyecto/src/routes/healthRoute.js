@@ -3,13 +3,14 @@ const router = express.Router();
 const ValidateToken = require("../middlewares/handlerToken.js");
 
 const {
-    getAllHealth,
+    getHealths,
     getAllHealthsById,
     createHealth,
     updateHealth,
     deleteHealth
 } = require("../controllers/healthController");
-const { healthCreate } = require("../services/healthServices");
+
+router.get("/HealthAll", ValidateToken, getHealths);
 
 /**
  * @swagger
@@ -23,7 +24,7 @@ const { healthCreate } = require("../services/healthServices");
  *       200:
  *         description: Lista de registros obtenida exitosamente
  */
-router.get("/HealthAll", ValidateToken, getAllHealth);
+router.get("/HealthAll", ValidateToken, getHealths);
 
 /**
  * @swagger

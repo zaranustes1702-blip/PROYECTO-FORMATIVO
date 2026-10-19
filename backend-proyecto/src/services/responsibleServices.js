@@ -15,6 +15,7 @@ const ResponsibleCreate = async (data) => {
 const getAllResponsibles = async (limit, offset) => {
     try {
         const responsibles = await responsible.findAll({
+            order: [["id", "DESC"]],
             offset: offset,
             limit: limit
         });

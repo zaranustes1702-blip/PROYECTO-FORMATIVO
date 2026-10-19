@@ -29,6 +29,8 @@ export const API_USER_UPDATE_URL = (id: number | string) =>
 export const API_USER_DELETE_URL = (id: number | string) =>
   `${API_USER_URL}/DeleteUser/${id}`;
 
+
+
 /* =====================================================
    CUARENTENAS
 ===================================================== */
@@ -303,3 +305,11 @@ export const API_SUPPLY_UPDATE_URL = (
 export const API_SUPPLY_DELETE_URL = (
   id: number | string
 ) => `${API_SUPPLY_URL}/DeleteSupply/${id}`;
+
+
+export const API_STOCK_ENTRY_URL = `${API_BASE_URL}/stock-entries`;
+export const API_STOCK_ENTRY_ALL_URL = `${API_STOCK_ENTRY_URL}/StockEntryAll`;
+export const API_STOCK_ENTRY_CREATE_URL = `${API_STOCK_ENTRY_URL}/CreateStockEntry`;
+export const API_STOCK_ENTRY_BY_ID_URL = (id: number | string) => `${API_STOCK_ENTRY_URL}/StockEntry/${id}`;
+export const API_STOCK_ENTRY_UPDATE_URL = (id: number | string) => `${API_STOCK_ENTRY_URL}/UpdateStockEntry/${id}`;
+export const API_STOCK_ENTRY_DELETE_URL = (id: number | string) => `${API_STOCK_ENTRY_URL}/DeleteStockEntry/${id}`;

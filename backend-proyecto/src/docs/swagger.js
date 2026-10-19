@@ -56,7 +56,8 @@ const options = {
     "./src/routes/visitRoute.js",
     "./src/routes/healthRoute.js",
     "./src/routes/quarantineRoute.js",
-    "./src/routes/barnRoute.js"
+    "./src/routes/barnRoute.js",
+    "./src/routes/stockEntryRoute.js"
   ],
 };
 

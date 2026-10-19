@@ -1,65 +1,78 @@
-const health = require('../models/healthModel');
+const health = require("../models/healthModel");
+const birdbatch = require("../models/birdBatchModel");
+const supply = require("../models/supplyModel");
 
-// crear registro de salud
+// Datos relacionados que se muestran junto a cada registro
+const relaciones = [
+    { model: birdbatch, attributes: ["id", "batchNumber", "birdQuantity"] },
+    { model: supply, attributes: ["id_supply", "supplyName", "supplyType"] }
+];
+
+// crear registro de sanidad
 const HealthCreate = async (data) => {
     try {
-        const newHealth = await health.create(data);
-        return newHealth;
-    } catch (error) {
-        console.log(error);
-        throw error;
-    }
-}
-
-// obtener todos los registros de salud
-const getAllHealths = async (limit, offset) => {
-    try {
-        const healths = await health.findAll({
-            offset: offset,
-            limit: limit
-        });
-        return healths;
+        const nuevo = await health.create(data);
+        return nuevo;
     } catch (error) {
         console.log(error);
         throw error;
     }
 };
-// obtener registro de salud por id
+
+// obtener todos
+const getAllHealths = async (limit, offset) => {
+    try {
+        const lista = await health.findAll({
+            include: relaciones,
+            order: [["id", "DESC"]],
+            offset: offset,
+            limit: limit
+        });
+        return lista;
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+};
+
+// obtener por id
 const getHealthById = async (id) => {
     try {
-        const healthId = await health.findOne({
-            where: { id }
+        const registro = await health.findOne({
+            where: { id },
+            include: relaciones
         });
-        return healthId;
+        return registro;
     } catch (error) {
         console.log(error);
         throw error;
     }
-}
+};
 
-// eliminar registro de salud
+// eliminar
 const HealthDelete = async (id) => {
     try {
-        const healthDelete = await health.destroy({
+        const eliminado = await health.destroy({
             where: { id }
         });
-        return healthDelete;
+        return eliminado;
     } catch (error) {
         console.log(error);
         throw error;
     }
-}
+};
 
-// actualizar registro de salud
+// actualizar
 const HealthUpdate = async (id, data) => {
     try {
-        const healthUpdate = await health.update(data, { where: { id } });
-        return healthUpdate;
+        const actualizado = await health.update(data, { where: { id } });
+        return actualizado;
     } catch (error) {
         console.log(error);
         throw error;
     }
-}
+};
+
 module.exports = {
     HealthCreate,
     getAllHealths,

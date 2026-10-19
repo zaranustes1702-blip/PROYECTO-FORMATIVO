@@ -2,166 +2,221 @@
 
 import { useEffect, useState } from "react";
 
-export default function TablaBirdBatch() {
+const POR_PAGINA = 10;
 
-    const [birdBatches, setBirdBatches] = useState<any[]>([]);
+interface TablaBirdBatchProps {
+  filtro?: string;
+  refreshKey?: number;
+  currentPage?: number;
+  onTotalPages?: (total: number) => void;
+}
 
-    useEffect(() => {
+export default function TablaBirdBatch({
+  filtro = "",
+  refreshKey = 0,
+  currentPage = 1,
+  onTotalPages,
+}: TablaBirdBatchProps) {
+  const [birdBatches, setBirdBatches] = useState<any[]>([]);
 
-        const fetchBirdBatches = async () => {
+  useEffect(() => {
+    const fetchBirdBatches = async () => {
+      try {
+        const token = localStorage.getItem("token");
 
-            try {
+        // El backend devuelve 10 por defecto; pedimos más para buscar y paginar
+        const response = await fetch(
+          "http://localhost:3000/api/bird-batches/BirdBatchAll?limit=500",
+          {
+            method: "GET",
+            cache: "no-store",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          }
+        );
 
-                const response = await fetch(
-                    "http://localhost:3000/api/bird-batches/BirdBatchAll"
-                );
+        const resJson = await response.json();
 
-                const resJson = await response.json();
-
-                setBirdBatches(resJson.data || []);
-
-            } catch (error) {
-
-                console.error("Error:", error);
-                setBirdBatches([]);
-
-            }
-
-        };
-
-        fetchBirdBatches();
-
-    }, []);
-
-    const formatDate = (dateStr?: string) => {
-        if (!dateStr) return "—";
-        // Extrae directamente 'YYYY-MM-DD' para evitar desfases de zona horaria UTC
-        const cleanDate = dateStr.split("T")[0];
-        const [year, month, day] = cleanDate.split("-");
-        if (day && month && year) {
-            return `${day}/${month}/${year}`; // Formato legible: DD/MM/AAAA
-        }
-        return dateStr;
+        // Tu clase Response devuelve los datos en resJson.info
+        const lista = resJson.info || resJson.data || [];
+        // Más recientes primero (descendente por ID)
+        setBirdBatches(
+          Array.isArray(lista)
+            ? [...lista].sort((a: any, b: any) => b.id - a.id)
+            : []
+        );
+      } catch (error) {
+        console.error("Error al obtener lotes:", error);
+        setBirdBatches([]);
+      }
     };
 
-    return (
+    fetchBirdBatches();
+  }, [refreshKey]);
 
-        <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
+  // Muestra la fecha como dd/mm/aaaa (ej: 12/09/2026)
+  const formatDate = (dateStr?: string | null) => {
+    if (!dateStr) return "—";
 
-            <h2 className="text-xl font-semibold mb-4 text-title">
-                Lista de Lotes de Aves
-            </h2>
+    const cleanDate = dateStr.split("T")[0];
+    const [year, month, day] = cleanDate.split("-");
 
-            <table className="w-full border-collapse">
+    if (day && month && year) {
+      return `${day}/${month}/${year}`;
+    }
 
-                <thead>
+    return dateStr;
+  };
 
-                    <tr className="bg-green-2-navbar text-white">
+  // Búsqueda en número de lote, raza, fechas, vacunas, cantidad, pesos, edad, ID y estado
+  const texto = filtro.trim().toLowerCase();
 
-                        <th className="border border-border px-4 py-2 text-left">
-                            ID
-                        </th>
+  const batchesFiltrados = birdBatches.filter((batch: any) => {
+    if (!texto) return true;
 
-                        <th className="border border-border px-4 py-2 text-left">
-                            Fecha de Ingreso
-                        </th>
+    return [
+      batch.batchNumber,
+      batch.birdBreed,
+      formatDate(batch.entryDate),
+      formatDate(batch.endDate),
+      batch.appliedVaccines,
+      String(batch.birdQuantity),
+      String(batch.batchWeight),
+      String(batch.currentAverageWeightKg ?? ""),
+      String(batch.currentAverageWeightGrams ?? ""),
+      String(batch.birdAgeWeeks),
+      String(batch.id),
+      batch.active ? "activo" : "inactivo",
+    ].some((valor) => (valor ?? "").toString().toLowerCase().includes(texto));
+  });
 
-                        <th className="border border-border px-4 py-2 text-left">
-                            Número de Lote
-                        </th>
+  const totalPaginas = Math.max(1, Math.ceil(batchesFiltrados.length / POR_PAGINA));
 
-                        <th className="border border-border px-4 py-2 text-left">
-                            Cantidad de Aves
-                        </th>
+  useEffect(() => {
+    if (onTotalPages) {
+      onTotalPages(totalPaginas);
+    }
+  }, [totalPaginas]);
 
-                        <th className="border border-border px-4 py-2 text-left">
-                            Peso del Lote (Kg)
-                        </th>
+  const paginaActual = Math.min(currentPage, totalPaginas);
+  const batchesPagina = batchesFiltrados.slice(
+    (paginaActual - 1) * POR_PAGINA,
+    paginaActual * POR_PAGINA
+  );
 
-                        <th className="border border-border px-4 py-2 text-left">
-                            Edad (Semanas)
-                        </th>
+  return (
+    <div className="w-full overflow-hidden rounded-3xl shadow-sm border border-[#E8DFD1]">
+      {/* Contenedor con scroll: los títulos quedan fijos al bajar */}
+      <div className="max-h-[60vh] overflow-y-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-green-2-navbar text-white">
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                ID
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Fecha de ingreso
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Fecha de finalización
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Numero de lote
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Raza
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Cantidad de aves
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Peso inicial del lote (kg)
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Peso promedio actual del lote (kg)
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Edad (Semanas)
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Vacunas aplicadas
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Estado
+              </th>
+            </tr>
+          </thead>
 
-                        <th className="border border-border px-4 py-2 text-left">
-                            Vacunas Aplicadas
-                        </th>
-
-                        <th className="border border-border px-4 py-2 text-left">
-                            Estado
-                        </th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    {birdBatches.length > 0 ? (
-
-                        birdBatches.map((batch: any, index: number) => (
-
-                            <tr
-                                key={batch.id || `batch-${index}`}
-                                className="hover:bg-fond transition-colors"
-                            >
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {batch.id}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {formatDate(batch.entryDate)}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {batch.batchNumber}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {batch.birdQuantity}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {batch.batchWeight}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {batch.birdAgeWeeks}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {batch.appliedVaccines}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {batch.active ? "Activo" : "Inactivo"}
-                                </td>
-
-                            </tr>
-
-                        ))
-
-                    ) : (
-
-                        <tr>
-
-                            <td
-                                colSpan={8}
-                                className="border border-border px-4 py-6 text-center text-title"
-                            >
-                                No hay lotes de aves registrados.
-                            </td>
-
-                        </tr>
-
+          <tbody className="divide-y divide-[#E8DFD1]/60 bg-white">
+            {batchesPagina.length > 0 ? (
+              batchesPagina.map((batch: any) => (
+                <tr
+                  key={batch.id}
+                  className="hover:bg-[#FCFBF9] transition-colors"
+                >
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A] font-medium">
+                    {batch.id}
+                  </td>
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
+                    {formatDate(batch.entryDate)}
+                  </td>
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
+                    {formatDate(batch.endDate)}
+                  </td>
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
+                    {batch.batchNumber}
+                  </td>
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
+                    {batch.birdBreed || "—"}
+                  </td>
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
+                    {batch.birdQuantity}
+                  </td>
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
+                    {batch.batchWeight}
+                  </td>
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
+                    {batch.currentAverageWeightKg ?? "—"}
+                    {batch.currentAverageWeightGrams != null && (
+                      <span className="block text-xs text-[#9A8B7A]">
+                        {batch.currentAverageWeightGrams} g por ave
+                      </span>
                     )}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    );
-
+                  </td>
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
+                    {batch.birdAgeWeeks}
+                  </td>
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
+                    {batch.appliedVaccines}
+                  </td>
+                  <td className="px-6 py-3.5 text-sm">
+                    <span
+                      className={`font-semibold ${
+                        batch.active ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {batch.active ? "Activo" : "Inactivo"}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={11}
+                  className="px-6 py-8 text-center text-sm text-[#9A8B7A]"
+                >
+                  {texto
+                    ? "No se encontraron lotes con ese criterio."
+                    : "No hay lotes registrados."}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }

@@ -6,6 +6,8 @@ const {
     WeighingDelete
 } = require("../services/weighingServices");
 
+const { getIdBirdBatch } = require("../services/birdBatchServices");
+
 const Response = require("../functions/response");
 
 const getWeighings = async (req, res) => {
@@ -86,21 +88,35 @@ const getAllWeighingsById = async (req, res) => {
     }
 };
 
+// Convierte el estado recibido (true/false o "true"/"false") a booleano
+const convertirActivo = (valor) => valor === true || valor === "true";
+
 const createWeighing = async (req, res) => {
 
     try {
 
         const {
+            id_birdBatch,
             weighingDate,
             weighingTime,
             responsiblePerson,
             weighedBirds,
             totalWeightKg,
             averageWeightGrams,
-            batchUniformityPercentage
+            batchUniformityPercentage,
+            active
         } = req.body;
 
         var errors = [];
+
+        if (!id_birdBatch) {
+            errors.push("El lote de aves es obligatorio");
+        } else {
+            const lote = await getIdBirdBatch(id_birdBatch);
+            if (!lote) {
+                errors.push("El lote de aves no existe");
+            }
+        }
 
         if (!weighingDate|| weighingDate.trim() === "") {
             errors.push("La fecha de la pesada es obligatoria");
@@ -140,13 +156,15 @@ const createWeighing = async (req, res) => {
         }
 
         const data = {
+            id_birdBatch,
             weighingDate,
             weighingTime,
             responsiblePerson,
             weighedBirds,
             totalWeightKg,
             averageWeightGrams,
-            batchUniformityPercentage
+            batchUniformityPercentage,
+            active: active === undefined ? true : convertirActivo(active)
         };
 
         const weighing = await WeighingCreate(data);
@@ -176,19 +194,30 @@ const updateWeighing = async (req, res) => {
         const { id } = req.params;
 
         const {
+            id_birdBatch,
             weighingDate,
             weighingTime,
             responsiblePerson,
             weighedBirds,
             totalWeightKg,
             averageWeightGrams,
-            batchUniformityPercentage
+            batchUniformityPercentage,
+            active
         } = req.body;
 
         var errors = [];
 
         if (!id) {
             errors.push("El ID del peso es obligatorio");
+        }
+
+        if (!id_birdBatch) {
+            errors.push("El lote de aves es obligatorio");
+        } else {
+            const lote = await getIdBirdBatch(id_birdBatch);
+            if (!lote) {
+                errors.push("El lote de aves no existe");
+            }
         }
 
         if (!weighingDate || weighingDate.trim() === "") {
@@ -229,6 +258,7 @@ const updateWeighing = async (req, res) => {
         }
 
         const data = {
+            id_birdBatch,
             weighingDate,
             weighingTime,
             responsiblePerson,
@@ -237,6 +267,11 @@ const updateWeighing = async (req, res) => {
             averageWeightGrams,
             batchUniformityPercentage
         };
+
+        // Solo actualiza el estado si se envía
+        if (active !== undefined) {
+            data.active = convertirActivo(active);
+        }
 
         const weighing = await WeighingUpdate(id, data);
 

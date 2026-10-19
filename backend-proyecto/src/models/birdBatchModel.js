@@ -31,6 +31,16 @@ const birdbatch = db.define("birdbatch", {
         type: DataTypes.STRING,
         allowNull: false
     },
+    // Campos nuevos: permiten NULL para no romper los lotes ya registrados.
+    // La obligatoriedad se valida en el controlador.
+    birdBreed: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    endDate: {
+        type: DataTypes.DATE,
+        allowNull: true
+    },
     active: {
         type: DataTypes.BOOLEAN,
         defaultValue: true

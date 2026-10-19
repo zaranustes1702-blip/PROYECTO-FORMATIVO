@@ -51,7 +51,7 @@ router.get("/Supply/:id", ValidateToken, getAllSuppliesById);
  * /api/supplies/CreateSupply:
  *   post:
  *     summary: Crear insumo
- *     description: Crea un nuevo registro de insumo en el sistema.
+ *     description: Crea un nuevo insumo. Los únicos tipos permitidos son medicamentos y alimentacion.
  *     produces:
  *       - application/json
  *     requestBody:
@@ -60,6 +60,15 @@ router.get("/Supply/:id", ValidateToken, getAllSuppliesById);
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [id_supply, supplyName, supplyType, reference, minimumStock]
+ *             properties:
+ *               id_supply: { type: string, example: "ALI001" }
+ *               supplyName: { type: string, example: "Concentrado ponedora" }
+ *               supplyType: { type: string, enum: [medicamentos, alimentacion] }
+ *               reference: { type: string, example: "Marca X - 40kg" }
+ *               minimumStock: { type: number, example: 50 }
+ *               observations: { type: string }
+ *               active: { type: boolean, example: true }
  *     responses:
  *       201:
  *         description: Insumo creado exitosamente

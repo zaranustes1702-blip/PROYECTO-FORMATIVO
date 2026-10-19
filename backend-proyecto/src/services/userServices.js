@@ -25,7 +25,11 @@ const userCreate = async (data) => {
 // 3. Obtener todos los usuarios
 const getAllUsers = async (limit, offset) => {
   try {
-    const users = await user.findAll({ offset: offset, limit: limit });
+    const users = await user.findAll({
+      order: [["userId", "DESC"]],
+      offset: offset,
+      limit: limit,
+    });
     return users;
   } catch (error) {
     console.error("Error en getAllUsers:", error);

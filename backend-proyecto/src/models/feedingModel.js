@@ -1,35 +1,47 @@
 const { DataTypes } = require("sequelize");
 const db = require("../config/conectionDB");
+const supply = require("./supplyModel");
+const stockEntry = require("./stockEntryModel");
+const responsible = require("./responsibleModel");
 
+// Alimentación: cada registro descuenta su cantidad de la salida (cantidad_salida)
+// de una entrada de stock (stockEntry) y queda ligado a su insumo y a un responsable.
 const feeding = db.define("feeding", {
-    id: {
+    id_feeding: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true
     },
-    feedingDate: {
-        type: DataTypes.DATE,
+    id_supply: {
+        type: DataTypes.STRING(10),
         allowNull: false
     },
-    dailyConsumptionKg: {
-        type: DataTypes.FLOAT,
+    id_stockEntry: {
+        type: DataTypes.INTEGER,
         allowNull: false
     },
-    remainingKg: {
-        type: DataTypes.FLOAT,
+    id_responsable: {
+        type: DataTypes.INTEGER,
         allowNull: false
     },
-    remainingBags: {
-        type: DataTypes.FLOAT,
-        allowNull: false
-    },
+    // Jornada: Mañana, Tarde o Noche
     shift: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING(20),
         allowNull: false
     },
-    responsiblePerson: {
-        type: DataTypes.STRING,
+    feedingDate: {
+        type: DataTypes.DATEONLY,
         allowNull: false
+    },
+    feedingTime: {
+        type: DataTypes.TIME,
+        allowNull: false
+    },
+    // Cantidad suministrada (en la unidad de la entrada de stock)
+    quantity: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        validate: { min: 0 }
     },
     active: {
         type: DataTypes.BOOLEAN,
@@ -48,5 +60,10 @@ const feeding = db.define("feeding", {
         freezeTableName: true
     }
 );
+
+// Relaciones (llaves foráneas)
+feeding.belongsTo(supply, { foreignKey: "id_supply", targetKey: "id_supply" });
+feeding.belongsTo(stockEntry, { foreignKey: "id_stockEntry", targetKey: "id_stockEntry" });
+feeding.belongsTo(responsible, { foreignKey: "id_responsable", targetKey: "id" });
 
 module.exports = feeding;

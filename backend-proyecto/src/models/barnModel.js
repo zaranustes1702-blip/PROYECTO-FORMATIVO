@@ -19,10 +19,6 @@ const barn = db.define("barn", {
         type: DataTypes.INTEGER,
         allowNull: false
     },
-    birdBreed: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
     active: {
         type: DataTypes.BOOLEAN,
         defaultValue: true

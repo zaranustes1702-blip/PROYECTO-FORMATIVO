@@ -1,140 +1,162 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { API_RESPONSIBLE_ALL_URL } from "@/api/config";
 
-export default function TablaResponsible() {
+const POR_PAGINA = 10;
 
-    const [responsibles, setResponsibles] = useState<any[]>([]);
+interface TablaResponsibleProps {
+  filtro?: string;
+  refreshKey?: number;
+  currentPage?: number;
+  onTotalPages?: (total: number) => void;
+}
 
-    useEffect(() => {
+export default function TablaResponsible({
+  filtro = "",
+  refreshKey = 0,
+  currentPage = 1,
+  onTotalPages,
+}: TablaResponsibleProps) {
+  const [items, setItems] = useState<any[]>([]);
 
-        const fetchResponsibles = async () => {
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const token = localStorage.getItem("token");
 
-            try {
+        // El backend devuelve 10 por defecto; pedimos más para buscar y paginar
+        const response = await fetch(`${API_RESPONSIBLE_ALL_URL}?limit=500`, {
+          method: "GET",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
 
-                const response = await fetch(
-                    "http://localhost:3000/api/responsibles/ResponsibleAll"
-                );
+        const resJson = await response.json();
 
-                const resJson = await response.json();
+        // Tu clase Response devuelve los datos en resJson.info
+        const lista = resJson.info || resJson.data || [];
+        // Más recientes primero (descendente por ID)
+        setItems(
+          Array.isArray(lista)
+            ? [...lista].sort((a: any, b: any) => b.id - a.id)
+            : []
+        );
+      } catch (error) {
+        console.error("Error al obtener responsables:", error);
+        setItems([]);
+      }
+    };
 
-                setResponsibles(resJson.data || []);
+    fetchItems();
+  }, [refreshKey]);
 
-            } catch (error) {
+  // Búsqueda en id, nombre, documento, ficha, tipo y estado
+  const texto = filtro.trim().toLowerCase();
 
-                console.error("Error:", error);
-                setResponsibles([]);
+  const itemsFiltrados = items.filter((item: any) => {
+    if (!texto) return true;
 
-            }
+    return [
+      String(item.id),
+      String(item.fullName),
+      String(item.documentNumber),
+      String(item.trainingRecord),
+      String(item.responsibleType),
+      item.active ? "activo" : "inactivo"
+    ].some((valor) => (valor ?? "").toString().toLowerCase().includes(texto));
+  });
 
-        };
+  const totalPaginas = Math.max(1, Math.ceil(itemsFiltrados.length / POR_PAGINA));
 
-        fetchResponsibles();
+  useEffect(() => {
+    if (onTotalPages) {
+      onTotalPages(totalPaginas);
+    }
+  }, [totalPaginas]);
 
-    }, []);
+  const paginaActual = Math.min(currentPage, totalPaginas);
+  const itemsPagina = itemsFiltrados.slice(
+    (paginaActual - 1) * POR_PAGINA,
+    paginaActual * POR_PAGINA
+  );
 
-    return (
+  return (
+    <div className="w-full overflow-hidden rounded-3xl shadow-sm border border-[#E8DFD1]">
+      {/* Contenedor con scroll: los títulos quedan fijos al bajar */}
+      <div className="max-h-[60vh] overflow-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-green-2-navbar text-white">
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                ID
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Nombre
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Documento
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Ficha
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Tipo
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Estado
+              </th>
+            </tr>
+          </thead>
 
-        <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
-
-            <h2 className="text-xl font-semibold mb-4 text-title">
-                Lista de Responsables
-            </h2>
-
-            <table className="w-full border-collapse">
-
-                <thead>
-
-                    <tr className="bg-green-2-navbar text-white">
-
-                        <th className="border border-border px-4 py-2 text-left">
-                            ID
-                        </th>
-
-                        <th className="border border-border px-4 py-2 text-left">
-                            Nombre
-                        </th>
-
-                        <th className="border border-border px-4 py-2 text-left">
-                            Documento
-                        </th>
-
-                        <th className="border border-border px-4 py-2 text-left">
-                            Ficha
-                        </th>
-
-                        <th className="border border-border px-4 py-2 text-left">
-                            Tipo
-                        </th>
-
-                        <th className="border border-border px-4 py-2 text-left">
-                            Estado
-                        </th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    {responsibles.length > 0 ? (
-
-                        responsibles.map((responsible: any) => (
-
-                            <tr
-                                key={responsible.id}
-                                className="hover:bg-fond transition-colors"
-                            >
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {responsible.id}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {responsible.fullName}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {responsible.documentNumber}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {responsible.trainingRecord}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {responsible.responsibleType}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {responsible.active ? "Activo" : "Inactivo"}
-                                </td>
-
-                            </tr>
-
-                        ))
-
-                    ) : (
-
-                        <tr>
-
-                            <td
-                                colSpan={7}
-                                className="border border-border px-4 py-6 text-center text-title"
-                            >
-                                No hay responsables registrados.
-                            </td>
-
-                        </tr>
-
-                    )}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    );
-
+          <tbody className="divide-y divide-[#E8DFD1]/60 bg-white">
+            {itemsPagina.length > 0 ? (
+              itemsPagina.map((item: any) => (
+                <tr key={item.id}>
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A] font-medium">
+                    {item.id}
+                  </td>
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
+                    {item.fullName}
+                  </td>
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
+                    {item.documentNumber}
+                  </td>
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
+                    {item.trainingRecord}
+                  </td>
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
+                    {item.responsibleType}
+                  </td>
+                  <td className="px-6 py-3.5 text-sm">
+                    <span
+                      className={`font-semibold ${
+                        item.active ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {item.active ? "Activo" : "Inactivo"}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="px-6 py-8 text-center text-sm text-[#9A8B7A]"
+                >
+                  {texto
+                    ? "No se encontraron responsables con ese criterio."
+                    : "No hay responsables registrados."}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }

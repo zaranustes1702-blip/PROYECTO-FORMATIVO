@@ -76,9 +76,12 @@ const getAllBarnsById = async (req, res) => {
   }
 };
 
+// Convierte el estado recibido (true/false o "true"/"false") a booleano
+const convertirActivo = (valor) => valor === true || valor === "true";
+
 const createBarn = async (req, res) => {
   try {
-    const { barnName, barnSize, maxBirdCapacity, birdBreed } = req.body;
+    const { barnName, barnSize, maxBirdCapacity, active } = req.body;
 
     var errors = [];
 
@@ -94,10 +97,6 @@ const createBarn = async (req, res) => {
       errors.push("La capacidad máxima de pájaros es obligatoria");
     }
 
-    if (!birdBreed || birdBreed.trim() === "") {
-      errors.push("La raza del pájaro es obligatoria");
-    }
-
     if (errors.length > 0) {
       var response = new Response(false, "Error al crear el lote", errors);
 
@@ -110,7 +109,7 @@ const createBarn = async (req, res) => {
       barnName,
       barnSize,
       maxBirdCapacity,
-      birdBreed,
+      active: active === undefined ? true : convertirActivo(active),
     };
 
     const barn = await BarnCreate(data);
@@ -135,7 +134,7 @@ const updateBarn = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const { barnName, barnSize, maxBirdCapacity, birdBreed } = req.body;
+    const { barnName, barnSize, maxBirdCapacity, active } = req.body;
 
     var errors = [];
 
@@ -155,10 +154,6 @@ const updateBarn = async (req, res) => {
       errors.push("La capacidad máxima de pájaros es obligatoria");
     }
 
-    if (!birdBreed || birdBreed.trim() === "") {
-      errors.push("La raza del pájaro es obligatoria");
-    }
-
     if (errors.length > 0) {
       var response = new Response(false, "Error al actualizar el lote", errors);
 
@@ -171,8 +166,12 @@ const updateBarn = async (req, res) => {
       barnName,
       barnSize,
       maxBirdCapacity,
-      birdBreed,
     };
+
+    // Solo actualiza el estado si se envía
+    if (active !== undefined) {
+      data.active = convertirActivo(active);
+    }
 
     const barn = await BarnUpdate(id, data);
 

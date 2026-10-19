@@ -13,6 +13,7 @@ const visitCreate = async (data) => {
 const getAllVisits = async (limit, offset) => {
     try {
         const visits = await visit.findAll({
+            order: [["id", "DESC"]],
             offset: offset,
             limit: limit
         });

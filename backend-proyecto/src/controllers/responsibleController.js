@@ -8,6 +8,9 @@ const {
 
 const Response = require("../functions/response");
 
+// Convierte el estado recibido (true/false o "true"/"false") a booleano
+const convertirActivo = (valor) => valor === true || valor === "true";
+
 const getResponsibles = async (req, res) => {
   try {
     const querylimit = req.query.limit
@@ -93,7 +96,8 @@ const createResponsible = async (req, res) => {
         documentNumber,
         trainingRecord,
         role,
-        responsibleType
+        responsibleType,
+        active
         } = req.body;
 
         var errors = [];
@@ -131,7 +135,8 @@ const createResponsible = async (req, res) => {
             documentNumber,
             trainingRecord,
             role,
-            responsibleType
+            responsibleType,
+            active: active === undefined ? true : convertirActivo(active)
         };
 
         const responsible = await ResponsibleCreate(data);
@@ -165,7 +170,8 @@ const updateResponsible = async (req, res) => {
             documentNumber,
             trainingRecord,
             role,
-            responsibleType
+            responsibleType,
+            active
         } = req.body;
 
         var errors = [];
@@ -209,6 +215,11 @@ const updateResponsible = async (req, res) => {
             role,
             responsibleType
         };
+
+        // Solo actualiza el estado si se envía
+        if (active !== undefined) {
+            data.active = convertirActivo(active);
+        }
 
         const responsible = await ResponsibleUpdate(id, data);
 

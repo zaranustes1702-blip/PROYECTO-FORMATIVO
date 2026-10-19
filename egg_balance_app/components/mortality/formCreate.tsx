@@ -1,62 +1,73 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import { CirclePlus } from "lucide-react";
-import { API_MORTALITY_URL } from "@/api/config";
+import { Plus } from "lucide-react";
+import {
+  API_MORTALITY_CREATE_URL,
+  API_BIRD_BATCH_ALL_URL,
+  API_RESPONSIBLE_ALL_URL,
+} from "@/api/config";
 
-export default function FormCreateMortality() {
+interface FormCreateMortalityProps {
+  onMortalityCreated?: () => void;
+}
+
+export default function FormCreateMortality({ onMortalityCreated }: FormCreateMortalityProps) {
   const [open, setOpen] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
   const [mensajeError, setMensajeError] = useState("");
 
+  // Listas para los select
   const [lotes, setLotes] = useState<any[]>([]);
   const [responsables, setResponsables] = useState<any[]>([]);
 
   const [formData, setFormData] = useState({
+    id_lote: "",
+    id_responsable: "",
     mortalityDate: "",
     mortalityTime: "",
     dailyMortality: "",
     possibleCauseOfDeath: "",
     necropsyPerformed: "false",
     observations: "",
-    lotId: "",
-    responsibleId: "",
     active: "true",
   });
 
+  // Cada vez que se abre el formulario se cargan las listas de los select
   useEffect(() => {
-    const cargarDatosRelacionados = async () => {
+    if (!open) return;
+
+    const cargarListas = async () => {
       try {
-        const [resLotes, resResp] = await Promise.all([
-          fetch("http://localhost:3000/api/lots/LotAll"),
-          fetch("http://localhost:3000/api/responsibles/ResponsibleAll"),
-        ]);
+        // Solo lotes activos
+        const resLotes = await fetch(`${API_BIRD_BATCH_ALL_URL}?limit=500`);
+        const dataLotes = await resLotes.json();
+        const listaLotes = dataLotes.info || [];
+        setLotes(listaLotes.filter((l: any) => l.active));
 
-        if (resLotes.ok) {
-          const dataLotes = await resLotes.json();
-          setLotes(Array.isArray(dataLotes) ? dataLotes : dataLotes.data || []);
-        }
-
-        if (resResp.ok) {
-          const dataResp = await resResp.json();
-          setResponsables(Array.isArray(dataResp) ? dataResp : dataResp.data || []);
-        }
+        // Solo responsables activos
+        const resResponsables = await fetch(`${API_RESPONSIBLE_ALL_URL}?limit=500`);
+        const dataResponsables = await resResponsables.json();
+        const listaResponsables = dataResponsables.info || [];
+        setResponsables(listaResponsables.filter((r: any) => r.active));
       } catch (error) {
-        console.error("Error al cargar datos foráneos:", error);
+        console.error("Error al cargar las listas:", error);
+        setMensajeError("No se pudieron cargar los datos de los select.");
       }
     };
 
-    cargarDatosRelacionados();
-  }, []);
+    cargarListas();
+  }, [open]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -69,14 +80,14 @@ export default function FormCreateMortality() {
 
   const resetInputs = () => {
     setFormData({
+      id_lote: "",
+      id_responsable: "",
       mortalityDate: "",
       mortalityTime: "",
       dailyMortality: "",
       possibleCauseOfDeath: "",
       necropsyPerformed: "false",
       observations: "",
-      lotId: "",
-      responsibleId: "",
       active: "true",
     });
   };
@@ -98,19 +109,19 @@ export default function FormCreateMortality() {
     setMensajeError("");
 
     const datosEnviar = {
+      id_lote: Number(formData.id_lote),
+      id_responsable: Number(formData.id_responsable),
       mortalityDate: formData.mortalityDate,
       mortalityTime: formData.mortalityTime,
-      dailyMortality: Number(formData.dailyMortality) || 0,
+      dailyMortality: Number(formData.dailyMortality),
       possibleCauseOfDeath: formData.possibleCauseOfDeath.trim(),
       necropsyPerformed: formData.necropsyPerformed === "true",
       observations: formData.observations.trim(),
-      lotId: formData.lotId ? Number(formData.lotId) : null,
-      responsibleId: formData.responsibleId ? Number(formData.responsibleId) : null,
       active: formData.active === "true",
     };
 
     try {
-      const response = await fetch(`${API_MORTALITY_URL}/CreateMortality`, {
+      const response = await fetch(API_MORTALITY_CREATE_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -122,27 +133,36 @@ export default function FormCreateMortality() {
       try {
         resultado = await response.json();
       } catch {
-        // En caso de que la respuesta venga sin JSON
+        // En caso de respuesta vacía
       }
 
       if (!response.ok) {
+        // El backend manda la lista de errores en "info"
+        const detalle = Array.isArray(resultado?.info)
+          ? resultado.info.join(" · ")
+          : "";
+
         throw new Error(
-          resultado?.message ||
-            resultado?.mensaje ||
-            resultado?.error ||
-            `Error ${response.status}: No se pudo registrar la mortalidad`
+          detalle ||
+            resultado?.message ||
+            `Error ${response.status}: No se pudo registrar el registro de mortalidad`
         );
       }
 
-      setMensajeExito("¡Mortalidad registrada correctamente!");
+      setMensajeExito("¡Registro de mortalidad guardado correctamente!");
       resetInputs();
+
+      // Avisa a la página para que la tabla se recargue de inmediato
+      if (onMortalityCreated) {
+        onMortalityCreated();
+      }
 
       setTimeout(() => {
         setOpen(false);
         setMensajeExito("");
-      }, 1800);
+      }, 1500);
     } catch (error: any) {
-      console.error("Error al registrar mortalidad:", error);
+      console.error("Error al registrar el registro de mortalidad:", error);
       setMensajeError(
         error.message || "Ocurrió un error inesperado al conectar con el servidor"
       );
@@ -153,55 +173,51 @@ export default function FormCreateMortality() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger className="inline-flex items-center text-green-1-navbar font-semibold hover:text-green-2-navbar cursor-pointer">
-        <CirclePlus className="w-8 h-8 mr-2 text-green-1-navbar" />
+      <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
+        <Plus className="w-5 h-5 text-white" />
         <span>Registrar Mortalidad</span>
       </DialogTrigger>
 
-      <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[850px] max-h-[90vh] overflow-y-auto border border-border shadow-xl">
-        <DialogHeader className="font-bold text-2xl text-center text-title">
-          Registrar Mortalidad
+      <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[800px] max-h-[90vh] overflow-y-auto border border-border rounded-2xl shadow-xl">
+        <DialogHeader className="font-bold text-2xl text-center text-title select-none pointer-events-none">
+          <DialogTitle className="text-center font-bold text-2xl text-title select-none pointer-events-none">
+            Registrar Mortalidad
+          </DialogTitle>
         </DialogHeader>
-        <DialogDescription className="text-center text-parrafo">
-          Complete los campos para registrar bajas y causas de mortalidad.
-        </DialogDescription>
 
         {mensajeExito && (
-          <div className="w-full rounded-md border border-green-600 bg-green-50 p-3 text-center text-sm font-semibold text-green-800 animate-in fade-in">
+          <div className="w-full rounded-xl border border-green-600 bg-green-50 p-3 text-center text-sm font-semibold text-green-800 animate-in fade-in select-none pointer-events-none">
             {mensajeExito}
           </div>
         )}
 
         {mensajeError && (
-          <div className="w-full rounded-md border border-red-500 bg-red-50 p-3 text-center text-sm font-semibold text-red-700 animate-in fade-in">
+          <div className="w-full rounded-xl border border-red-500 bg-red-50 p-3 text-center text-sm font-semibold text-red-700 animate-in fade-in select-none pointer-events-none">
             {mensajeError}
           </div>
         )}
 
         <form id="mortality-form" onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label
-                htmlFor="lotId"
-                className="block text-sm font-semibold text-title mb-1"
+                htmlFor="id_lote"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                Lote de Aves:
+                Lote:
               </label>
               <select
-                id="lotId"
-                name="lotId"
-                value={formData.lotId}
+                id="id_lote"
+                name="id_lote"
+                value={formData.id_lote}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
               >
                 <option value="">Seleccione un lote</option>
-                {lotes.map((lote: any, index: number) => (
-                  <option
-                    key={lote.id || lote.Id_Lote || index}
-                    value={lote.id || lote.Id_Lote}
-                  >
-                    Lote #{lote.id || lote.Id_Lote} - {lote.Raz_Ave_Lote || lote.breed || "Aves"}
+                {lotes.map((lote: any) => (
+                  <option key={lote.id} value={lote.id}>
+                    {lote.batchNumber}
                   </option>
                 ))}
               </select>
@@ -209,26 +225,23 @@ export default function FormCreateMortality() {
 
             <div>
               <label
-                htmlFor="responsibleId"
-                className="block text-sm font-semibold text-title mb-1"
+                htmlFor="id_responsable"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
                 Responsable:
               </label>
               <select
-                id="responsibleId"
-                name="responsibleId"
-                value={formData.responsibleId}
+                id="id_responsable"
+                name="id_responsable"
+                value={formData.id_responsable}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
               >
                 <option value="">Seleccione un responsable</option>
-                {responsables.map((resp: any, index: number) => (
-                  <option
-                    key={resp.id || resp.Id_Responsable || index}
-                    value={resp.id || resp.Id_Responsable}
-                  >
-                    {resp.name || resp.Nom_Responsable || "Responsable"} ({resp.role || resp.Tipo_Responsable || "Personal"})
+                {responsables.map((responsable: any) => (
+                  <option key={responsable.id} value={responsable.id}>
+                    {responsable.fullName}
                   </option>
                 ))}
               </select>
@@ -237,7 +250,7 @@ export default function FormCreateMortality() {
             <div>
               <label
                 htmlFor="mortalityDate"
-                className="block text-sm font-semibold text-title mb-1"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
                 Fecha:
               </label>
@@ -248,14 +261,14 @@ export default function FormCreateMortality() {
                 value={formData.mortalityDate}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:border-[#C5B8A5]"
               />
             </div>
 
             <div>
               <label
                 htmlFor="mortalityTime"
-                className="block text-sm font-semibold text-title mb-1"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
                 Hora:
               </label>
@@ -266,92 +279,72 @@ export default function FormCreateMortality() {
                 value={formData.mortalityTime}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:border-[#C5B8A5]"
               />
             </div>
 
             <div>
               <label
                 htmlFor="dailyMortality"
-                className="block text-sm font-semibold text-title mb-1"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                Mortalidad del día (Aves):
+                Mortalidad del Día:
               </label>
               <input
                 type="number"
                 id="dailyMortality"
                 name="dailyMortality"
-                min="1"
                 value={formData.dailyMortality}
                 onChange={handleChange}
+                min="0"
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                placeholder="Cantidad de aves muertas"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:border-[#C5B8A5]"
+                placeholder="Ej: 3"
               />
             </div>
 
             <div>
               <label
                 htmlFor="possibleCauseOfDeath"
-                className="block text-sm font-semibold text-title mb-1"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                Posible causa:
+                Posible Causa de Muerte:
               </label>
               <input
                 type="text"
                 id="possibleCauseOfDeath"
                 name="possibleCauseOfDeath"
-                maxLength={100}
                 value={formData.possibleCauseOfDeath}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                placeholder="Ej: Estrés calórico / Respiratorio"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:border-[#C5B8A5]"
+                placeholder="Ej: Calor"
               />
             </div>
 
-            <div className="md:col-span-2">
+            <div>
               <label
                 htmlFor="necropsyPerformed"
-                className="block text-sm font-semibold text-title mb-1"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                Necropsia realizada:
+                Necropsia Realizada:
               </label>
               <select
                 id="necropsyPerformed"
                 name="necropsyPerformed"
                 value={formData.necropsyPerformed}
                 onChange={handleChange}
-                required
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
               >
                 <option value="false">No</option>
                 <option value="true">Sí</option>
               </select>
             </div>
 
-            <div className="md:col-span-2">
-              <label
-                htmlFor="observations"
-                className="block text-sm font-semibold text-title mb-1"
-              >
-                Observaciones:
-              </label>
-              <textarea
-                id="observations"
-                name="observations"
-                rows={3}
-                value={formData.observations}
-                onChange={handleChange}
-                placeholder="Detalles u observaciones adicionales"
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-              />
-            </div>
-
-            <div className="md:col-span-2">
+            <div>
               <label
                 htmlFor="active"
-                className="block text-sm font-semibold text-title mb-1"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
                 Estado:
               </label>
@@ -360,25 +353,58 @@ export default function FormCreateMortality() {
                 name="active"
                 value={formData.active}
                 onChange={handleChange}
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
               >
                 <option value="true">Activo</option>
                 <option value="false">Inactivo</option>
               </select>
             </div>
+
+            <div className="col-span-2">
+              <label
+                htmlFor="observations"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
+              >
+                Observaciones:
+              </label>
+              <textarea
+                id="observations"
+                name="observations"
+                value={formData.observations}
+                onChange={handleChange}
+                rows={3}
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:border-[#C5B8A5]"
+                placeholder="Opcional"
+              />
+            </div>
           </div>
         </form>
 
-        <DialogFooter className="mt-4">
-          <button
-            type="submit"
-            form="mortality-form"
-            disabled={guardando}
-            className="w-full bg-green-1-navbar text-white font-medium py-2 px-4 rounded-md hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
-          >
-            {guardando ? "Guardando..." : "Guardar Registro"}
-          </button>
+        <DialogFooter>
+          <div className="flex w-full gap-3">
+            <button
+              type="button"
+              onClick={() => handleOpenChange(false)}
+              disabled={guardando}
+              className="flex-1 bg-[#E8DFD1] hover:bg-[#D9CCB8] text-[#3A2A1A] font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              form="mortality-form"
+              disabled={guardando}
+              className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+            >
+              {guardando ? "Guardando..." : "Guardar Mortalidad"}
+            </button>
+          </div>
         </DialogFooter>
+
+        <DialogDescription className="text-center text-parrafo select-none pointer-events-none">
+          Complete los campos para registrar la mortalidad de un lote.
+        </DialogDescription>
       </DialogContent>
     </Dialog>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,20 +12,34 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import FormCreateSupply from "@/components/supply/formCreate";
-import TablaSupply from "@/components/supply/tablaSupply";
+import TableSupply from "@/components/supply/tablaSupply";
 
 export default function SupplyPage() {
   const [valor, setValor] = useState("");
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const totalPages = 3;
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const [refreshKey, setRefreshKey] = useState<number>(0);
+
+  // Si la búsqueda reduce el número de páginas, vuelve a la última disponible
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const soloLetras = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
-    setValor(soloLetras);
+    // Busca por ID, nombre, tipo, referencia, stock mínimo, observaciones o estado
+    setValor(e.target.value);
+    setCurrentPage(1);
   };
 
   return (
     <div className="flex flex-col w-full h-full min-h-screen bg-white p-6 gap-6">
+      {/* Título arriba */}
+      <h2 className="text-2xl font-bold text-title">
+        Insumos
+      </h2>
+
       {/* Barra superior de Data Table: Input con hover + Botón de acción */}
       <div className="flex items-center justify-between py-4 gap-4">
         <div className="relative flex items-center w-full max-w-sm group">
@@ -33,11 +47,11 @@ export default function SupplyPage() {
 
           <Input
             type="text"
-            placeholder="Filtrar suministro..."
+            placeholder="Filtrar insumos..."
             value={valor}
             onChange={handleInputChange}
             className="
-              pl-9 h-10 w-full rounded-lg border border-[#E8DFD1] bg-[#FCFBF9]
+              pl-9 h-10 w-full rounded-full border border-[#E8DFD1] bg-[#FCFBF9]
               text-sm text-[#3A2A1A] placeholder:text-[#9A8B7A]
               transition-all duration-200 shadow-xs
               hover:border-green-600 hover:bg-white hover:shadow-sm
@@ -46,14 +60,18 @@ export default function SupplyPage() {
           />
         </div>
 
-        <FormCreateSupply />
+        <FormCreateSupply onSupplyCreated={() => setRefreshKey((k) => k + 1)} />
       </div>
 
       <div className="w-full overflow-x-auto">
-        <TablaSupply />
+        <TableSupply
+          filtro={valor}
+          refreshKey={refreshKey}
+          currentPage={currentPage}
+          onTotalPages={setTotalPages}
+        />
       </div>
 
-      {/* Paginador Shadcn */}
       <div className="flex justify-end pt-2">
         <Pagination>
           <PaginationContent>

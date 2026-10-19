@@ -7,12 +7,17 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import { CirclePlus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { API_RESPONSIBLE_URL } from "@/api/config";
 
-export default function FormCreateResponsible() {
+interface FormCreateResponsibleProps {
+  onResponsibleCreated?: () => void;
+}
+
+export default function FormCreateResponsible({ onResponsibleCreated }: FormCreateResponsibleProps) {
   const [open, setOpen] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
@@ -100,10 +105,14 @@ export default function FormCreateResponsible() {
       setMensajeExito("¡Responsable registrado correctamente!");
       resetInputs();
 
+      if (onResponsibleCreated) {
+        onResponsibleCreated();
+      }
+
       setTimeout(() => {
         setOpen(false);
         setMensajeExito("");
-      }, 1800);
+      }, 1500);
     } catch (error: any) {
       console.error("Error al registrar responsable:", error);
       setMensajeError(
@@ -116,27 +125,26 @@ export default function FormCreateResponsible() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger className="inline-flex items-center text-green-1-navbar font-semibold hover:text-green-2-navbar cursor-pointer">
-        <CirclePlus className="w-8 h-8 mr-2 text-green-1-navbar" />
+      <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
+        <Plus className="w-5 h-5 text-white" />
         <span>Registrar Responsable</span>
       </DialogTrigger>
 
-      <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[800px] border border-border shadow-xl">
-        <DialogHeader className="font-bold text-2xl text-center text-title">
-          Registrar Responsable
+      <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[800px] border border-border rounded-2xl shadow-xl">
+        <DialogHeader className="font-bold text-2xl text-center text-title select-none pointer-events-none">
+          <DialogTitle className="text-center font-bold text-2xl text-title select-none pointer-events-none">
+            Registrar Responsable
+          </DialogTitle>
         </DialogHeader>
-        <DialogDescription className="text-center text-parrafo">
-          Complete la información para registrar una persona responsable.
-        </DialogDescription>
 
         {mensajeExito && (
-          <div className="w-full rounded-md border border-green-600 bg-green-50 p-3 text-center text-sm font-semibold text-green-800 animate-in fade-in">
+          <div className="w-full rounded-xl border border-green-600 bg-green-50 p-3 text-center text-sm font-semibold text-green-800 animate-in fade-in select-none pointer-events-none">
             {mensajeExito}
           </div>
         )}
 
         {mensajeError && (
-          <div className="w-full rounded-md border border-red-500 bg-red-50 p-3 text-center text-sm font-semibold text-red-700 animate-in fade-in">
+          <div className="w-full rounded-xl border border-red-500 bg-red-50 p-3 text-center text-sm font-semibold text-red-700 animate-in fade-in select-none pointer-events-none">
             {mensajeError}
           </div>
         )}
@@ -146,7 +154,7 @@ export default function FormCreateResponsible() {
             <div className="md:col-span-2">
               <label
                 htmlFor="fullName"
-                className="block text-sm font-semibold text-title mb-1"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
                 Nombre Completo:
               </label>
@@ -158,7 +166,7 @@ export default function FormCreateResponsible() {
                 onChange={handleChange}
                 maxLength={100}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
                 placeholder="Nombre completo del responsable"
               />
             </div>
@@ -166,7 +174,7 @@ export default function FormCreateResponsible() {
             <div>
               <label
                 htmlFor="documentNumber"
-                className="block text-sm font-semibold text-title mb-1"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
                 Número de Documento:
               </label>
@@ -178,7 +186,7 @@ export default function FormCreateResponsible() {
                 onChange={handleChange}
                 maxLength={30}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
                 placeholder="Documento de identidad"
               />
             </div>
@@ -186,7 +194,7 @@ export default function FormCreateResponsible() {
             <div>
               <label
                 htmlFor="trainingRecord"
-                className="block text-sm font-semibold text-title mb-1"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
                 Número de Ficha:
               </label>
@@ -198,7 +206,7 @@ export default function FormCreateResponsible() {
                 onChange={handleChange}
                 maxLength={50}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
                 placeholder="Ficha de formación"
               />
             </div>
@@ -206,7 +214,7 @@ export default function FormCreateResponsible() {
             <div>
               <label
                 htmlFor="role"
-                className="block text-sm font-semibold text-title mb-1"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
                 Rol o Cargo:
               </label>
@@ -218,7 +226,7 @@ export default function FormCreateResponsible() {
                 onChange={handleChange}
                 maxLength={100}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
                 placeholder="Ejemplo: Encargado del galpón"
               />
             </div>
@@ -226,7 +234,7 @@ export default function FormCreateResponsible() {
             <div>
               <label
                 htmlFor="responsibleType"
-                className="block text-sm font-semibold text-title mb-1"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
                 Tipo de Responsable:
               </label>
@@ -236,7 +244,7 @@ export default function FormCreateResponsible() {
                 value={formData.responsibleType}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
               >
                 <option value="">Selecciona una opción</option>
                 <option value="Instructor">Instructor</option>
@@ -249,7 +257,7 @@ export default function FormCreateResponsible() {
             <div className="col-span-1 md:col-span-2">
               <label
                 htmlFor="active"
-                className="block text-sm font-semibold text-title mb-1"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
                 Estado:
               </label>
@@ -258,7 +266,7 @@ export default function FormCreateResponsible() {
                 name="active"
                 value={formData.active}
                 onChange={handleChange}
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
               >
                 <option value="true">Activo</option>
                 <option value="false">Inactivo</option>
@@ -268,15 +276,30 @@ export default function FormCreateResponsible() {
         </form>
 
         <DialogFooter>
-          <button
-            type="submit"
-            form="responsible-form"
-            disabled={guardando}
-            className="w-full bg-green-1-navbar text-white font-medium py-2 px-4 rounded-md hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
-          >
-            {guardando ? "Guardando..." : "Guardar Responsable"}
-          </button>
+          <div className="flex w-full gap-3">
+            <button
+              type="button"
+              onClick={() => handleOpenChange(false)}
+              disabled={guardando}
+              className="flex-1 bg-[#E8DFD1] hover:bg-[#D9CCB8] text-[#3A2A1A] font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              form="responsible-form"
+              disabled={guardando}
+              className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition cursor-pointer"
+            >
+              {guardando ? "Guardando..." : "Guardar Responsable"}
+            </button>
+          </div>
         </DialogFooter>
+
+        <DialogDescription className="text-center text-parrafo select-none pointer-events-none">
+          Complete la información para registrar una persona responsable.
+        </DialogDescription>
       </DialogContent>
     </Dialog>
   );

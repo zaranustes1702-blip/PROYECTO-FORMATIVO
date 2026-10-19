@@ -1,150 +1,162 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { API_USER_ALL_URL } from "@/api/config";
 
-export default function TablaUser() {
+const POR_PAGINA = 10;
 
-    const [users, setUsers] = useState<any[]>([]);
+interface TablaUserProps {
+  filtro?: string;
+  refreshKey?: number;
+  currentPage?: number;
+  onTotalPages?: (total: number) => void;
+}
 
-    useEffect(() => {
+export default function TablaUser({
+  filtro = "",
+  refreshKey = 0,
+  currentPage = 1,
+  onTotalPages,
+}: TablaUserProps) {
+  const [items, setItems] = useState<any[]>([]);
 
-        const fetchUsers = async () => {
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const token = localStorage.getItem("token");
 
-            try {
+        // El backend devuelve 10 por defecto; pedimos más para buscar y paginar
+        const response = await fetch(`${API_USER_ALL_URL}?limit=500`, {
+          method: "GET",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
 
-                const response = await fetch(
-                    "http://localhost:3000/api/users/UserAll"
-                );
+        const resJson = await response.json();
 
-                const resJson = await response.json();
+        // Tu clase Response devuelve los datos en resJson.info
+        const lista = resJson.info || resJson.data || [];
+        // Más recientes primero (descendente por ID)
+        setItems(
+          Array.isArray(lista)
+            ? [...lista].sort((a: any, b: any) => b.userId - a.userId)
+            : []
+        );
+      } catch (error) {
+        console.error("Error al obtener usuarios:", error);
+        setItems([]);
+      }
+    };
 
-                console.log(resJson.data);
+    fetchItems();
+  }, [refreshKey]);
 
-                setUsers(resJson.data || []);
+  // Búsqueda en id, nombre, documento, correo, cargo y estado
+  const texto = filtro.trim().toLowerCase();
 
-            } catch (error) {
+  const itemsFiltrados = items.filter((item: any) => {
+    if (!texto) return true;
 
-                console.error("Error:", error);
-                setUsers([]);
+    return [
+      String(item.userId),
+      String(item.name),
+      String(item.documentId),
+      String(item.email),
+      String(item.postJob),
+      item.active ? "activo" : "inactivo"
+    ].some((valor) => (valor ?? "").toString().toLowerCase().includes(texto));
+  });
 
-            }
+  const totalPaginas = Math.max(1, Math.ceil(itemsFiltrados.length / POR_PAGINA));
 
-        };
+  useEffect(() => {
+    if (onTotalPages) {
+      onTotalPages(totalPaginas);
+    }
+  }, [totalPaginas]);
 
-        fetchUsers();
+  const paginaActual = Math.min(currentPage, totalPaginas);
+  const itemsPagina = itemsFiltrados.slice(
+    (paginaActual - 1) * POR_PAGINA,
+    paginaActual * POR_PAGINA
+  );
 
-    }, []);
+  return (
+    <div className="w-full overflow-hidden rounded-3xl shadow-sm border border-[#E8DFD1]">
+      {/* Contenedor con scroll: los títulos quedan fijos al bajar */}
+      <div className="max-h-[60vh] overflow-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-green-2-navbar text-white">
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                ID
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Nombre
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Documento
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Correo
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Cargo
+              </th>
+              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
+                Estado
+              </th>
+            </tr>
+          </thead>
 
-    return (
-
-        <div className="p-4 bg-white rounded-lg shadow border border-border overflow-x-auto">
-
-            <h2 className="text-xl font-semibold mb-4 text-title">
-                Lista de Usuarios
-            </h2>
-
-            <table className="w-full border-collapse">
-
-                <thead>
-
-                    <tr className="bg-green-2-navbar text-white">
-
-                        <th className="border border-border px-4 py-2 text-left">
-                            ID
-                        </th>
-
-                        <th className="border border-border px-4 py-2 text-left">
-                            Nombre
-                        </th>
-
-                        <th className="border border-border px-4 py-2 text-left">
-                            Documento
-                        </th>
-
-                        <th className="border border-border px-4 py-2 text-left">
-                            Correo
-                        </th>
-
-                        <th className="border border-border px-4 py-2 text-left">
-                            Cargo
-                        </th>
-
-                        <th className="border border-border px-4 py-2 text-left">
-                            Correo Verificado
-                        </th>
-
-                        <th className="border border-border px-4 py-2 text-left">
-                            Estado
-                        </th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    {users.length > 0 ? (
-
-                        users.map((user: any, index: number) => (
-
-                            <tr
-                                key={`user-row-${index}-${user.id || user.uuid || index}`}
-                                className="hover:bg-fond transition-colors"
-                            >
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {user.id || user.uuid}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {user.name}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {user.documentId}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {user.email}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {user.postJob}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {user.verifyEmail ? "Sí" : "No"}
-                                </td>
-
-                                <td className="border border-border px-4 py-2 text-title">
-                                    {user.active ? "Activo" : "Inactivo"}
-                                </td>
-
-                            </tr>
-
-                        ))
-
-                    ) : (
-
-                        <tr>
-
-                            <td
-                                colSpan={7}
-                                className="border border-border px-4 py-6 text-center text-title"
-                            >
-                                No hay usuarios registrados.
-                            </td>
-
-                        </tr>
-
-                    )}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    );
-
+          <tbody className="divide-y divide-[#E8DFD1]/60 bg-white">
+            {itemsPagina.length > 0 ? (
+              itemsPagina.map((item: any) => (
+                <tr key={item.userId}>
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A] font-medium">
+                    {item.userId}
+                  </td>
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
+                    {item.name}
+                  </td>
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
+                    {item.documentId}
+                  </td>
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
+                    {item.email}
+                  </td>
+                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
+                    {item.postJob}
+                  </td>
+                  <td className="px-6 py-3.5 text-sm">
+                    <span
+                      className={`font-semibold ${
+                        item.active ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {item.active ? "Activo" : "Inactivo"}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="px-6 py-8 text-center text-sm text-[#9A8B7A]"
+                >
+                  {texto
+                    ? "No se encontraron usuarios con ese criterio."
+                    : "No hay usuarios registrados."}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }

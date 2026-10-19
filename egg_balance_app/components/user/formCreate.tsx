@@ -7,12 +7,17 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import { CirclePlus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { API_USER_URL } from "@/api/config";
 
-export default function FormCreateUser() {
+interface FormCreateUserProps {
+  onUserCreated?: () => void;
+}
+
+export default function FormCreateUser({ onUserCreated }: FormCreateUserProps) {
   const [open, setOpen] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
@@ -20,15 +25,11 @@ export default function FormCreateUser() {
 
   const [formData, setFormData] = useState({
     name: "",
-    uuid: "",
     email: "",
     password: "",
     documentId: "",
     postJob: "",
-    idroll: "",
-    verifyEmail: false,
-    active: false,
-    solicitoNewPassword: false,
+    active: "true",
   });
 
   const handleChange = (
@@ -36,27 +37,18 @@ export default function FormCreateUser() {
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >,
   ) => {
-    const { name, value, type } = e.target;
-    if (type === "checkbox") {
-      const { checked } = e.target as HTMLInputElement;
-      setFormData((prev) => ({ ...prev, [name]: checked }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const resetInputs = () => {
     setFormData({
       name: "",
-      uuid: "",
       email: "",
       password: "",
       documentId: "",
       postJob: "",
-      idroll: "",
-      verifyEmail: false,
-      active: false,
-      solicitoNewPassword: false,
+      active: "true",
     });
   };
 
@@ -78,15 +70,11 @@ export default function FormCreateUser() {
 
     const datosEnviar = {
       name: formData.name.trim(),
-      uuid: formData.uuid.trim() || null,
       email: formData.email.trim(),
       password: formData.password,
       documentId: formData.documentId.trim(),
       postJob: formData.postJob,
-      idroll: formData.idroll ? Number(formData.idroll) : null,
-      verifyEmail: formData.verifyEmail,
-      active: formData.active,
-      solicito_newPassword: formData.solicitoNewPassword,
+      active: formData.active === "true",
     };
 
     try {
@@ -114,13 +102,17 @@ export default function FormCreateUser() {
         );
       }
 
-      setMensajeExito("¡Usuario registrado correctamente!");
+      setMensajeExito("¡Usuario registrado correctamente! Se ha enviado un correo de verificación.");
       resetInputs();
+
+      if (onUserCreated) {
+        onUserCreated();
+      }
 
       setTimeout(() => {
         setOpen(false);
         setMensajeExito("");
-      }, 1800);
+      }, 2000);
     } catch (error: any) {
       console.error("Error al registrar usuario:", error);
       setMensajeError(
@@ -133,37 +125,36 @@ export default function FormCreateUser() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger className="inline-flex items-center text-green-1-navbar font-semibold hover:text-green-2-navbar cursor-pointer">
-        <CirclePlus className="w-8 h-8 mr-2 text-green-1-navbar" />
+      <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
+        <Plus className="w-5 h-5 text-white" />
         <span>Registrar Usuario</span>
       </DialogTrigger>
 
-      <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[850px] max-h-[90vh] overflow-y-auto border border-border shadow-xl">
-        <DialogHeader className="font-bold text-2xl text-center text-title">
-          Registrar Usuario
+      <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[800px] border border-border rounded-2xl shadow-xl">
+        <DialogHeader className="font-bold text-2xl text-center text-title select-none pointer-events-none">
+          <DialogTitle className="text-center font-bold text-2xl text-title select-none pointer-events-none">
+            Registrar Usuario
+          </DialogTitle>
         </DialogHeader>
-        <DialogDescription className="text-center text-parrafo">
-          Complete los campos para registrar un nuevo usuario en el sistema.
-        </DialogDescription>
 
         {mensajeExito && (
-          <div className="w-full rounded-md border border-green-600 bg-green-50 p-3 text-center text-sm font-semibold text-green-800 animate-in fade-in">
+          <div className="w-full rounded-xl border border-green-600 bg-green-50 p-3 text-center text-sm font-semibold text-green-800 animate-in fade-in select-none pointer-events-none">
             {mensajeExito}
           </div>
         )}
 
         {mensajeError && (
-          <div className="w-full rounded-md border border-red-500 bg-red-50 p-3 text-center text-sm font-semibold text-red-700 animate-in fade-in">
+          <div className="w-full rounded-xl border border-red-500 bg-red-50 p-3 text-center text-sm font-semibold text-red-700 animate-in fade-in select-none pointer-events-none">
             {mensajeError}
           </div>
         )}
 
         <form id="user-form" onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label
                 htmlFor="name"
-                className="block text-sm font-semibold text-title mb-1"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
                 Nombre Completo:
               </label>
@@ -175,34 +166,15 @@ export default function FormCreateUser() {
                 onChange={handleChange}
                 maxLength={50}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
                 placeholder="Nombre completo"
               />
             </div>
 
             <div>
               <label
-                htmlFor="uuid"
-                className="block text-sm font-semibold text-title mb-1"
-              >
-                UUID (Opcional):
-              </label>
-              <input
-                type="text"
-                id="uuid"
-                name="uuid"
-                value={formData.uuid}
-                onChange={handleChange}
-                maxLength={45}
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                placeholder="Identificador único"
-              />
-            </div>
-
-            <div>
-              <label
                 htmlFor="email"
-                className="block text-sm font-semibold text-title mb-1"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
                 Correo Electrónico:
               </label>
@@ -214,7 +186,7 @@ export default function FormCreateUser() {
                 onChange={handleChange}
                 maxLength={50}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
                 placeholder="correo@ejemplo.com"
               />
             </div>
@@ -222,7 +194,7 @@ export default function FormCreateUser() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-semibold text-title mb-1"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
                 Contraseña:
               </label>
@@ -234,7 +206,7 @@ export default function FormCreateUser() {
                 onChange={handleChange}
                 maxLength={50}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
                 placeholder="••••••••"
               />
             </div>
@@ -242,7 +214,7 @@ export default function FormCreateUser() {
             <div>
               <label
                 htmlFor="documentId"
-                className="block text-sm font-semibold text-title mb-1"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
                 Documento de Identidad:
               </label>
@@ -254,15 +226,15 @@ export default function FormCreateUser() {
                 onChange={handleChange}
                 maxLength={30}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
                 placeholder="Número de documento"
               />
             </div>
 
-            <div>
+            <div className="col-span-2">
               <label
                 htmlFor="postJob"
-                className="block text-sm font-semibold text-title mb-1"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
                 Cargo:
               </label>
@@ -272,7 +244,7 @@ export default function FormCreateUser() {
                 value={formData.postJob}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
               >
                 <option value="">Seleccione un cargo</option>
                 <option value="Aprendiz">Aprendiz</option>
@@ -282,78 +254,52 @@ export default function FormCreateUser() {
               </select>
             </div>
 
-            <div className="md:col-span-2">
+            <div className="col-span-2">
               <label
-                htmlFor="idroll"
-                className="block text-sm font-semibold text-title mb-1"
+                htmlFor="active"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                ID del Rol (Opcional):
+                Estado:
               </label>
-              <input
-                type="number"
-                id="idroll"
-                name="idroll"
-                min="1"
-                value={formData.idroll}
+              <select
+                id="active"
+                name="active"
+                value={formData.active}
                 onChange={handleChange}
-                className="w-full px-3 py-2 bg-white border border-border rounded-md text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                placeholder="Ejemplo: 1"
-              />
-            </div>
-
-            <div className="flex flex-col gap-3 md:col-span-2 pt-2">
-              <label className="flex cursor-pointer items-center gap-3">
-                <input
-                  type="checkbox"
-                  name="verifyEmail"
-                  checked={formData.verifyEmail}
-                  onChange={handleChange}
-                  className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                />
-                <span className="text-title text-sm font-semibold">
-                  Correo verificado
-                </span>
-              </label>
-
-              <label className="flex cursor-pointer items-center gap-3">
-                <input
-                  type="checkbox"
-                  name="active"
-                  checked={formData.active}
-                  onChange={handleChange}
-                  className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                />
-                <span className="text-title text-sm font-semibold">
-                  Usuario activo
-                </span>
-              </label>
-
-              <label className="flex cursor-pointer items-center gap-3">
-                <input
-                  type="checkbox"
-                  name="solicitoNewPassword"
-                  checked={formData.solicitoNewPassword}
-                  onChange={handleChange}
-                  className="h-5 w-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                />
-                <span className="text-title text-sm font-semibold">
-                  Solicita nueva contraseña
-                </span>
-              </label>
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+              >
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
             </div>
           </div>
         </form>
 
-        <DialogFooter className="mt-4">
-          <button
-            type="submit"
-            form="user-form"
-            disabled={guardando}
-            className="w-full bg-green-1-navbar text-white font-medium py-2 px-4 rounded-md hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
-          >
-            {guardando ? "Guardando..." : "Guardar Usuario"}
-          </button>
+        <DialogFooter>
+          <div className="flex w-full gap-3">
+            <button
+              type="button"
+              onClick={() => handleOpenChange(false)}
+              disabled={guardando}
+              className="flex-1 bg-[#E8DFD1] hover:bg-[#D9CCB8] text-[#3A2A1A] font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              form="user-form"
+              disabled={guardando}
+              className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+            >
+              {guardando ? "Registrando y enviando correo..." : "Guardar Usuario"}
+            </button>
+          </div>
         </DialogFooter>
+
+        <DialogDescription className="text-center text-parrafo select-none pointer-events-none">
+          Complete los campos para registrar un nuevo usuario y enviarle las credenciales por correo.
+        </DialogDescription>
       </DialogContent>
     </Dialog>
   );

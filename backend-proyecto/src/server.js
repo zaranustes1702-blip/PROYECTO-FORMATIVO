@@ -26,6 +26,7 @@ const visitRoute = require("./routes/visitRoute");
 const healthRoute = require("./routes/healthRoute");
 const quarantineRoute = require("./routes/quarantineRoute");
 const supplyRoute = require("./routes/supplyRoute");
+const stockEntryRoute = require("./routes/stockEntryRoute");
 
 // Middlewares
 const limiter = require("./middlewares/rateLimit");
@@ -65,7 +66,7 @@ app.use("/api/visits", visitRoute);
 app.use("/api/health", healthRoute);
 app.use("/api/quarantines", quarantineRoute);
 app.use("/api/supplies", supplyRoute);
-
+app.use("/api/stock-entries", stockEntryRoute);
 // Ruta no encontrada
 app.use((req, res, next) => {
     const error = new Error("Not Found");
