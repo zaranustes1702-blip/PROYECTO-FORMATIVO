@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,14 +11,29 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { Plus } from "lucide-react";
-import { API_USER_URL } from "@/api/config";
+import {
+  API_USER_CREATE_URL,
+  API_USER_UPDATE_URL,
+} from "@/api/config";
 
 interface FormCreateUserProps {
   onUserCreated?: () => void;
+  initialData?: any;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export default function FormCreateUser({ onUserCreated }: FormCreateUserProps) {
-  const [open, setOpen] = useState(false);
+export default function FormCreateUser({
+  onUserCreated,
+  initialData,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+}: FormCreateUserProps) {
+  const isControlled = controlledOpen !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isControlled ? controlledOpen : internalOpen;
+  const isEdit = Boolean(initialData);
+
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
   const [mensajeError, setMensajeError] = useState("");
@@ -31,6 +46,25 @@ export default function FormCreateUser({ onUserCreated }: FormCreateUserProps) {
     postJob: "",
     active: "true",
   });
+
+  useEffect(() => {
+    if (initialData && open) {
+      setFormData({
+        name: initialData.name || "",
+        email: initialData.email || "",
+        password: "", // Contraseña vacía al editar a menos que desee cambiarla
+        documentId: initialData.documentId || "",
+        postJob: initialData.postJob || "",
+        active: initialData.active ? "true" : "false",
+      });
+      setMensajeExito("");
+      setMensajeError("");
+    } else if (!initialData && open) {
+      resetInputs();
+      setMensajeExito("");
+      setMensajeError("");
+    }
+  }, [initialData, open]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -54,7 +88,11 @@ export default function FormCreateUser({ onUserCreated }: FormCreateUserProps) {
 
   const handleOpenChange = (nuevoEstado: boolean) => {
     if (guardando) return;
-    setOpen(nuevoEstado);
+    if (isControlled && setControlledOpen) {
+      setControlledOpen(nuevoEstado);
+    } else {
+      setInternalOpen(nuevoEstado);
+    }
     if (!nuevoEstado) {
       resetInputs();
       setMensajeExito("");
@@ -68,20 +106,32 @@ export default function FormCreateUser({ onUserCreated }: FormCreateUserProps) {
     setMensajeExito("");
     setMensajeError("");
 
-    const datosEnviar = {
+    const datosEnviar: any = {
       name: formData.name.trim(),
       email: formData.email.trim(),
-      password: formData.password,
       documentId: formData.documentId.trim(),
       postJob: formData.postJob,
       active: formData.active === "true",
     };
 
+    if (formData.password && formData.password.trim() !== "") {
+      datosEnviar.password = formData.password;
+    } else if (!isEdit) {
+      datosEnviar.password = formData.password;
+    }
+
     try {
-      const response = await fetch(`${API_USER_URL}/CreateUser`, {
-        method: "POST",
+      const token = localStorage.getItem("token");
+      const url = isEdit
+        ? API_USER_UPDATE_URL(initialData.userId)
+        : API_USER_CREATE_URL;
+      const method = isEdit ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(datosEnviar),
       });
@@ -98,23 +148,23 @@ export default function FormCreateUser({ onUserCreated }: FormCreateUserProps) {
           resultado?.message ||
             resultado?.mensaje ||
             resultado?.error ||
-            `Error ${response.status}: No se pudo registrar el usuario`
+            `Error ${response.status}: No se pudo ${isEdit ? "actualizar" : "registrar"} el usuario`
         );
       }
 
-      setMensajeExito("¡Usuario registrado correctamente! Se ha enviado un correo de verificación.");
-      resetInputs();
+      setMensajeExito(isEdit ? "¡Usuario actualizado correctamente!" : "¡Usuario registrado correctamente!");
+      if (!isEdit) resetInputs();
 
       if (onUserCreated) {
         onUserCreated();
       }
 
       setTimeout(() => {
-        setOpen(false);
+        handleOpenChange(false);
         setMensajeExito("");
-      }, 2000);
+      }, 1200);
     } catch (error: any) {
-      console.error("Error al registrar usuario:", error);
+      console.error(`Error al ${isEdit ? "actualizar" : "registrar"} usuario:`, error);
       setMensajeError(
         error.message || "Ocurrió un error inesperado al conectar con el servidor"
       );
@@ -125,15 +175,17 @@ export default function FormCreateUser({ onUserCreated }: FormCreateUserProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
-        <Plus className="w-5 h-5 text-white" />
-        <span>Registrar Usuario</span>
-      </DialogTrigger>
+      {!isControlled && !isEdit && (
+        <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
+          <Plus className="w-5 h-5 text-white" />
+          <span>Registrar Usuario</span>
+        </DialogTrigger>
+      )}
 
       <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[800px] border border-border rounded-2xl shadow-xl">
         <DialogHeader className="font-bold text-2xl text-center text-title select-none pointer-events-none">
           <DialogTitle className="text-center font-bold text-2xl text-title select-none pointer-events-none">
-            Registrar Usuario
+            {isEdit ? "Editar Usuario" : "Registrar Usuario"}
           </DialogTitle>
         </DialogHeader>
 
@@ -167,7 +219,7 @@ export default function FormCreateUser({ onUserCreated }: FormCreateUserProps) {
                 maxLength={50}
                 required
                 className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                placeholder="Nombre completo"
+                placeholder="Ej: Laura Martínez"
               />
             </div>
 
@@ -187,7 +239,7 @@ export default function FormCreateUser({ onUserCreated }: FormCreateUserProps) {
                 maxLength={50}
                 required
                 className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                placeholder="correo@ejemplo.com"
+                placeholder="ejemplo@correo.com"
               />
             </div>
 
@@ -196,7 +248,7 @@ export default function FormCreateUser({ onUserCreated }: FormCreateUserProps) {
                 htmlFor="password"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                Contraseña:
+                {isEdit ? "Nueva Contraseña (opcional):" : "Contraseña Temporal:"}
               </label>
               <input
                 type="password"
@@ -204,10 +256,9 @@ export default function FormCreateUser({ onUserCreated }: FormCreateUserProps) {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                maxLength={50}
-                required
+                required={!isEdit}
                 className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                placeholder="••••••••"
+                placeholder={isEdit ? "Dejar en blanco para no cambiar" : "Mínimo 8 caracteres"}
               />
             </div>
 
@@ -224,14 +275,14 @@ export default function FormCreateUser({ onUserCreated }: FormCreateUserProps) {
                 name="documentId"
                 value={formData.documentId}
                 onChange={handleChange}
-                maxLength={30}
+                maxLength={20}
                 required
                 className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                placeholder="Número de documento"
+                placeholder="Ej: 1023456789"
               />
             </div>
 
-            <div className="col-span-2">
+            <div>
               <label
                 htmlFor="postJob"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
@@ -244,7 +295,7 @@ export default function FormCreateUser({ onUserCreated }: FormCreateUserProps) {
                 value={formData.postJob}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar cursor-pointer"
               >
                 <option value="">Seleccione un cargo</option>
                 <option value="Aprendiz">Aprendiz</option>
@@ -254,7 +305,7 @@ export default function FormCreateUser({ onUserCreated }: FormCreateUserProps) {
               </select>
             </div>
 
-            <div className="col-span-2">
+            <div>
               <label
                 htmlFor="active"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
@@ -266,7 +317,7 @@ export default function FormCreateUser({ onUserCreated }: FormCreateUserProps) {
                 name="active"
                 value={formData.active}
                 onChange={handleChange}
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar cursor-pointer"
               >
                 <option value="true">Activo</option>
                 <option value="false">Inactivo</option>
@@ -281,7 +332,7 @@ export default function FormCreateUser({ onUserCreated }: FormCreateUserProps) {
               type="button"
               onClick={() => handleOpenChange(false)}
               disabled={guardando}
-              className="flex-1 bg-[#E8DFD1] hover:bg-[#D9CCB8] text-[#3A2A1A] font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition"
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition cursor-pointer"
             >
               Cancelar
             </button>
@@ -290,15 +341,15 @@ export default function FormCreateUser({ onUserCreated }: FormCreateUserProps) {
               type="submit"
               form="user-form"
               disabled={guardando}
-              className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+              className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition cursor-pointer"
             >
-              {guardando ? "Registrando y enviando correo..." : "Guardar Usuario"}
+              {guardando ? (isEdit ? "Actualizando..." : "Registrando...") : (isEdit ? "Actualizar Usuario" : "Guardar Usuario")}
             </button>
           </div>
         </DialogFooter>
 
         <DialogDescription className="text-center text-parrafo select-none pointer-events-none">
-          Complete los campos para registrar un nuevo usuario y enviarle las credenciales por correo.
+          {isEdit ? "Modifique los datos del usuario seleccionado." : "Complete los campos para registrar un nuevo usuario."}
         </DialogDescription>
       </DialogContent>
     </Dialog>

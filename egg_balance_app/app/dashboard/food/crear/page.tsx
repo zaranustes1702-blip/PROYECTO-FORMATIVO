@@ -1,4 +1,4 @@
-import FormCreateFood from "@/components/food/formCreate";
+import FormCreateFeeding from "@/components/feeding/formCreate";
 
 function CreateFoodPage() {
     return (
@@ -7,7 +7,7 @@ function CreateFoodPage() {
                 Registrar Alimento
             </h1>
 
-            <FormCreateFood />
+            <FormCreateFeeding />
         </div>
     );
 }

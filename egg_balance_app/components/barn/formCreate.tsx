@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,18 +11,29 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { Plus } from "lucide-react";
-import { API_BARN_URL } from "@/api/config";
+import { API_BARN_CREATE_URL, API_BARN_UPDATE_URL } from "@/api/config";
 
 interface FormCreationBarnProps {
   onBarnCreated?: () => void;
+  initialData?: any;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 // Densidad de referencia para calcular la capacidad (aves por m²).
-// Si tu manejo es distinto, cambia este valor.
 const AVES_POR_M2 = 7;
 
-export default function FormCreationBarn({ onBarnCreated }: FormCreationBarnProps) {
-  const [open, setOpen] = useState(false);
+export default function FormCreationBarn({
+  onBarnCreated,
+  initialData,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+}: FormCreationBarnProps) {
+  const isControlled = controlledOpen !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isControlled ? controlledOpen : internalOpen;
+  const isEdit = Boolean(initialData);
+
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
   const [mensajeError, setMensajeError] = useState("");
@@ -36,8 +47,37 @@ export default function FormCreationBarn({ onBarnCreated }: FormCreationBarnProp
     active: "true",
   });
 
-  // Si el usuario escribe la capacidad a mano, ya no se recalcula sola
   const [capacidadManual, setCapacidadManual] = useState(false);
+
+  useEffect(() => {
+    if (initialData && open) {
+      let largoStr = "";
+      let anchoStr = "";
+      if (initialData.barnSize) {
+        const match = String(initialData.barnSize).match(/([\d.]+)\s*x\s*([\d.]+)/i);
+        if (match) {
+          largoStr = match[1];
+          anchoStr = match[2];
+        }
+      }
+
+      setFormData({
+        barnName: initialData.barnName || "",
+        largo: largoStr,
+        ancho: anchoStr,
+        barnSize: initialData.barnSize || "",
+        maxBirdCapacity: String(initialData.maxBirdCapacity ?? ""),
+        active: initialData.active ? "true" : "false",
+      });
+      setCapacidadManual(true);
+      setMensajeExito("");
+      setMensajeError("");
+    } else if (!initialData && open) {
+      resetInputs();
+      setMensajeExito("");
+      setMensajeError("");
+    }
+  }, [initialData, open]);
 
   const medidasValidas = Number(formData.largo) > 0 && Number(formData.ancho) > 0;
   const area = medidasValidas ? Number(formData.largo) * Number(formData.ancho) : 0;
@@ -89,7 +129,11 @@ export default function FormCreationBarn({ onBarnCreated }: FormCreationBarnProp
 
   const handleOpenChange = (nuevoEstado: boolean) => {
     if (guardando) return;
-    setOpen(nuevoEstado);
+    if (isControlled && setControlledOpen) {
+      setControlledOpen(nuevoEstado);
+    } else {
+      setInternalOpen(nuevoEstado);
+    }
     if (!nuevoEstado) {
       resetInputs();
       setMensajeExito("");
@@ -105,16 +149,23 @@ export default function FormCreationBarn({ onBarnCreated }: FormCreationBarnProp
 
     const datosEnviar = {
       barnName: formData.barnName.trim(),
-      barnSize: formData.barnSize.trim(),
+      barnSize: formData.barnSize.trim() || `${formData.largo || 0} x ${formData.ancho || 0} metros`,
       maxBirdCapacity: Number(formData.maxBirdCapacity) || 0,
       active: formData.active === "true",
     };
 
     try {
-      const response = await fetch(`${API_BARN_URL}/CreateBarn`, {
-        method: "POST",
+      const token = localStorage.getItem("token");
+      const url = isEdit
+        ? API_BARN_UPDATE_URL(initialData.id)
+        : API_BARN_CREATE_URL;
+      const method = isEdit ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(datosEnviar),
       });
@@ -131,24 +182,23 @@ export default function FormCreationBarn({ onBarnCreated }: FormCreationBarnProp
           resultado?.message ||
             resultado?.mensaje ||
             resultado?.error ||
-            `Error ${response.status}: No se pudo registrar el galpón`
+            `Error ${response.status}: No se pudo ${isEdit ? "actualizar" : "registrar"} el galpón`
         );
       }
 
-      setMensajeExito("¡Galpón registrado correctamente!");
-      resetInputs();
+      setMensajeExito(isEdit ? "¡Galpón actualizado correctamente!" : "¡Galpón registrado correctamente!");
+      if (!isEdit) resetInputs();
 
-      // Avisa a la página para que la tabla se recargue de inmediato
       if (onBarnCreated) {
         onBarnCreated();
       }
 
       setTimeout(() => {
-        setOpen(false);
+        handleOpenChange(false);
         setMensajeExito("");
-      }, 1500);
+      }, 1200);
     } catch (error: any) {
-      console.error("Error al registrar galpón:", error);
+      console.error(`Error al ${isEdit ? "actualizar" : "registrar"} galpón:`, error);
       setMensajeError(
         error.message || "Ocurrió un error inesperado al conectar con el servidor"
       );
@@ -159,15 +209,17 @@ export default function FormCreationBarn({ onBarnCreated }: FormCreationBarnProp
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
-        <Plus className="w-5 h-5 text-white" />
-        <span>Agregar Galpón</span>
-      </DialogTrigger>
+      {!isControlled && !isEdit && (
+        <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
+          <Plus className="w-5 h-5 text-white" />
+          <span>Registrar Galpón</span>
+        </DialogTrigger>
+      )}
 
       <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[800px] border border-border rounded-2xl shadow-xl">
         <DialogHeader className="font-bold text-2xl text-center text-title select-none pointer-events-none">
           <DialogTitle className="text-center font-bold text-2xl text-title select-none pointer-events-none">
-            Crear Galpón
+            {isEdit ? "Editar Galpón" : "Registrar Galpón"}
           </DialogTitle>
         </DialogHeader>
 
@@ -265,7 +317,7 @@ export default function FormCreationBarn({ onBarnCreated }: FormCreationBarnProp
               />
             </div>
 
-            <div>
+            <div className="col-span-2">
               <label
                 htmlFor="maxBirdCapacity"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
@@ -290,25 +342,6 @@ export default function FormCreationBarn({ onBarnCreated }: FormCreationBarnProp
                 {capacidadManual && " · Editada manualmente."}
               </p>
             </div>
-
-            <div className="col-span-2">
-              <label
-                htmlFor="active"
-                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
-              >
-                Estado:
-              </label>
-              <select
-                id="active"
-                name="active"
-                value={formData.active}
-                onChange={handleChange}
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
-              >
-                <option value="true">Activo</option>
-                <option value="false">Inactivo</option>
-              </select>
-            </div>
           </div>
         </form>
 
@@ -318,7 +351,7 @@ export default function FormCreationBarn({ onBarnCreated }: FormCreationBarnProp
               type="button"
               onClick={() => handleOpenChange(false)}
               disabled={guardando}
-              className="flex-1 bg-[#E8DFD1] hover:bg-[#D9CCB8] text-[#3A2A1A] font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition"
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition cursor-pointer"
             >
               Cancelar
             </button>
@@ -327,15 +360,15 @@ export default function FormCreationBarn({ onBarnCreated }: FormCreationBarnProp
               type="submit"
               form="barn-form"
               disabled={guardando}
-              className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+              className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition cursor-pointer"
             >
-              {guardando ? "Guardando..." : "Guardar Galpón"}
+              {guardando ? (isEdit ? "Actualizando..." : "Guardando...") : (isEdit ? "Actualizar Galpón" : "Guardar Galpón")}
             </button>
           </div>
         </DialogFooter>
 
         <DialogDescription className="text-center text-parrafo select-none pointer-events-none">
-          Complete los campos para registrar un nuevo galpón avícola.
+          {isEdit ? "Modifique los campos y guarde los cambios del galpón." : "Complete los campos para registrar un nuevo galpón avícola."}
         </DialogDescription>
       </DialogContent>
     </Dialog>

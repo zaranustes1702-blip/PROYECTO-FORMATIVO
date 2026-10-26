@@ -558,9 +558,11 @@ CREATE TABLE `users` (
   `updatedAt` datetime DEFAULT NULL,
   `solicito_newPassword` tinyint DEFAULT '0',
   `id_roll` int DEFAULT NULL,
+  `resetPasswordToken` varchar(200) DEFAULT NULL,
+  `resetPasswordTokenExpires` datetime DEFAULT NULL,
   PRIMARY KEY (`userId`),
   KEY `idx_user_roll` (`id_roll`)
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -569,7 +571,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (2,'Javier Ramirez',NULL,'jarl217@gmail.com','','','1076737818','Aprendiz',0,0,'2026-02-17 05:31:13','2026-07-16 05:31:13',0,0),(3,'Zara Ñustes',NULL,'zara@gmail.com','','','1001234567','Administrador',0,0,'2026-07-16 06:37:26','2026-07-16 06:37:26',0,0),(4,'Juan Pérez',NULL,'juan.perez2026@gmail.com','','','1023456789','Administrador',0,0,'2026-07-16 06:39:42','2026-07-16 06:39:42',0,0),(5,'Zara Castro',NULL,'zaraes@sena.edu.co','','','100123467','Administrador',0,0,'2026-07-17 23:20:45','2026-07-17 23:22:17',0,0),(6,'Juan Pérez',NULL,'juan@gmail.com','','','1234567890','Administrador',0,0,'2026-07-30 19:38:11','2026-07-30 19:38:11',0,0),(7,'Zara Ñustes',NULL,'eggbalance857@gmail.com','','','123456789','Administrador',0,0,'2026-07-31 04:08:43','2026-07-31 04:08:43',0,0),(16,'Carlos Gomez',NULL,'carlos.gomez@test.com','$2b$10$XpzCFqaf6wdYfGvBuLrXg.q9c/IDPx221S89zwT8AJotkIzMqWDJS','$2b$10$XpzCFqaf6wdYfGvBuLrXg.','1005829102','Administrador',0,1,NULL,NULL,0,0),(17,'Zara ',NULL,'zaranustes1702@gmail.com','$2b$10$TMcx.BXRHeKAaujhJ4j9nOprfq.KbE2K5hqPA16hZZ0WpUKUN05HG','$2b$10$TMcx.BXRHeKAaujhJ4j9nO','1076737818','Aprendiz',0,0,NULL,NULL,0,0),(18,'Santiago Ñustex',NULL,'zaranustes1702@gmail.com','$2b$10$tu8zlHEwfzN2PTTzoc8pfeygUOdMsZUWWpAKH8irQd1XT5vtYx7KG','$2b$10$tu8zlHEwfzN2PTTzoc8pfe','1076737818','Aprendiz',0,0,NULL,NULL,0,NULL),(19,'Zara Ñustes',NULL,'zaranustes1702@gmail.com','$2b$10$hxuB/LksWJLn0fnZ/1ZgPeMqwvOGVfCDeMdiaWqxEyiRAN0WRh8Bi','$2b$10$hxuB/LksWJLn0fnZ/1ZgPe','1076737818','Gestor líder',0,0,NULL,NULL,0,NULL),(20,'embo',NULL,'embo213@gmail.com','$2b$10$/urojlgmVQZ38yHs.uBMoeL4.BI/vqd7bpHp8mfpk/fQf8PdiXQXK','$2b$10$/urojlgmVQZ38yHs.uBMoe','224323','Instructor',0,1,NULL,NULL,0,NULL);
+INSERT INTO `users` VALUES (16,'Carlos Gomez','123456789','carlos.gomez@test.com','$2b$10$XpzCFqaf6wdYfGvBuLrXg.q9c/IDPx221S89zwT8AJotkIzMqWDJS','$2b$10$XpzCFqaf6wdYfGvBuLrXg.','1005829102','Administrador',0,1,NULL,'2026-10-23 02:46:01',1,0,'MTIzNDU2Nzg5',NULL),(28,'Zara Ñustes','7e896425-fc44-4e57-afda-ec1d4921b426','zaranustes1702@gmail.com','$2b$12$lxU7l1a4X94Va3K9uK9G9uEUG0k0Ann9Q9pJIKpzNRucMa4.TpLvC','$2b$12$lxU7l1a4X94Va3K9uK9G9u','123456789','Administrador',1,1,'2026-10-23 02:28:39','2026-10-23 16:00:54',1,NULL,'N2U4OTY0MjUtZmM0NC00ZTU3LWFmZGEtZWMxZDQ5MjFiNDI2',NULL),(29,'Egg Balance','29778d53-d50b-4d6c-ab79-3c12e4b4fbb6','eggbalance857@gmail.com','$2b$10$/6GOgQpuvrXPIKe2untd9uJACi.79tOv.9cniXbaPb2ldMT14Dvuu','$2b$10$/6GOgQpuvrXPIKe2untd9u','1000000001','Administrador',1,1,'2026-10-23 14:44:24','2026-10-23 15:53:38',1,NULL,'Mjk3NzhkNTMtZDUwYi00ZDZjLWFiNzktM2MxMmU0YjRmYmI2',NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -650,4 +652,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-19 10:39:01
+-- Dump completed on 2026-10-23 20:54:11

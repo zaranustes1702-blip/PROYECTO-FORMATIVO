@@ -1,7 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { API_VISIT_ALL_URL } from "@/api/config";
+import { useEffect, useState, useCallback } from "react";
+import { Pencil, Trash2, Ban, CheckCircle2 } from "lucide-react";
+import {
+  API_VISIT_ALL_URL,
+  API_VISIT_UPDATE_URL,
+  API_VISIT_DELETE_URL,
+} from "@/api/config";
+import FormCreateVisit from "./formCreate";
 
 const POR_PAGINA = 10;
 
@@ -19,70 +25,138 @@ export default function TablaVisit({
   onTotalPages,
 }: TablaVisitProps) {
   const [items, setItems] = useState<any[]>([]);
+  const [editingItem, setEditingItem] = useState<any | null>(null);
+
+  const fetchItems = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(`${API_VISIT_ALL_URL}?limit=500`, {
+        method: "GET",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      const resJson = await response.json();
+      const lista = resJson.info || resJson.data || [];
+      setItems(
+        Array.isArray(lista)
+          ? [...lista].sort((a: any, b: any) => b.id - a.id)
+          : []
+      );
+    } catch (error) {
+      console.error("Error al obtener visitas:", error);
+      setItems([]);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const token = localStorage.getItem("token");
-
-        // El backend devuelve 10 por defecto; pedimos más para buscar y paginar
-        const response = await fetch(`${API_VISIT_ALL_URL}?limit=500`, {
-          method: "GET",
-          cache: "no-store",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        });
-
-        const resJson = await response.json();
-
-        // Tu clase Response devuelve los datos en resJson.info
-        const lista = resJson.info || resJson.data || [];
-        // Más recientes primero (descendente por ID)
-        setItems(
-          Array.isArray(lista)
-            ? [...lista].sort((a: any, b: any) => b.id - a.id)
-            : []
-        );
-      } catch (error) {
-        console.error("Error al obtener visitas:", error);
-        setItems([]);
-      }
-    };
-
     fetchItems();
-  }, [refreshKey]);
+  }, [refreshKey, fetchItems]);
 
-  // Muestra la fecha como dd/mm/aaaa (ej: 12/09/2026)
   const formatDate = (dateStr?: string | null) => {
     if (!dateStr) return "—";
-
     const cleanDate = dateStr.split("T")[0];
     const [year, month, day] = cleanDate.split("-");
-
     if (day && month && year) {
       return `${day}/${month}/${year}`;
     }
-
     return dateStr;
   };
 
-  // Búsqueda en id, fecha, visitante, institución, motivo, observaciones, responsable y estado
+  // Inactivar o Activar visita
+  const handleToggleActive = async (item: any) => {
+    const nuevoEstado = !item.active;
+    const accion = nuevoEstado ? "activar" : "inactivar";
+    if (
+      !window.confirm(
+        `¿Está seguro de que desea ${accion} la visita de "${item.visitorName}"?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const cleanDate = (d?: string | null) => (d ? d.split("T")[0] : "");
+
+      const response = await fetch(API_VISIT_UPDATE_URL(item.id), {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          visitDate: cleanDate(item.visitDate),
+          visitorName: item.visitorName,
+          institutionOrganization: item.institutionOrganization || item.institution || "Sin institución",
+          visitReason: item.visitReason,
+          responsiblePerson: item.responsiblePerson,
+          observations: item.observations || "Sin observaciones",
+          active: nuevoEstado,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error al ${accion} la visita`);
+      }
+
+      fetchItems();
+    } catch (error: any) {
+      alert(error.message || `No se pudo ${accion} la visita`);
+    }
+  };
+
+  // Eliminar visita
+  const handleDelete = async (item: any) => {
+    if (
+      !window.confirm(
+        `¿Está seguro de que desea eliminar la visita de "${item.visitorName}"? Esta acción no se puede deshacer.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(API_VISIT_DELETE_URL(item.id), {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(
+          data?.message || data?.errors?.[0] || "No se pudo eliminar la visita"
+        );
+      }
+
+      fetchItems();
+    } catch (error: any) {
+      alert(error.message || "Error al eliminar la visita");
+    }
+  };
+
   const texto = filtro.trim().toLowerCase();
 
   const itemsFiltrados = items.filter((item: any) => {
     if (!texto) return true;
 
     return [
+      formatDate(item.visitDate),
+      item.visitorName,
+      item.institutionOrganization || item.institution,
+      item.visitReason,
+      item.observations,
+      item.responsiblePerson,
       String(item.id),
-      String(formatDate(item.visitDate)),
-      String(item.visitorName),
-      String(item.institutionOrganization || item.institution || "—"),
-      String(item.visitReason),
-      String(item.observations || "—"),
-      String(item.responsiblePerson),
-      item.active ? "activo" : "inactivo"
+      item.active ? "activo" : "inactivo",
     ].some((valor) => (valor ?? "").toString().toLowerCase().includes(texto));
   });
 
@@ -92,7 +166,7 @@ export default function TablaVisit({
     if (onTotalPages) {
       onTotalPages(totalPaginas);
     }
-  }, [totalPaginas]);
+  }, [totalPaginas, onTotalPages]);
 
   const paginaActual = Math.min(currentPage, totalPaginas);
   const itemsPagina = itemsFiltrados.slice(
@@ -101,90 +175,126 @@ export default function TablaVisit({
   );
 
   return (
-    <div className="w-full overflow-hidden rounded-3xl shadow-sm border border-[#E8DFD1]">
-      {/* Contenedor con scroll: los títulos quedan fijos al bajar */}
-      <div className="max-h-[60vh] overflow-auto">
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-green-2-navbar text-white">
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
-                ID
-              </th>
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
-                Fecha
-              </th>
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
-                Visitante
-              </th>
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
-                Institución
-              </th>
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
-                Motivo
-              </th>
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
-                Observaciones
-              </th>
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
-                Responsable
-              </th>
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm">
-                Estado
-              </th>
-            </tr>
-          </thead>
+    <>
+      {editingItem && (
+        <FormCreateVisit
+          open={!!editingItem}
+          onOpenChange={(abierto) => {
+            if (!abierto) setEditingItem(null);
+          }}
+          initialData={editingItem}
+          onVisitCreated={() => {
+            setEditingItem(null);
+            fetchItems();
+          }}
+        />
+      )}
 
-          <tbody className="divide-y divide-[#E8DFD1]/60 bg-white">
-            {itemsPagina.length > 0 ? (
-              itemsPagina.map((item: any) => (
-                <tr key={item.id}>
-                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A] font-medium">
-                    {item.id}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
-                    {formatDate(item.visitDate)}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
-                    {item.visitorName}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
-                    {item.institutionOrganization || item.institution || "—"}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
-                    {item.visitReason}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A] max-w-xs truncate" title={item.observations}>
-                    {item.observations || "—"}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A]">
-                    {item.responsiblePerson}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm">
-                    <span
-                      className={`font-semibold ${
-                        item.active ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      {item.active ? "Activo" : "Inactivo"}
-                    </span>
+      <div className="w-full overflow-hidden rounded-3xl shadow-sm border border-[#E8DFD1]">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-green-2-navbar text-white">
+                <th className="px-6 py-3 text-left font-semibold text-sm">
+                  Fecha
+                </th>
+                <th className="px-6 py-3 text-left font-semibold text-sm">
+                  Visitante
+                </th>
+                <th className="px-6 py-3 text-left font-semibold text-sm">
+                  Institución
+                </th>
+                <th className="px-6 py-3 text-left font-semibold text-sm">
+                  Motivo
+                </th>
+                <th className="px-6 py-3 text-left font-semibold text-sm">
+                  Estado
+                </th>
+                <th className="px-6 py-3 text-center font-semibold text-sm">
+                  Acciones
+                </th>
+              </tr>
+            </thead>
+
+            <tbody className="divide-y divide-[#E8DFD1]/60 bg-white">
+              {itemsPagina.length > 0 ? (
+                itemsPagina.map((item: any) => (
+                  <tr key={item.id} className="hover:bg-[#FCFBF9] transition-colors">
+                    <td className="px-6 py-2.5 text-sm text-[#3A2A1A] font-medium">
+                      {formatDate(item.visitDate)}
+                    </td>
+                    <td className="px-6 py-2.5 text-sm text-[#3A2A1A]">
+                      {item.visitorName}
+                    </td>
+                    <td className="px-6 py-2.5 text-sm text-[#3A2A1A]">
+                      {item.institutionOrganization || item.institution || "—"}
+                    </td>
+                    <td className="px-6 py-2.5 text-sm text-[#3A2A1A]">
+                      {item.visitReason}
+                    </td>
+                    <td className="px-6 py-2.5 text-sm">
+                      <span
+                        className={`font-semibold ${
+                          item.active ? "text-green-600" : "text-red-600"
+                        }`}
+                      >
+                        {item.active ? "Activo" : "Inactivo"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-2.5 text-sm text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setEditingItem(item)}
+                          title="Editar (ver todos los campos)"
+                          className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleActive(item)}
+                          title={item.active ? "Inactivar" : "Activar"}
+                          className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                            item.active
+                              ? "text-amber-600 hover:text-amber-800 hover:bg-amber-50"
+                              : "text-green-600 hover:text-green-800 hover:bg-green-50"
+                          }`}
+                        >
+                          {item.active ? (
+                            <Ban className="w-4 h-4" />
+                          ) : (
+                            <CheckCircle2 className="w-4 h-4" />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(item)}
+                          title="Eliminar"
+                          className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-6 py-8 text-center text-sm text-[#9A8B7A]"
+                  >
+                    {texto
+                      ? "No se encontraron visitas con ese criterio."
+                      : "No hay visitas registradas."}
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan={8}
-                  className="px-6 py-8 text-center text-sm text-[#9A8B7A]"
-                >
-                  {texto
-                    ? "No se encontraron visitas con ese criterio."
-                    : "No hay visitas registradas."}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

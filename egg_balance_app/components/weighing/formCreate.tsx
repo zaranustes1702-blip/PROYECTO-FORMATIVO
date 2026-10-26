@@ -11,19 +11,34 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { Plus } from "lucide-react";
-import { API_WEIGHING_URL } from "@/api/config";
+import {
+  API_WEIGHING_CREATE_URL,
+  API_WEIGHING_UPDATE_URL,
+  API_BIRD_BATCH_ALL_URL,
+  API_RESPONSIBLE_ALL_URL,
+} from "@/api/config";
 
 interface FormCreateWeighingProps {
   onWeighingCreated?: () => void;
+  initialData?: any;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-// Guía Hy-Line Brown: la uniformidad es el % de aves cuyo peso está
-// dentro de ±10% del peso promedio. Meta recomendada: 80% o más.
 const RANGO_UNIFORMIDAD = 0.1;
 const META_UNIFORMIDAD = 80;
 
-export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeighingProps) {
-  const [open, setOpen] = useState(false);
+export default function FormCreateWeighing({
+  onWeighingCreated,
+  initialData,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+}: FormCreateWeighingProps) {
+  const isControlled = controlledOpen !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isControlled ? controlledOpen : internalOpen;
+  const isEdit = Boolean(initialData);
+
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
   const [mensajeError, setMensajeError] = useState("");
@@ -41,81 +56,69 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
     active: "true",
   });
 
-  // Responsables cargados desde el módulo de responsables
   const [responsables, setResponsables] = useState<any[]>([]);
-
-  // Lotes de aves cargados desde el módulo de lotes
   const [lotes, setLotes] = useState<any[]>([]);
 
-  // Si el usuario escribe el valor a mano, ya no se recalcula solo
   const [promedioManual, setPromedioManual] = useState(false);
   const [uniformidadManual, setUniformidadManual] = useState(false);
 
-  // Carga los responsables cada vez que se abre el formulario
   useEffect(() => {
     if (!open) return;
 
-    const cargarResponsables = async () => {
+    const cargarDatos = async () => {
       try {
         const token = localStorage.getItem("token");
+        const headers: any = token ? { Authorization: `Bearer ${token}` } : {};
 
-        const response = await fetch(
-          "http://localhost:3000/api/responsibles/ResponsibleAll?limit=500",
-          {
-            method: "GET",
-            cache: "no-store",
-            headers: {
-              "Content-Type": "application/json",
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-          }
-        );
+        const resResponsables = await fetch(`${API_RESPONSIBLE_ALL_URL}?limit=500`, { headers });
+        const resJsonResp = await resResponsables.json();
+        const listaResp = resJsonResp.info || resJsonResp.data || [];
+        setResponsables(listaResp);
 
-        const resJson = await response.json();
-        const lista = resJson.info || resJson.data || [];
-
-        // Solo responsables activos
-        setResponsables(
-          Array.isArray(lista) ? lista.filter((resp: any) => resp.active) : []
-        );
+        const resLotes = await fetch(`${API_BIRD_BATCH_ALL_URL}?limit=500`, { headers });
+        const resJsonLotes = await resLotes.json();
+        const listaLotes = resJsonLotes.info || resJsonLotes.data || [];
+        setLotes(listaLotes);
       } catch (error) {
-        console.error("Error al cargar responsables:", error);
-        setResponsables([]);
+        console.error("Error al cargar responsables o lotes:", error);
       }
     };
 
-    const cargarLotes = async () => {
-      try {
-        const token = localStorage.getItem("token");
-
-        const response = await fetch(
-          "http://localhost:3000/api/bird-batches/BirdBatchAll?limit=500",
-          {
-            method: "GET",
-            cache: "no-store",
-            headers: {
-              "Content-Type": "application/json",
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-          }
-        );
-
-        const resJson = await response.json();
-        const lista = resJson.info || resJson.data || [];
-
-        // Solo lotes activos
-        setLotes(
-          Array.isArray(lista) ? lista.filter((lote: any) => lote.active) : []
-        );
-      } catch (error) {
-        console.error("Error al cargar lotes:", error);
-        setLotes([]);
-      }
-    };
-
-    cargarResponsables();
-    cargarLotes();
+    cargarDatos();
   }, [open]);
+
+  useEffect(() => {
+    if (initialData && open) {
+      const cleanDate = (d?: string | null) => (d ? d.split("T")[0] : "");
+      const cleanTime = (t?: string | null) => (t ? String(t).slice(0, 5) : "");
+      setFormData({
+        id_birdBatch: String(initialData.id_birdBatch ?? ""),
+        weighingDate: cleanDate(initialData.weighingDate),
+        weighingTime: cleanTime(initialData.weighingTime),
+        responsiblePerson: initialData.responsiblePerson || "",
+        weighedBirds: String(initialData.birdsWeighed ?? initialData.weighedBirds ?? ""),
+        totalWeightKg: String(initialData.totalWeightKg ?? ""),
+        averageWeightGrams: String(initialData.averageWeightGrams ?? ""),
+        avesEnRango: initialData.avesEnRango
+          ? String(initialData.avesEnRango)
+          : (() => {
+              const b = Number(initialData.birdsWeighed ?? initialData.weighedBirds ?? 0);
+              const u = Number(initialData.uniformityPercentage ?? initialData.batchUniformityPercentage ?? 0);
+              return b > 0 && u > 0 ? String(Math.round((b * u) / 100)) : "";
+            })(),
+        batchUniformityPercentage: String(initialData.uniformityPercentage ?? initialData.batchUniformityPercentage ?? ""),
+        active: initialData.active ? "true" : "false",
+      });
+      setPromedioManual(true);
+      setUniformidadManual(true);
+      setMensajeExito("");
+      setMensajeError("");
+    } else if (!initialData && open) {
+      resetInputs();
+      setMensajeExito("");
+      setMensajeError("");
+    }
+  }, [initialData, open]);
 
   const promedio = Number(formData.averageWeightGrams);
   const rangoMinimo = promedio > 0 ? (promedio * (1 - RANGO_UNIFORMIDAD)).toFixed(0) : "";
@@ -144,7 +147,6 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
       const pesoTotal = Number(actualizados.totalWeightKg);
       const enRango = Number(actualizados.avesEnRango);
 
-      // Peso promedio (g) = peso total (kg) x 1000 / aves pesadas
       if (
         (name === "weighedBirds" || name === "totalWeightKg") &&
         !promedioManual &&
@@ -154,7 +156,6 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
         actualizados.averageWeightGrams = ((pesoTotal * 1000) / aves).toFixed(2);
       }
 
-      // Uniformidad (%) = aves dentro de ±10% del promedio / aves pesadas x 100
       if (
         (name === "weighedBirds" || name === "avesEnRango") &&
         !uniformidadManual &&
@@ -189,7 +190,11 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
 
   const handleOpenChange = (nuevoEstado: boolean) => {
     if (guardando) return;
-    setOpen(nuevoEstado);
+    if (isControlled && setControlledOpen) {
+      setControlledOpen(nuevoEstado);
+    } else {
+      setInternalOpen(nuevoEstado);
+    }
     if (!nuevoEstado) {
       resetInputs();
       setMensajeExito("");
@@ -203,7 +208,6 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
     setMensajeExito("");
     setMensajeError("");
 
-    // Los nombres coinciden con el modelo del backend (weighingModel)
     const datosEnviar = {
       id_birdBatch: Number(formData.id_birdBatch) || 0,
       weighingDate: formData.weighingDate,
@@ -217,10 +221,17 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
     };
 
     try {
-      const response = await fetch(`${API_WEIGHING_URL}/CreateWeighing`, {
-        method: "POST",
+      const token = localStorage.getItem("token");
+      const url = isEdit
+        ? API_WEIGHING_UPDATE_URL(initialData.id)
+        : API_WEIGHING_CREATE_URL;
+      const method = isEdit ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(datosEnviar),
       });
@@ -237,24 +248,23 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
           resultado?.message ||
             resultado?.mensaje ||
             resultado?.error ||
-            `Error ${response.status}: No se pudo registrar el pesaje`
+            `Error ${response.status}: No se pudo ${isEdit ? "actualizar" : "registrar"} el pesaje`
         );
       }
 
-      setMensajeExito("¡Pesaje registrado correctamente!");
-      resetInputs();
+      setMensajeExito(isEdit ? "¡Pesaje actualizado correctamente!" : "¡Pesaje registrado correctamente!");
+      if (!isEdit) resetInputs();
 
-      // Avisa a la página para que la tabla se recargue de inmediato
       if (onWeighingCreated) {
         onWeighingCreated();
       }
 
       setTimeout(() => {
-        setOpen(false);
+        handleOpenChange(false);
         setMensajeExito("");
-      }, 1500);
+      }, 1200);
     } catch (error: any) {
-      console.error("Error al registrar pesaje:", error);
+      console.error(`Error al ${isEdit ? "actualizar" : "registrar"} pesaje:`, error);
       setMensajeError(
         error.message || "Ocurrió un error inesperado al conectar con el servidor"
       );
@@ -265,15 +275,17 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
-        <Plus className="w-5 h-5 text-white" />
-        <span>Registrar Pesaje</span>
-      </DialogTrigger>
+      {!isControlled && !isEdit && (
+        <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
+          <Plus className="w-5 h-5 text-white" />
+          <span>Registrar Pesaje</span>
+        </DialogTrigger>
+      )}
 
-      <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[800px] max-h-[90vh] overflow-y-auto border border-border rounded-2xl shadow-xl">
+      <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[800px] border border-border rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="font-bold text-2xl text-center text-title select-none pointer-events-none">
           <DialogTitle className="text-center font-bold text-2xl text-title select-none pointer-events-none">
-            Registrar Pesaje
+            {isEdit ? "Editar Pesaje" : "Registrar Pesaje"}
           </DialogTitle>
         </DialogHeader>
 
@@ -291,44 +303,12 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
 
         <form id="weighing-form" onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label
-                htmlFor="id_birdBatch"
-                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
-              >
-                Lote de Aves:
-              </label>
-              <select
-                id="id_birdBatch"
-                name="id_birdBatch"
-                value={formData.id_birdBatch}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-              >
-                <option value="">
-                  {lotes.length > 0
-                    ? "Seleccione un lote"
-                    : "No hay lotes activos"}
-                </option>
-                {lotes.map((lote: any) => (
-                  <option key={lote.id} value={lote.id}>
-                    {lote.batchNumber}
-                    {lote.birdBreed ? ` (${lote.birdBreed})` : ""}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-1 text-xs text-parrafo select-none pointer-events-none">
-                El peso promedio de este pesaje se mostrará como peso actual del lote.
-              </p>
-            </div>
-
             <div>
               <label
                 htmlFor="weighingDate"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                Fecha:
+                Fecha del Pesaje:
               </label>
               <input
                 type="date"
@@ -346,7 +326,7 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
                 htmlFor="weighingTime"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                Hora:
+                Hora del Pesaje:
               </label>
               <input
                 type="time"
@@ -361,10 +341,34 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
 
             <div>
               <label
+                htmlFor="id_birdBatch"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
+              >
+                Lote de Aves:
+              </label>
+              <select
+                id="id_birdBatch"
+                name="id_birdBatch"
+                value={formData.id_birdBatch}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar cursor-pointer"
+              >
+                <option value="">Selecciona un lote...</option>
+                {lotes.map((lote) => (
+                  <option key={lote.id} value={lote.id}>
+                    {lote.batchNumber} - {lote.birdBreed} ({lote.birdQuantity} aves)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label
                 htmlFor="responsiblePerson"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                Responsable:
+                Persona Responsable:
               </label>
               <select
                 id="responsiblePerson"
@@ -372,16 +376,12 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
                 value={formData.responsiblePerson}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar cursor-pointer"
               >
-                <option value="">
-                  {responsables.length > 0
-                    ? "Seleccione un responsable"
-                    : "No hay responsables activos"}
-                </option>
-                {responsables.map((resp: any) => (
-                  <option key={resp.id} value={resp.fullName}>
-                    {resp.fullName}{resp.role ? ` (${resp.role})` : ""}
+                <option value="">Selecciona un responsable...</option>
+                {responsables.map((r) => (
+                  <option key={r.id} value={r.fullName}>
+                    {r.fullName} ({r.responsibleType})
                   </option>
                 ))}
               </select>
@@ -392,7 +392,7 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
                 htmlFor="weighedBirds"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                Aves Pesadas (muestra):
+                Aves Pesadas (Muestra):
               </label>
               <input
                 type="number"
@@ -403,7 +403,7 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                placeholder="Ej: 100"
+                placeholder="Ej: 50"
               />
             </div>
 
@@ -412,46 +412,46 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
                 htmlFor="totalWeightKg"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                Peso Total (kg):
+                Peso Total de la Muestra (kg):
               </label>
               <input
                 type="number"
                 id="totalWeightKg"
                 name="totalWeightKg"
-                min="0"
+                min="0.01"
                 step="0.01"
                 value={formData.totalWeightKg}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                placeholder="Peso de todas las aves pesadas"
+                placeholder="Ej: 95.5"
               />
             </div>
 
-            <div>
+            <div className="col-span-2">
               <label
                 htmlFor="averageWeightGrams"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                Peso Promedio (g):
+                Peso Promedio por Ave (Gramos, automático):
               </label>
               <input
                 type="number"
                 id="averageWeightGrams"
                 name="averageWeightGrams"
-                min="0"
+                min="1"
                 step="0.01"
                 value={formData.averageWeightGrams}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                placeholder="Se calcula con peso total y aves"
+                placeholder="Se calcula solo con las aves y el peso total"
               />
               <p className="mt-1 text-xs text-parrafo select-none pointer-events-none">
                 {promedio > 0
-                  ? `Rango ±10%: ${rangoMinimo} g – ${rangoMaximo} g`
-                  : "Peso total (kg) x 1000 ÷ aves pesadas."}
-                {promedioManual && " · Editado manualmente."}
+                  ? `Rango ±10%: de ${rangoMinimo} g a ${rangoMaximo} g (para uniformidad).`
+                  : "Ingrese aves y peso total para calcular el promedio."}
+                {promedioManual && " · Editado a mano."}
               </p>
             </div>
 
@@ -460,7 +460,7 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
                 htmlFor="avesEnRango"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                Aves dentro de ±10%:
+                Aves en el Rango ±10%:
               </label>
               <input
                 type="number"
@@ -470,12 +470,10 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
                 max={formData.weighedBirds || undefined}
                 value={formData.avesEnRango}
                 onChange={handleChange}
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                placeholder="Aves con peso dentro del rango"
+                disabled={!promedio}
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:bg-gray-100 disabled:text-gray-400"
+                placeholder={promedio ? `Entre ${rangoMinimo} y ${rangoMaximo} g` : "Primero ingrese las aves"}
               />
-              <p className="mt-1 text-xs text-parrafo select-none pointer-events-none">
-                Solo sirve para calcular la uniformidad; no se guarda.
-              </p>
             </div>
 
             <div>
@@ -483,7 +481,7 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
                 htmlFor="batchUniformityPercentage"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                Uniformidad (%):
+                Uniformidad del Lote (%):
               </label>
               <input
                 type="number"
@@ -507,25 +505,6 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
                 {uniformidadManual && " · Editada manualmente."}
               </p>
             </div>
-
-            <div className="col-span-2">
-              <label
-                htmlFor="active"
-                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
-              >
-                Estado:
-              </label>
-              <select
-                id="active"
-                name="active"
-                value={formData.active}
-                onChange={handleChange}
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-              >
-                <option value="true">Activo</option>
-                <option value="false">Inactivo</option>
-              </select>
-            </div>
           </div>
         </form>
 
@@ -535,7 +514,7 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
               type="button"
               onClick={() => handleOpenChange(false)}
               disabled={guardando}
-              className="flex-1 bg-[#E8DFD1] hover:bg-[#D9CCB8] text-[#3A2A1A] font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition"
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition cursor-pointer"
             >
               Cancelar
             </button>
@@ -544,15 +523,15 @@ export default function FormCreateWeighing({ onWeighingCreated }: FormCreateWeig
               type="submit"
               form="weighing-form"
               disabled={guardando}
-              className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+              className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition cursor-pointer"
             >
-              {guardando ? "Guardando..." : "Guardar Pesaje"}
+              {guardando ? (isEdit ? "Actualizando..." : "Guardando...") : (isEdit ? "Actualizar Pesaje" : "Guardar Pesaje")}
             </button>
           </div>
         </DialogFooter>
 
         <DialogDescription className="text-center text-parrafo select-none pointer-events-none">
-          Complete los campos para registrar el peso corporal y la uniformidad de las aves.
+          {isEdit ? "Modifique la información del pesaje registrado." : "Complete los campos para registrar el peso corporal y la uniformidad de las aves."}
         </DialogDescription>
       </DialogContent>
     </Dialog>

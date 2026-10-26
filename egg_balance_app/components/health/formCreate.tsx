@@ -13,21 +13,33 @@ import {
 import { Plus } from "lucide-react";
 import {
   API_HEALTH_CREATE_URL,
+  API_HEALTH_UPDATE_URL,
   API_BIRD_BATCH_ALL_URL,
   API_SUPPLY_ALL_URL,
 } from "@/api/config";
 
 interface FormCreateHealthProps {
   onHealthCreated?: () => void;
+  initialData?: any;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export default function FormCreateHealth({ onHealthCreated }: FormCreateHealthProps) {
-  const [open, setOpen] = useState(false);
+export default function FormCreateHealth({
+  onHealthCreated,
+  initialData,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+}: FormCreateHealthProps) {
+  const isControlled = controlledOpen !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isControlled ? controlledOpen : internalOpen;
+  const isEdit = Boolean(initialData);
+
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
   const [mensajeError, setMensajeError] = useState("");
 
-  // Listas para los select
   const [lotes, setLotes] = useState<any[]>([]);
   const [insumos, setInsumos] = useState<any[]>([]);
 
@@ -40,24 +52,24 @@ export default function FormCreateHealth({ onHealthCreated }: FormCreateHealthPr
     active: "true",
   });
 
-  // Cada vez que se abre el formulario se cargan las listas de los select
   useEffect(() => {
     if (!open) return;
 
     const cargarListas = async () => {
       try {
-        // Solo lotes activos
-        const resLotes = await fetch(`${API_BIRD_BATCH_ALL_URL}?limit=500`);
+        const token = localStorage.getItem("token");
+        const headers: any = token ? { Authorization: `Bearer ${token}` } : {};
+
+        const resLotes = await fetch(`${API_BIRD_BATCH_ALL_URL}?limit=500`, { headers });
         const dataLotes = await resLotes.json();
         const listaLotes = dataLotes.info || [];
-        setLotes(listaLotes.filter((l: any) => l.active));
+        setLotes(listaLotes);
 
-        // Solo insumos activos de tipo medicamentos
-        const resInsumos = await fetch(`${API_SUPPLY_ALL_URL}?limit=500`);
+        const resInsumos = await fetch(`${API_SUPPLY_ALL_URL}?limit=500`, { headers });
         const dataInsumos = await resInsumos.json();
         const listaInsumos = dataInsumos.info || [];
         setInsumos(
-          listaInsumos.filter((i: any) => i.active && i.supplyType === "medicamentos")
+          listaInsumos.filter((i: any) => i.supplyType === "medicamentos")
         );
       } catch (error) {
         console.error("Error al cargar las listas:", error);
@@ -67,6 +79,26 @@ export default function FormCreateHealth({ onHealthCreated }: FormCreateHealthPr
 
     cargarListas();
   }, [open]);
+
+  useEffect(() => {
+    if (initialData && open) {
+      const cleanDate = (d?: string | null) => (d ? d.split("T")[0] : "");
+      setFormData({
+        id_lote: String(initialData.id_lote ?? ""),
+        id_supply: String(initialData.id_supply ?? ""),
+        healthDate: cleanDate(initialData.healthDate),
+        vaccineQuantity: String(initialData.vaccineQuantity ?? ""),
+        vaccineName: initialData.vaccineName || "",
+        active: initialData.active ? "true" : "false",
+      });
+      setMensajeExito("");
+      setMensajeError("");
+    } else if (!initialData && open) {
+      resetInputs();
+      setMensajeExito("");
+      setMensajeError("");
+    }
+  }, [initialData, open]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -90,7 +122,11 @@ export default function FormCreateHealth({ onHealthCreated }: FormCreateHealthPr
 
   const handleOpenChange = (nuevoEstado: boolean) => {
     if (guardando) return;
-    setOpen(nuevoEstado);
+    if (isControlled && setControlledOpen) {
+      setControlledOpen(nuevoEstado);
+    } else {
+      setInternalOpen(nuevoEstado);
+    }
     if (!nuevoEstado) {
       resetInputs();
       setMensajeExito("");
@@ -114,10 +150,17 @@ export default function FormCreateHealth({ onHealthCreated }: FormCreateHealthPr
     };
 
     try {
-      const response = await fetch(API_HEALTH_CREATE_URL, {
-        method: "POST",
+      const token = localStorage.getItem("token");
+      const url = isEdit
+        ? API_HEALTH_UPDATE_URL(initialData.id)
+        : API_HEALTH_CREATE_URL;
+      const method = isEdit ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(datosEnviar),
       });
@@ -130,7 +173,6 @@ export default function FormCreateHealth({ onHealthCreated }: FormCreateHealthPr
       }
 
       if (!response.ok) {
-        // El backend manda la lista de errores en "info"
         const detalle = Array.isArray(resultado?.info)
           ? resultado.info.join(" · ")
           : "";
@@ -138,24 +180,23 @@ export default function FormCreateHealth({ onHealthCreated }: FormCreateHealthPr
         throw new Error(
           detalle ||
             resultado?.message ||
-            `Error ${response.status}: No se pudo registrar el registro de sanidad`
+            `Error ${response.status}: No se pudo ${isEdit ? "actualizar" : "registrar"} el registro de sanidad`
         );
       }
 
-      setMensajeExito("¡Registro de sanidad guardado correctamente!");
-      resetInputs();
+      setMensajeExito(isEdit ? "¡Registro de sanidad actualizado correctamente!" : "¡Registro de sanidad guardado correctamente!");
+      if (!isEdit) resetInputs();
 
-      // Avisa a la página para que la tabla se recargue de inmediato
       if (onHealthCreated) {
         onHealthCreated();
       }
 
       setTimeout(() => {
-        setOpen(false);
+        handleOpenChange(false);
         setMensajeExito("");
-      }, 1500);
+      }, 1200);
     } catch (error: any) {
-      console.error("Error al registrar el registro de sanidad:", error);
+      console.error(`Error al ${isEdit ? "actualizar" : "registrar"} el registro de sanidad:`, error);
       setMensajeError(
         error.message || "Ocurrió un error inesperado al conectar con el servidor"
       );
@@ -166,15 +207,17 @@ export default function FormCreateHealth({ onHealthCreated }: FormCreateHealthPr
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
-        <Plus className="w-5 h-5 text-white" />
-        <span>Registrar Sanidad</span>
-      </DialogTrigger>
+      {!isControlled && !isEdit && (
+        <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
+          <Plus className="w-5 h-5 text-white" />
+          <span>Registrar Sanidad</span>
+        </DialogTrigger>
+      )}
 
       <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[800px] max-h-[90vh] overflow-y-auto border border-border rounded-2xl shadow-xl">
         <DialogHeader className="font-bold text-2xl text-center text-title select-none pointer-events-none">
           <DialogTitle className="text-center font-bold text-2xl text-title select-none pointer-events-none">
-            Registrar Sanidad
+            {isEdit ? "Editar Sanidad" : "Registrar Sanidad"}
           </DialogTitle>
         </DialogHeader>
 
@@ -194,58 +237,10 @@ export default function FormCreateHealth({ onHealthCreated }: FormCreateHealthPr
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label
-                htmlFor="id_lote"
-                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
-              >
-                Lote:
-              </label>
-              <select
-                id="id_lote"
-                name="id_lote"
-                value={formData.id_lote}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
-              >
-                <option value="">Seleccione un lote</option>
-                {lotes.map((lote: any) => (
-                  <option key={lote.id} value={lote.id}>
-                    {lote.batchNumber}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="id_supply"
-                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
-              >
-                Insumo (medicamento):
-              </label>
-              <select
-                id="id_supply"
-                name="id_supply"
-                value={formData.id_supply}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
-              >
-                <option value="">Seleccione un insumo</option>
-                {insumos.map((insumo: any) => (
-                  <option key={insumo.id_supply} value={insumo.id_supply}>
-                    {insumo.supplyName} ({insumo.id_supply})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label
                 htmlFor="healthDate"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                Fecha de Sanidad:
+                Fecha:
               </label>
               <input
                 type="date"
@@ -256,6 +251,54 @@ export default function FormCreateHealth({ onHealthCreated }: FormCreateHealthPr
                 required
                 className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:border-[#C5B8A5]"
               />
+            </div>
+
+            <div>
+              <label
+                htmlFor="id_lote"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
+              >
+                Lote de Aves:
+              </label>
+              <select
+                id="id_lote"
+                name="id_lote"
+                value={formData.id_lote}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5] cursor-pointer"
+              >
+                <option value="">Seleccione un lote...</option>
+                {lotes.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.batchNumber} ({l.birdBreed})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="id_supply"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
+              >
+                Insumo (Medicamento):
+              </label>
+              <select
+                id="id_supply"
+                name="id_supply"
+                value={formData.id_supply}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5] cursor-pointer"
+              >
+                <option value="">Seleccione un insumo...</option>
+                {insumos.map((i) => (
+                  <option key={i.id_supply} value={i.id_supply}>
+                    {i.supplyName} ({i.reference})
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -274,11 +317,11 @@ export default function FormCreateHealth({ onHealthCreated }: FormCreateHealthPr
                 min="1"
                 required
                 className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:border-[#C5B8A5]"
-                placeholder="Ej: 100"
+                placeholder="Ej: 500"
               />
             </div>
 
-            <div>
+            <div className="col-span-2">
               <label
                 htmlFor="vaccineName"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
@@ -296,25 +339,6 @@ export default function FormCreateHealth({ onHealthCreated }: FormCreateHealthPr
                 placeholder="Ej: Newcastle"
               />
             </div>
-
-            <div>
-              <label
-                htmlFor="active"
-                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
-              >
-                Estado:
-              </label>
-              <select
-                id="active"
-                name="active"
-                value={formData.active}
-                onChange={handleChange}
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
-              >
-                <option value="true">Activo</option>
-                <option value="false">Inactivo</option>
-              </select>
-            </div>
           </div>
         </form>
 
@@ -324,7 +348,7 @@ export default function FormCreateHealth({ onHealthCreated }: FormCreateHealthPr
               type="button"
               onClick={() => handleOpenChange(false)}
               disabled={guardando}
-              className="flex-1 bg-[#E8DFD1] hover:bg-[#D9CCB8] text-[#3A2A1A] font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition"
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition cursor-pointer"
             >
               Cancelar
             </button>
@@ -333,15 +357,15 @@ export default function FormCreateHealth({ onHealthCreated }: FormCreateHealthPr
               type="submit"
               form="health-form"
               disabled={guardando}
-              className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+              className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition cursor-pointer"
             >
-              {guardando ? "Guardando..." : "Guardar Sanidad"}
+              {guardando ? (isEdit ? "Actualizando..." : "Guardando...") : (isEdit ? "Actualizar Sanidad" : "Guardar Sanidad")}
             </button>
           </div>
         </DialogFooter>
 
         <DialogDescription className="text-center text-parrafo select-none pointer-events-none">
-          Complete los campos para registrar la sanidad de un lote.
+          {isEdit ? "Modifique la información de la sanidad registrada." : "Complete los campos para registrar la sanidad de un lote."}
         </DialogDescription>
       </DialogContent>
     </Dialog>

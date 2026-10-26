@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,14 +11,26 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { Plus } from "lucide-react";
-import { API_SUPPLY_URL } from "@/api/config";
+import { API_SUPPLY_CREATE_URL, API_SUPPLY_UPDATE_URL } from "@/api/config";
 
 interface FormCreateSupplyProps {
   onSupplyCreated?: () => void;
+  initialData?: any;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export default function FormCreateSupply({ onSupplyCreated }: FormCreateSupplyProps) {
-  const [open, setOpen] = useState(false);
+export default function FormCreateSupply({
+  onSupplyCreated,
+  initialData,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+}: FormCreateSupplyProps) {
+  const isControlled = controlledOpen !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isControlled ? controlledOpen : internalOpen;
+  const isEdit = Boolean(initialData);
+
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
   const [mensajeError, setMensajeError] = useState("");
@@ -32,6 +44,26 @@ export default function FormCreateSupply({ onSupplyCreated }: FormCreateSupplyPr
     observations: "",
     active: "true",
   });
+
+  useEffect(() => {
+    if (initialData && open) {
+      setFormData({
+        id_supply: initialData.id_supply || "",
+        supplyName: initialData.supplyName || "",
+        supplyType: initialData.supplyType || "",
+        reference: initialData.reference || "",
+        minimumStock: String(initialData.minimumStock ?? ""),
+        observations: initialData.observations || "",
+        active: initialData.active ? "true" : "false",
+      });
+      setMensajeExito("");
+      setMensajeError("");
+    } else if (!initialData && open) {
+      resetInputs();
+      setMensajeExito("");
+      setMensajeError("");
+    }
+  }, [initialData, open]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -56,7 +88,11 @@ export default function FormCreateSupply({ onSupplyCreated }: FormCreateSupplyPr
 
   const handleOpenChange = (nuevoEstado: boolean) => {
     if (guardando) return;
-    setOpen(nuevoEstado);
+    if (isControlled && setControlledOpen) {
+      setControlledOpen(nuevoEstado);
+    } else {
+      setInternalOpen(nuevoEstado);
+    }
     if (!nuevoEstado) {
       resetInputs();
       setMensajeExito("");
@@ -81,10 +117,17 @@ export default function FormCreateSupply({ onSupplyCreated }: FormCreateSupplyPr
     };
 
     try {
-      const response = await fetch(`${API_SUPPLY_URL}/CreateSupply`, {
-        method: "POST",
+      const token = localStorage.getItem("token");
+      const url = isEdit
+        ? API_SUPPLY_UPDATE_URL(initialData.id_supply)
+        : API_SUPPLY_CREATE_URL;
+      const method = isEdit ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(datosEnviar),
       });
@@ -97,7 +140,6 @@ export default function FormCreateSupply({ onSupplyCreated }: FormCreateSupplyPr
       }
 
       if (!response.ok) {
-        // El backend manda la lista de errores en "info"
         const detalle = Array.isArray(resultado?.info)
           ? resultado.info.join(" · ")
           : "";
@@ -105,24 +147,23 @@ export default function FormCreateSupply({ onSupplyCreated }: FormCreateSupplyPr
         throw new Error(
           detalle ||
             resultado?.message ||
-            `Error ${response.status}: No se pudo registrar el insumo`
+            `Error ${response.status}: No se pudo ${isEdit ? "actualizar" : "registrar"} el insumo`
         );
       }
 
-      setMensajeExito("¡Insumo registrado correctamente!");
-      resetInputs();
+      setMensajeExito(isEdit ? "¡Insumo actualizado correctamente!" : "¡Insumo registrado correctamente!");
+      if (!isEdit) resetInputs();
 
-      // Avisa a la página para que la tabla se recargue de inmediato
       if (onSupplyCreated) {
         onSupplyCreated();
       }
 
       setTimeout(() => {
-        setOpen(false);
+        handleOpenChange(false);
         setMensajeExito("");
-      }, 1500);
+      }, 1200);
     } catch (error: any) {
-      console.error("Error al registrar insumo:", error);
+      console.error(`Error al ${isEdit ? "actualizar" : "registrar"} insumo:`, error);
       setMensajeError(
         error.message || "Ocurrió un error inesperado al conectar con el servidor"
       );
@@ -133,15 +174,17 @@ export default function FormCreateSupply({ onSupplyCreated }: FormCreateSupplyPr
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
-        <Plus className="w-5 h-5 text-white" />
-        <span>Agregar Insumo</span>
-      </DialogTrigger>
+      {!isControlled && !isEdit && (
+        <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
+          <Plus className="w-5 h-5 text-white" />
+          <span>Registrar Insumo</span>
+        </DialogTrigger>
+      )}
 
       <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[800px] border border-border rounded-2xl shadow-xl">
         <DialogHeader className="font-bold text-2xl text-center text-title select-none pointer-events-none">
           <DialogTitle className="text-center font-bold text-2xl text-title select-none pointer-events-none">
-            Crear Insumo
+            {isEdit ? "Editar Insumo" : "Crear Insumo"}
           </DialogTitle>
         </DialogHeader>
 
@@ -164,7 +207,7 @@ export default function FormCreateSupply({ onSupplyCreated }: FormCreateSupplyPr
                 htmlFor="id_supply"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                ID del Insumo:
+                ID del Insumo (Código):
               </label>
               <input
                 type="text"
@@ -172,10 +215,11 @@ export default function FormCreateSupply({ onSupplyCreated }: FormCreateSupplyPr
                 name="id_supply"
                 value={formData.id_supply}
                 onChange={handleChange}
-                maxLength={10}
+                maxLength={20}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:border-[#C5B8A5]"
-                placeholder="Ej: ALI001"
+                readOnly={isEdit}
+                className={`w-full px-3 py-2 border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:border-[#C5B8A5] ${isEdit ? "bg-gray-100 cursor-not-allowed" : "bg-white"}`}
+                placeholder="Ej: ALIM-001 o MED-001"
               />
             </div>
 
@@ -195,7 +239,7 @@ export default function FormCreateSupply({ onSupplyCreated }: FormCreateSupplyPr
                 maxLength={50}
                 required
                 className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:border-[#C5B8A5]"
-                placeholder="Ej: Concentrado inicio"
+                placeholder="Ej: Concentrado Fase 1"
               />
             </div>
 
@@ -212,11 +256,11 @@ export default function FormCreateSupply({ onSupplyCreated }: FormCreateSupplyPr
                 value={formData.supplyType}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5] cursor-pointer"
               >
-                <option value="">Seleccione un tipo</option>
-                <option value="medicamentos">Medicamentos</option>
+                <option value="">Seleccione un tipo...</option>
                 <option value="alimentacion">Alimentación</option>
+                <option value="medicamentos">Medicamentos</option>
               </select>
             </div>
 
@@ -236,16 +280,16 @@ export default function FormCreateSupply({ onSupplyCreated }: FormCreateSupplyPr
                 maxLength={50}
                 required
                 className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:border-[#C5B8A5]"
-                placeholder="Ej: Bulto 40 kg"
+                placeholder="Ej: Bulto 40kg, Frasco 500ml..."
               />
             </div>
 
-            <div>
+            <div className="col-span-2">
               <label
                 htmlFor="minimumStock"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                Stock Mínimo:
+                Stock Mínimo (Alerta):
               </label>
               <input
                 type="number"
@@ -259,25 +303,6 @@ export default function FormCreateSupply({ onSupplyCreated }: FormCreateSupplyPr
                 className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:border-[#C5B8A5]"
                 placeholder="Ej: 10"
               />
-            </div>
-
-            <div>
-              <label
-                htmlFor="active"
-                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
-              >
-                Estado:
-              </label>
-              <select
-                id="active"
-                name="active"
-                value={formData.active}
-                onChange={handleChange}
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
-              >
-                <option value="true">Activo</option>
-                <option value="false">Inactivo</option>
-              </select>
             </div>
 
             <div className="col-span-2">
@@ -307,7 +332,7 @@ export default function FormCreateSupply({ onSupplyCreated }: FormCreateSupplyPr
               type="button"
               onClick={() => handleOpenChange(false)}
               disabled={guardando}
-              className="flex-1 bg-[#E8DFD1] hover:bg-[#D9CCB8] text-[#3A2A1A] font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition"
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition cursor-pointer"
             >
               Cancelar
             </button>
@@ -316,15 +341,15 @@ export default function FormCreateSupply({ onSupplyCreated }: FormCreateSupplyPr
               type="submit"
               form="supply-form"
               disabled={guardando}
-              className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+              className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition cursor-pointer"
             >
-              {guardando ? "Guardando..." : "Guardar Insumo"}
+              {guardando ? (isEdit ? "Actualizando..." : "Guardando...") : (isEdit ? "Actualizar Insumo" : "Guardar Insumo")}
             </button>
           </div>
         </DialogFooter>
 
         <DialogDescription className="text-center text-parrafo select-none pointer-events-none">
-          Complete los campos para registrar un nuevo insumo (medicamentos o alimentación).
+          {isEdit ? "Modifique la información del insumo." : "Complete los campos para registrar un nuevo insumo (medicamentos o alimentación)."}
         </DialogDescription>
       </DialogContent>
     </Dialog>

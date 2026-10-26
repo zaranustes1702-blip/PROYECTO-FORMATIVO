@@ -13,16 +13,28 @@ import {
 import { Plus } from "lucide-react";
 import {
   API_EGG_PRODUCTION_CREATE_URL,
+  API_EGG_PRODUCTION_UPDATE_URL,
   API_BIRD_BATCH_ALL_URL,
   API_RESPONSIBLE_ALL_URL,
 } from "@/api/config";
 
 interface FormCreateEggProductionProps {
   onEggProductionCreated?: () => void;
+  initialData?: any;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export default function FormCreateEggProduction({ onEggProductionCreated }: FormCreateEggProductionProps) {
-  const [open, setOpen] = useState(false);
+export default function FormCreateEggProduction({
+  onEggProductionCreated,
+  initialData,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+}: FormCreateEggProductionProps) {
+  const isControlled = controlledOpen !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isControlled ? controlledOpen : internalOpen;
+  const isEdit = Boolean(initialData);
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
   const [mensajeError, setMensajeError] = useState("");
@@ -63,17 +75,18 @@ export default function FormCreateEggProduction({ onEggProductionCreated }: Form
 
     const cargarListas = async () => {
       try {
-        // Solo lotes activos
-        const resLotes = await fetch(`${API_BIRD_BATCH_ALL_URL}?limit=500`);
+        const token = localStorage.getItem("token");
+        const headers: any = token ? { Authorization: `Bearer ${token}` } : {};
+
+        const resLotes = await fetch(`${API_BIRD_BATCH_ALL_URL}?limit=500`, { headers });
         const dataLotes = await resLotes.json();
         const listaLotes = dataLotes.info || [];
-        setLotes(listaLotes.filter((l: any) => l.active));
+        setLotes(listaLotes);
 
-        // Solo responsables activos
-        const resResponsables = await fetch(`${API_RESPONSIBLE_ALL_URL}?limit=500`);
+        const resResponsables = await fetch(`${API_RESPONSIBLE_ALL_URL}?limit=500`, { headers });
         const dataResponsables = await resResponsables.json();
         const listaResponsables = dataResponsables.info || [];
-        setResponsables(listaResponsables.filter((r: any) => r.active));
+        setResponsables(listaResponsables);
       } catch (error) {
         console.error("Error al cargar las listas:", error);
         setMensajeError("No se pudieron cargar los datos de los select.");
@@ -82,6 +95,45 @@ export default function FormCreateEggProduction({ onEggProductionCreated }: Form
 
     cargarListas();
   }, [open]);
+
+  // Cargar datos al abrir en modo edición
+  useEffect(() => {
+    if (initialData && open) {
+      const cleanDate = (d?: string | null) => (d ? d.split("T")[0] : "");
+      const cleanTime = (t?: string | null) => (t ? String(t).slice(0, 5) : "");
+      setFormData({
+        id_lote: String(initialData.id_lote ?? ""),
+        id_responsibleAm: String(initialData.id_responsibleAm ?? ""),
+        id_responsiblePm: String(initialData.id_responsiblePm ?? ""),
+        date: cleanDate(initialData.date),
+        hourAm: cleanTime(initialData.hourAm),
+        hourPm: cleanTime(initialData.hourPm),
+        shift: initialData.shift || "",
+        jumboEggsAm: String(initialData.jumboEggsAm ?? "0"),
+        aaaEggsAm: String(initialData.aaaEggsAm ?? "0"),
+        aaEggsAm: String(initialData.aaEggsAm ?? "0"),
+        aEggsAm: String(initialData.aEggsAm ?? "0"),
+        bEggsAm: String(initialData.bEggsAm ?? "0"),
+        cEggsAm: String(initialData.cEggsAm ?? "0"),
+        brokenEggsAm: String(initialData.brokenEggsAm ?? "0"),
+        jumboEggsPm: String(initialData.jumboEggsPm ?? "0"),
+        aaaEggsPm: String(initialData.aaaEggsPm ?? "0"),
+        aaEggsPm: String(initialData.aaEggsPm ?? "0"),
+        aEggsPm: String(initialData.aEggsPm ?? "0"),
+        bEggsPm: String(initialData.bEggsPm ?? "0"),
+        cEggsPm: String(initialData.cEggsPm ?? "0"),
+        brokenEggsPm: String(initialData.brokenEggsPm ?? "0"),
+        observations: initialData.observations || "",
+        active: initialData.active ? "true" : "false",
+      });
+      setMensajeExito("");
+      setMensajeError("");
+    } else if (!initialData && open) {
+      resetInputs();
+      setMensajeExito("");
+      setMensajeError("");
+    }
+  }, [initialData, open]);
 
   // Totales: se calculan con las cantidades de cada tipo (el servidor los vuelve a calcular)
   const n = (campo: string) => Number((formData as any)[campo]) || 0;
@@ -136,7 +188,11 @@ export default function FormCreateEggProduction({ onEggProductionCreated }: Form
 
   const handleOpenChange = (nuevoEstado: boolean) => {
     if (guardando) return;
-    setOpen(nuevoEstado);
+    if (isControlled && setControlledOpen) {
+      setControlledOpen(nuevoEstado);
+    } else {
+      setInternalOpen(nuevoEstado);
+    }
     if (!nuevoEstado) {
       resetInputs();
       setMensajeExito("");
@@ -177,10 +233,17 @@ export default function FormCreateEggProduction({ onEggProductionCreated }: Form
     };
 
     try {
-      const response = await fetch(API_EGG_PRODUCTION_CREATE_URL, {
-        method: "POST",
+      const token = localStorage.getItem("token");
+      const url = isEdit
+        ? API_EGG_PRODUCTION_UPDATE_URL(initialData.id)
+        : API_EGG_PRODUCTION_CREATE_URL;
+      const method = isEdit ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(datosEnviar),
       });
@@ -200,13 +263,17 @@ export default function FormCreateEggProduction({ onEggProductionCreated }: Form
 
         throw new Error(
           detalle ||
-            resultado?.message ||
-            `Error ${response.status}: No se pudo registrar la producción de huevos`
+          resultado?.message ||
+          `Error ${response.status}: No se pudo ${isEdit ? "actualizar" : "registrar"} la producción de huevos`
         );
       }
 
-      setMensajeExito("¡Producción de huevos guardada correctamente!");
-      resetInputs();
+      setMensajeExito(
+        isEdit
+          ? "¡Producción de huevos actualizada correctamente!"
+          : "¡Producción de huevos guardada correctamente!"
+      );
+      if (!isEdit) resetInputs();
 
       // Avisa a la página para que la tabla se recargue de inmediato
       if (onEggProductionCreated) {
@@ -214,11 +281,11 @@ export default function FormCreateEggProduction({ onEggProductionCreated }: Form
       }
 
       setTimeout(() => {
-        setOpen(false);
+        handleOpenChange(false);
         setMensajeExito("");
       }, 1500);
     } catch (error: any) {
-      console.error("Error al registrar la producción de huevos:", error);
+      console.error("Error al guardar la producción de huevos:", error);
       setMensajeError(
         error.message || "Ocurrió un error inesperado al conectar con el servidor"
       );
@@ -229,15 +296,17 @@ export default function FormCreateEggProduction({ onEggProductionCreated }: Form
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
-        <Plus className="w-5 h-5 text-white" />
-        <span>Registrar Producción</span>
-      </DialogTrigger>
+      {!isControlled && !isEdit && (
+        <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
+          <Plus className="w-5 h-5 text-white" />
+          <span>Registrar Producción</span>
+        </DialogTrigger>
+      )}
 
       <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[800px] max-h-[90vh] overflow-y-auto border border-border rounded-2xl shadow-xl">
         <DialogHeader className="font-bold text-2xl text-center text-title select-none pointer-events-none">
           <DialogTitle className="text-center font-bold text-2xl text-title select-none pointer-events-none">
-            Registrar Producción de Huevos
+            {isEdit ? "Editar Producción de Huevos" : "Registrar Producción de Huevos"}
           </DialogTitle>
         </DialogHeader>
 
@@ -669,24 +738,6 @@ export default function FormCreateEggProduction({ onEggProductionCreated }: Form
               </div>
             </div>
 
-            <div>
-              <label
-                htmlFor="active"
-                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
-              >
-                Estado:
-              </label>
-              <select
-                id="active"
-                name="active"
-                value={formData.active}
-                onChange={handleChange}
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
-              >
-                <option value="true">Activo</option>
-                <option value="false">Inactivo</option>
-              </select>
-            </div>
 
             <div className="col-span-2">
               <label
@@ -725,7 +776,7 @@ export default function FormCreateEggProduction({ onEggProductionCreated }: Form
               type="button"
               onClick={() => handleOpenChange(false)}
               disabled={guardando}
-              className="flex-1 bg-[#E8DFD1] hover:bg-[#D9CCB8] text-[#3A2A1A] font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition"
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition cursor-pointer"
             >
               Cancelar
             </button>
@@ -734,15 +785,23 @@ export default function FormCreateEggProduction({ onEggProductionCreated }: Form
               type="submit"
               form="egg-production-form"
               disabled={guardando}
-              className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+              className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition cursor-pointer"
             >
-              {guardando ? "Guardando..." : "Guardar Producción"}
+              {guardando
+                ? isEdit
+                  ? "Actualizando..."
+                  : "Guardando..."
+                : isEdit
+                ? "Actualizar Producción"
+                : "Guardar Producción"}
             </button>
           </div>
         </DialogFooter>
 
         <DialogDescription className="text-center text-parrafo select-none pointer-events-none">
-          Escriba las cantidades de cada tipo de huevo de la mañana y de la tarde; los totales se calculan solos.
+          {isEdit
+            ? "Modifique las cantidades o datos de la producción seleccionada."
+            : "Escriba las cantidades de cada tipo de huevo de la mañana y de la tarde; los totales se calculan solos."}
         </DialogDescription>
       </DialogContent>
     </Dialog>

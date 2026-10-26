@@ -1,4 +1,4 @@
-import TablaFood from "@/components/food/tablaFood";
+import TablaFeeding from "@/components/feeding/tablaFeeding";
 
 function ListFoodPage() {
     return (
@@ -7,7 +7,7 @@ function ListFoodPage() {
                 Lista de Alimentos
             </h1>
 
-            <TablaFood />
+            <TablaFeeding />
         </div>
     );
 }

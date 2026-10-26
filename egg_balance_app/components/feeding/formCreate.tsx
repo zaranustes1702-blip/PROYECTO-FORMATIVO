@@ -12,7 +12,8 @@ import {
 } from "../ui/dialog";
 import { Plus } from "lucide-react";
 import {
-  API_FEEDING_URL,
+  API_FEEDING_CREATE_URL,
+  API_FEEDING_UPDATE_URL,
   API_SUPPLY_ALL_URL,
   API_STOCK_ENTRY_ALL_URL,
   API_RESPONSIBLE_ALL_URL,
@@ -20,17 +21,26 @@ import {
 
 interface FormCreateFeedingProps {
   onFeedingCreated?: () => void;
+  initialData?: any;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export default function FormCreateFeeding({
   onFeedingCreated,
+  initialData,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
 }: FormCreateFeedingProps) {
-  const [open, setOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isControlled ? controlledOpen : internalOpen;
+  const isEdit = Boolean(initialData);
+
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
   const [mensajeError, setMensajeError] = useState("");
 
-  // Listas para los select
   const [insumos, setInsumos] = useState<any[]>([]);
   const [entradas, setEntradas] = useState<any[]>([]);
   const [responsables, setResponsables] = useState<any[]>([]);
@@ -46,50 +56,69 @@ export default function FormCreateFeeding({
     active: "true",
   });
 
-  // Cada vez que se abre el formulario se cargan las listas
   useEffect(() => {
     if (!open) return;
 
     const cargarListas = async () => {
       try {
-        // Solo insumos activos de tipo alimentacion
-        const resInsumos = await fetch(`${API_SUPPLY_ALL_URL}?limit=500`);
+        const token = localStorage.getItem("token");
+        const headers: any = token ? { Authorization: `Bearer ${token}` } : {};
+
+        const resInsumos = await fetch(`${API_SUPPLY_ALL_URL}?limit=500`, { headers });
         const dataInsumos = await resInsumos.json();
         const listaInsumos = dataInsumos.info || [];
         setInsumos(
           listaInsumos.filter(
-            (i: any) => i.active && i.supplyType === "alimentacion"
+            (i: any) => i.supplyType === "alimentacion"
           )
         );
 
-        const resEntradas = await fetch(`${API_STOCK_ENTRY_ALL_URL}?limit=500`);
+        const resEntradas = await fetch(`${API_STOCK_ENTRY_ALL_URL}?limit=500`, { headers });
         const dataEntradas = await resEntradas.json();
         setEntradas(dataEntradas.info || []);
 
-        // Solo responsables activos
-        const resResponsables = await fetch(`${API_RESPONSIBLE_ALL_URL}?limit=500`);
+        const resResponsables = await fetch(`${API_RESPONSIBLE_ALL_URL}?limit=500`, { headers });
         const dataResponsables = await resResponsables.json();
         const listaResponsables = dataResponsables.info || [];
-        setResponsables(listaResponsables.filter((r: any) => r.active));
+        setResponsables(listaResponsables);
       } catch (error) {
         console.error("Error al cargar las listas:", error);
-        setMensajeError("No se pudieron cargar los insumos, entradas o responsables.");
+        setMensajeError("No se pudieron cargar los datos de los select.");
       }
     };
 
     cargarListas();
   }, [open]);
 
-  // Entradas del insumo elegido que están activas y tienen disponible
-  const entradasDelInsumo = entradas.filter(
-    (entrada: any) =>
-      entrada.id_supply === formData.id_supply &&
-      entrada.active &&
-      Number(entrada.disponible_entrada) > 0
-  );
+  useEffect(() => {
+    if (initialData && open) {
+      const cleanDate = (d?: string | null) => (d ? d.split("T")[0] : "");
+      const cleanTime = (t?: string | null) => (t ? String(t).slice(0, 5) : "");
+      setFormData({
+        id_supply: String(initialData.id_supply ?? ""),
+        id_stockEntry: String(initialData.id_stockEntry ?? ""),
+        id_responsable: String(initialData.id_responsable ?? ""),
+        shift: initialData.shift || "",
+        feedingDate: cleanDate(initialData.feedingDate),
+        feedingTime: cleanTime(initialData.feedingTime),
+        quantity: String(initialData.quantity ?? ""),
+        active: initialData.active ? "true" : "false",
+      });
+      setMensajeExito("");
+      setMensajeError("");
+    } else if (!initialData && open) {
+      resetInputs();
+      setMensajeExito("");
+      setMensajeError("");
+    }
+  }, [initialData, open]);
 
-  const entradaElegida = entradasDelInsumo.find(
-    (entrada: any) => String(entrada.id_stockEntry) === formData.id_stockEntry
+  const entradasFiltradas = formData.id_supply
+    ? entradas.filter((e) => e.id_supply === formData.id_supply)
+    : entradas;
+
+  const entradaElegida = entradas.find(
+    (e) => String(e.id_stockEntry) === String(formData.id_stockEntry)
   );
 
   const handleChange = (
@@ -98,15 +127,11 @@ export default function FormCreateFeeding({
     >,
   ) => {
     const { name, value } = e.target;
-
     setFormData((prev) => {
       const actualizados = { ...prev, [name]: value };
-
-      // Si cambia el insumo, hay que volver a elegir la entrada de stock
       if (name === "id_supply") {
         actualizados.id_stockEntry = "";
       }
-
       return actualizados;
     });
   };
@@ -126,7 +151,11 @@ export default function FormCreateFeeding({
 
   const handleOpenChange = (nuevoEstado: boolean) => {
     if (guardando) return;
-    setOpen(nuevoEstado);
+    if (isControlled && setControlledOpen) {
+      setControlledOpen(nuevoEstado);
+    } else {
+      setInternalOpen(nuevoEstado);
+    }
     if (!nuevoEstado) {
       resetInputs();
       setMensajeExito("");
@@ -152,10 +181,17 @@ export default function FormCreateFeeding({
     };
 
     try {
-      const response = await fetch(`${API_FEEDING_URL}/CreateFeeding`, {
-        method: "POST",
+      const token = localStorage.getItem("token");
+      const url = isEdit
+        ? API_FEEDING_UPDATE_URL(initialData.id_feeding)
+        : API_FEEDING_CREATE_URL;
+      const method = isEdit ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(datosEnviar),
       });
@@ -168,7 +204,6 @@ export default function FormCreateFeeding({
       }
 
       if (!response.ok) {
-        // El backend manda la lista de errores en "info"
         const detalle = Array.isArray(resultado?.info)
           ? resultado.info.join(" · ")
           : "";
@@ -176,24 +211,23 @@ export default function FormCreateFeeding({
         throw new Error(
           detalle ||
             resultado?.message ||
-            `Error ${response.status}: No se pudo registrar la alimentación`
+            `Error ${response.status}: No se pudo ${isEdit ? "actualizar" : "registrar"} la alimentación`
         );
       }
 
-      setMensajeExito("¡Alimentación registrada correctamente!");
-      resetInputs();
+      setMensajeExito(isEdit ? "¡Alimentación actualizada correctamente!" : "¡Alimentación registrada correctamente!");
+      if (!isEdit) resetInputs();
 
-      // Avisa a la página para que la tabla se recargue de inmediato
       if (onFeedingCreated) {
         onFeedingCreated();
       }
 
       setTimeout(() => {
-        setOpen(false);
+        handleOpenChange(false);
         setMensajeExito("");
-      }, 1500);
+      }, 1200);
     } catch (error: any) {
-      console.error("Error al registrar alimentación:", error);
+      console.error(`Error al ${isEdit ? "actualizar" : "registrar"} la alimentación:`, error);
       setMensajeError(
         error.message || "Ocurrió un error inesperado al conectar con el servidor"
       );
@@ -204,15 +238,17 @@ export default function FormCreateFeeding({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
-        <Plus className="w-5 h-5 text-white" />
-        <span>Registrar Alimentación</span>
-      </DialogTrigger>
+      {!isControlled && !isEdit && (
+        <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
+          <Plus className="w-5 h-5 text-white" />
+          <span>Registrar Alimentación</span>
+        </DialogTrigger>
+      )}
 
-      <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[800px] max-h-[90vh] overflow-y-auto border border-border rounded-2xl shadow-xl">
+      <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[800px] border border-border rounded-2xl shadow-xl">
         <DialogHeader className="font-bold text-2xl text-center text-title select-none pointer-events-none">
           <DialogTitle className="text-center font-bold text-2xl text-title select-none pointer-events-none">
-            Registrar Alimentación
+            {isEdit ? "Editar Alimentación" : "Registrar Alimentación"}
           </DialogTitle>
         </DialogHeader>
 
@@ -232,10 +268,68 @@ export default function FormCreateFeeding({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label
+                htmlFor="feedingDate"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
+              >
+                Fecha:
+              </label>
+              <input
+                type="date"
+                id="feedingDate"
+                name="feedingDate"
+                value={formData.feedingDate}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:border-[#C5B8A5]"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="feedingTime"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
+              >
+                Hora:
+              </label>
+              <input
+                type="time"
+                id="feedingTime"
+                name="feedingTime"
+                value={formData.feedingTime}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:border-[#C5B8A5]"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="shift"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
+              >
+                Jornada:
+              </label>
+              <select
+                id="shift"
+                name="shift"
+                value={formData.shift}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5] cursor-pointer"
+              >
+                <option value="">Seleccione una jornada...</option>
+                <option value="Mañana">Mañana</option>
+                <option value="Tarde">Tarde</option>
+                <option value="Noche">Noche</option>
+              </select>
+            </div>
+
+            <div>
+              <label
                 htmlFor="id_supply"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                Insumo:
+                Insumo (Alimento):
               </label>
               <select
                 id="id_supply"
@@ -243,12 +337,12 @@ export default function FormCreateFeeding({
                 value={formData.id_supply}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5] cursor-pointer"
               >
-                <option value="">Seleccione un insumo</option>
-                {insumos.map((insumo: any) => (
-                  <option key={insumo.id_supply} value={insumo.id_supply}>
-                    {insumo.supplyName} ({insumo.id_supply})
+                <option value="">Seleccione un insumo...</option>
+                {insumos.map((i) => (
+                  <option key={i.id_supply} value={i.id_supply}>
+                    {i.supplyName} ({i.reference})
                   </option>
                 ))}
               </select>
@@ -268,17 +362,16 @@ export default function FormCreateFeeding({
                 onChange={handleChange}
                 required
                 disabled={!formData.id_supply}
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5] disabled:bg-gray-100 disabled:text-gray-400 cursor-pointer"
               >
                 <option value="">
                   {formData.id_supply
-                    ? "Seleccione una entrada"
-                    : "Primero elija un insumo"}
+                    ? "Seleccione la entrada..."
+                    : "Elija primero el insumo..."}
                 </option>
-                {entradasDelInsumo.map((entrada: any) => (
-                  <option key={entrada.id_stockEntry} value={entrada.id_stockEntry}>
-                    #{entrada.id_stockEntry} · Disponible{" "}
-                    {Number(entrada.disponible_entrada).toFixed(2)} {entrada.unid_entrada}
+                {entradasFiltradas.map((e) => (
+                  <option key={e.id_stockEntry} value={e.id_stockEntry}>
+                    {`#${e.id_stockEntry} · Galpón: ${e.barn?.barnName ?? e.id_barn} · Disp: ${e.disponible_entrada} ${e.unid_entrada}`}
                   </option>
                 ))}
               </select>
@@ -297,76 +390,18 @@ export default function FormCreateFeeding({
                 value={formData.id_responsable}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5] cursor-pointer"
               >
-                <option value="">Seleccione un responsable</option>
-                {responsables.map((responsable: any) => (
-                  <option key={responsable.id} value={responsable.id}>
-                    {responsable.fullName}
+                <option value="">Seleccione un responsable...</option>
+                {responsables.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.fullName} ({r.responsibleType})
                   </option>
                 ))}
               </select>
             </div>
 
-            <div>
-              <label
-                htmlFor="shift"
-                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
-              >
-                Jornada:
-              </label>
-              <select
-                id="shift"
-                name="shift"
-                value={formData.shift}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
-              >
-                <option value="">Seleccione una jornada</option>
-                <option value="Mañana">Mañana</option>
-                <option value="Tarde">Tarde</option>
-                <option value="Noche">Noche</option>
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="feedingDate"
-                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
-              >
-                Fecha:
-              </label>
-              <input
-                type="date"
-                id="feedingDate"
-                name="feedingDate"
-                value={formData.feedingDate}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="feedingTime"
-                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
-              >
-                Hora:
-              </label>
-              <input
-                type="time"
-                id="feedingTime"
-                name="feedingTime"
-                value={formData.feedingTime}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
-              />
-            </div>
-
-            <div>
+            <div className="col-span-2">
               <label
                 htmlFor="quantity"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
@@ -381,7 +416,6 @@ export default function FormCreateFeeding({
                 onChange={handleChange}
                 min="0.01"
                 step="0.01"
-                max={entradaElegida ? Number(entradaElegida.disponible_entrada) : undefined}
                 required
                 className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:border-[#C5B8A5]"
                 placeholder="Ej: 25"
@@ -392,25 +426,6 @@ export default function FormCreateFeeding({
                   : "Elija una entrada de stock para ver lo disponible."}
               </p>
             </div>
-
-            <div>
-              <label
-                htmlFor="active"
-                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
-              >
-                Estado:
-              </label>
-              <select
-                id="active"
-                name="active"
-                value={formData.active}
-                onChange={handleChange}
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
-              >
-                <option value="true">Activo</option>
-                <option value="false">Inactivo</option>
-              </select>
-            </div>
           </div>
         </form>
 
@@ -420,7 +435,7 @@ export default function FormCreateFeeding({
               type="button"
               onClick={() => handleOpenChange(false)}
               disabled={guardando}
-              className="flex-1 bg-[#E8DFD1] hover:bg-[#D9CCB8] text-[#3A2A1A] font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition"
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition cursor-pointer"
             >
               Cancelar
             </button>
@@ -429,15 +444,15 @@ export default function FormCreateFeeding({
               type="submit"
               form="feeding-form"
               disabled={guardando}
-              className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+              className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition cursor-pointer"
             >
-              {guardando ? "Guardando..." : "Guardar Alimentación"}
+              {guardando ? (isEdit ? "Actualizando..." : "Guardando...") : (isEdit ? "Actualizar Alimentación" : "Guardar Alimentación")}
             </button>
           </div>
         </DialogFooter>
 
         <DialogDescription className="text-center text-parrafo select-none pointer-events-none">
-          Complete los campos para registrar la alimentación. La cantidad se descuenta de la entrada de stock elegida.
+          {isEdit ? "Modifique la información de la alimentación registrada." : "Complete los campos para registrar la alimentación. La cantidad se descuenta de la entrada de stock elegida."}
         </DialogDescription>
       </DialogContent>
     </Dialog>

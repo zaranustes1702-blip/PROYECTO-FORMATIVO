@@ -13,21 +13,33 @@ import {
 import { Plus } from "lucide-react";
 import {
   API_MORTALITY_CREATE_URL,
+  API_MORTALITY_UPDATE_URL,
   API_BIRD_BATCH_ALL_URL,
   API_RESPONSIBLE_ALL_URL,
 } from "@/api/config";
 
 interface FormCreateMortalityProps {
   onMortalityCreated?: () => void;
+  initialData?: any;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export default function FormCreateMortality({ onMortalityCreated }: FormCreateMortalityProps) {
-  const [open, setOpen] = useState(false);
+export default function FormCreateMortality({
+  onMortalityCreated,
+  initialData,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+}: FormCreateMortalityProps) {
+  const isControlled = controlledOpen !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isControlled ? controlledOpen : internalOpen;
+  const isEdit = Boolean(initialData);
+
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
   const [mensajeError, setMensajeError] = useState("");
 
-  // Listas para los select
   const [lotes, setLotes] = useState<any[]>([]);
   const [responsables, setResponsables] = useState<any[]>([]);
 
@@ -43,23 +55,23 @@ export default function FormCreateMortality({ onMortalityCreated }: FormCreateMo
     active: "true",
   });
 
-  // Cada vez que se abre el formulario se cargan las listas de los select
   useEffect(() => {
     if (!open) return;
 
     const cargarListas = async () => {
       try {
-        // Solo lotes activos
-        const resLotes = await fetch(`${API_BIRD_BATCH_ALL_URL}?limit=500`);
+        const token = localStorage.getItem("token");
+        const headers: any = token ? { Authorization: `Bearer ${token}` } : {};
+
+        const resLotes = await fetch(`${API_BIRD_BATCH_ALL_URL}?limit=500`, { headers });
         const dataLotes = await resLotes.json();
         const listaLotes = dataLotes.info || [];
-        setLotes(listaLotes.filter((l: any) => l.active));
+        setLotes(listaLotes);
 
-        // Solo responsables activos
-        const resResponsables = await fetch(`${API_RESPONSIBLE_ALL_URL}?limit=500`);
+        const resResponsables = await fetch(`${API_RESPONSIBLE_ALL_URL}?limit=500`, { headers });
         const dataResponsables = await resResponsables.json();
         const listaResponsables = dataResponsables.info || [];
-        setResponsables(listaResponsables.filter((r: any) => r.active));
+        setResponsables(listaResponsables);
       } catch (error) {
         console.error("Error al cargar las listas:", error);
         setMensajeError("No se pudieron cargar los datos de los select.");
@@ -68,6 +80,30 @@ export default function FormCreateMortality({ onMortalityCreated }: FormCreateMo
 
     cargarListas();
   }, [open]);
+
+  useEffect(() => {
+    if (initialData && open) {
+      const cleanDate = (d?: string | null) => (d ? d.split("T")[0] : "");
+      const cleanTime = (t?: string | null) => (t ? String(t).slice(0, 5) : "");
+      setFormData({
+        id_lote: String(initialData.id_lote ?? ""),
+        id_responsable: String(initialData.id_responsable ?? ""),
+        mortalityDate: cleanDate(initialData.mortalityDate),
+        mortalityTime: cleanTime(initialData.mortalityTime),
+        dailyMortality: String(initialData.dailyMortality ?? ""),
+        possibleCauseOfDeath: initialData.possibleCauseOfDeath || "",
+        necropsyPerformed: initialData.necropsyPerformed ? "true" : "false",
+        observations: initialData.observations || "",
+        active: initialData.active ? "true" : "false",
+      });
+      setMensajeExito("");
+      setMensajeError("");
+    } else if (!initialData && open) {
+      resetInputs();
+      setMensajeExito("");
+      setMensajeError("");
+    }
+  }, [initialData, open]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -94,7 +130,11 @@ export default function FormCreateMortality({ onMortalityCreated }: FormCreateMo
 
   const handleOpenChange = (nuevoEstado: boolean) => {
     if (guardando) return;
-    setOpen(nuevoEstado);
+    if (isControlled && setControlledOpen) {
+      setControlledOpen(nuevoEstado);
+    } else {
+      setInternalOpen(nuevoEstado);
+    }
     if (!nuevoEstado) {
       resetInputs();
       setMensajeExito("");
@@ -121,10 +161,17 @@ export default function FormCreateMortality({ onMortalityCreated }: FormCreateMo
     };
 
     try {
-      const response = await fetch(API_MORTALITY_CREATE_URL, {
-        method: "POST",
+      const token = localStorage.getItem("token");
+      const url = isEdit
+        ? API_MORTALITY_UPDATE_URL(initialData.id)
+        : API_MORTALITY_CREATE_URL;
+      const method = isEdit ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(datosEnviar),
       });
@@ -137,7 +184,6 @@ export default function FormCreateMortality({ onMortalityCreated }: FormCreateMo
       }
 
       if (!response.ok) {
-        // El backend manda la lista de errores en "info"
         const detalle = Array.isArray(resultado?.info)
           ? resultado.info.join(" · ")
           : "";
@@ -145,24 +191,23 @@ export default function FormCreateMortality({ onMortalityCreated }: FormCreateMo
         throw new Error(
           detalle ||
             resultado?.message ||
-            `Error ${response.status}: No se pudo registrar el registro de mortalidad`
+            `Error ${response.status}: No se pudo ${isEdit ? "actualizar" : "registrar"} el registro de mortalidad`
         );
       }
 
-      setMensajeExito("¡Registro de mortalidad guardado correctamente!");
-      resetInputs();
+      setMensajeExito(isEdit ? "¡Registro de mortalidad actualizado correctamente!" : "¡Registro de mortalidad guardado correctamente!");
+      if (!isEdit) resetInputs();
 
-      // Avisa a la página para que la tabla se recargue de inmediato
       if (onMortalityCreated) {
         onMortalityCreated();
       }
 
       setTimeout(() => {
-        setOpen(false);
+        handleOpenChange(false);
         setMensajeExito("");
-      }, 1500);
+      }, 1200);
     } catch (error: any) {
-      console.error("Error al registrar el registro de mortalidad:", error);
+      console.error(`Error al ${isEdit ? "actualizar" : "registrar"} el registro de mortalidad:`, error);
       setMensajeError(
         error.message || "Ocurrió un error inesperado al conectar con el servidor"
       );
@@ -173,15 +218,17 @@ export default function FormCreateMortality({ onMortalityCreated }: FormCreateMo
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
-        <Plus className="w-5 h-5 text-white" />
-        <span>Registrar Mortalidad</span>
-      </DialogTrigger>
+      {!isControlled && !isEdit && (
+        <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
+          <Plus className="w-5 h-5 text-white" />
+          <span>Registrar Mortalidad</span>
+        </DialogTrigger>
+      )}
 
       <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[800px] max-h-[90vh] overflow-y-auto border border-border rounded-2xl shadow-xl">
         <DialogHeader className="font-bold text-2xl text-center text-title select-none pointer-events-none">
           <DialogTitle className="text-center font-bold text-2xl text-title select-none pointer-events-none">
-            Registrar Mortalidad
+            {isEdit ? "Editar Mortalidad" : "Registrar Mortalidad"}
           </DialogTitle>
         </DialogHeader>
 
@@ -199,54 +246,6 @@ export default function FormCreateMortality({ onMortalityCreated }: FormCreateMo
 
         <form id="mortality-form" onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="id_lote"
-                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
-              >
-                Lote:
-              </label>
-              <select
-                id="id_lote"
-                name="id_lote"
-                value={formData.id_lote}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
-              >
-                <option value="">Seleccione un lote</option>
-                {lotes.map((lote: any) => (
-                  <option key={lote.id} value={lote.id}>
-                    {lote.batchNumber}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="id_responsable"
-                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
-              >
-                Responsable:
-              </label>
-              <select
-                id="id_responsable"
-                name="id_responsable"
-                value={formData.id_responsable}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
-              >
-                <option value="">Seleccione un responsable</option>
-                {responsables.map((responsable: any) => (
-                  <option key={responsable.id} value={responsable.id}>
-                    {responsable.fullName}
-                  </option>
-                ))}
-              </select>
-            </div>
-
             <div>
               <label
                 htmlFor="mortalityDate"
@@ -285,10 +284,58 @@ export default function FormCreateMortality({ onMortalityCreated }: FormCreateMo
 
             <div>
               <label
+                htmlFor="id_lote"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
+              >
+                Lote de Aves:
+              </label>
+              <select
+                id="id_lote"
+                name="id_lote"
+                value={formData.id_lote}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5] cursor-pointer"
+              >
+                <option value="">Seleccione un lote...</option>
+                {lotes.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.batchNumber} ({l.birdBreed})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label
+                htmlFor="id_responsable"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
+              >
+                Responsable:
+              </label>
+              <select
+                id="id_responsable"
+                name="id_responsable"
+                value={formData.id_responsable}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5] cursor-pointer"
+              >
+                <option value="">Seleccione un responsable...</option>
+                {responsables.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.fullName} ({r.responsibleType})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label
                 htmlFor="dailyMortality"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                Mortalidad del Día:
+                Mortalidad del Día (Cantidad):
               </label>
               <input
                 type="number"
@@ -296,7 +343,7 @@ export default function FormCreateMortality({ onMortalityCreated }: FormCreateMo
                 name="dailyMortality"
                 value={formData.dailyMortality}
                 onChange={handleChange}
-                min="0"
+                min="1"
                 required
                 className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:border-[#C5B8A5]"
                 placeholder="Ej: 3"
@@ -304,6 +351,25 @@ export default function FormCreateMortality({ onMortalityCreated }: FormCreateMo
             </div>
 
             <div>
+              <label
+                htmlFor="necropsyPerformed"
+                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
+              >
+                ¿Se realizó necropsia?
+              </label>
+              <select
+                id="necropsyPerformed"
+                name="necropsyPerformed"
+                value={formData.necropsyPerformed}
+                onChange={handleChange}
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5] cursor-pointer"
+              >
+                <option value="false">No</option>
+                <option value="true">Sí</option>
+              </select>
+            </div>
+
+            <div className="col-span-2">
               <label
                 htmlFor="possibleCauseOfDeath"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
@@ -316,48 +382,11 @@ export default function FormCreateMortality({ onMortalityCreated }: FormCreateMo
                 name="possibleCauseOfDeath"
                 value={formData.possibleCauseOfDeath}
                 onChange={handleChange}
+                maxLength={100}
                 required
                 className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:border-[#C5B8A5]"
-                placeholder="Ej: Calor"
+                placeholder="Ej: Golpe de calor, problemas respiratorios..."
               />
-            </div>
-
-            <div>
-              <label
-                htmlFor="necropsyPerformed"
-                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
-              >
-                Necropsia Realizada:
-              </label>
-              <select
-                id="necropsyPerformed"
-                name="necropsyPerformed"
-                value={formData.necropsyPerformed}
-                onChange={handleChange}
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
-              >
-                <option value="false">No</option>
-                <option value="true">Sí</option>
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="active"
-                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
-              >
-                Estado:
-              </label>
-              <select
-                id="active"
-                name="active"
-                value={formData.active}
-                onChange={handleChange}
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:border-[#C5B8A5]"
-              >
-                <option value="true">Activo</option>
-                <option value="false">Inactivo</option>
-              </select>
             </div>
 
             <div className="col-span-2">
@@ -386,7 +415,7 @@ export default function FormCreateMortality({ onMortalityCreated }: FormCreateMo
               type="button"
               onClick={() => handleOpenChange(false)}
               disabled={guardando}
-              className="flex-1 bg-[#E8DFD1] hover:bg-[#D9CCB8] text-[#3A2A1A] font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition"
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition cursor-pointer"
             >
               Cancelar
             </button>
@@ -395,15 +424,15 @@ export default function FormCreateMortality({ onMortalityCreated }: FormCreateMo
               type="submit"
               form="mortality-form"
               disabled={guardando}
-              className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition"
+              className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition cursor-pointer"
             >
-              {guardando ? "Guardando..." : "Guardar Mortalidad"}
+              {guardando ? (isEdit ? "Actualizando..." : "Guardando...") : (isEdit ? "Actualizar Mortalidad" : "Guardar Mortalidad")}
             </button>
           </div>
         </DialogFooter>
 
         <DialogDescription className="text-center text-parrafo select-none pointer-events-none">
-          Complete los campos para registrar la mortalidad de un lote.
+          {isEdit ? "Modifique la información de la mortalidad registrada." : "Complete los campos para registrar la mortalidad de un lote."}
         </DialogDescription>
       </DialogContent>
     </Dialog>

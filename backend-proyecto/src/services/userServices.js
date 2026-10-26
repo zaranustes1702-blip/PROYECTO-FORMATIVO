@@ -1,86 +1,132 @@
-const user = require("../models/userModel");
 
-// 1. Obtener usuario por Email (Para Login)
+const { randomUUID } = require("crypto");
+const bcrypt = require("bcrypt");
+const User = require("../models/userModel");
+
+// Buscar usuario por correo
 const getEmailUser = async (email) => {
-  try {
-    const userEmail = await user.findOne({ where: { email } });
-    return userEmail;
-  } catch (error) {
-    console.error("Error en getEmailUser:", error);
-    throw error;
-  }
+  return await User.findOne({
+    where: { email },
+  });
 };
 
-// 2. Crear usuario
-const userCreate = async (data) => {
-  try {
-    const newUser = await user.create(data);
-    return newUser;
-  } catch (error) {
-    console.error("Error en userCreate:", error);
-    throw error;
+// Registrar usuario
+const createUser = async (data) => {
+  const { name, email, documentId, postJob, password, id_roll } = data;
+
+  if (!name || !email || !documentId || !postJob || !password) {
+    throw new Error("Todos los campos son obligatorios");
   }
+
+  const correo = email.trim().toLowerCase();
+  const existe = await User.findOne({ where: { email: correo } });
+
+  if (existe) {
+    throw new Error("El correo ya está registrado");
+  }
+
+  const salt = await bcrypt.genSalt(12);
+  const passwordHash = await bcrypt.hash(password, salt);
+
+  // Generar UUID
+  const uuid = randomUUID();
+
+  const nuevoUsuario = await User.create({
+    name,
+    uuid, // Aquí se guarda el UUID generado
+    email: correo,
+    documentId,
+    postJob,
+    password: passwordHash,
+    salt,
+    id_roll: id_roll ?? null,
+    verifyEmail: false,
+    active: true,
+  });
+
+  console.log("Usuario registrado:", nuevoUsuario.userId);
+  console.log("UUID generado:", nuevoUsuario.uuid);
+
+  return nuevoUsuario;
 };
 
-// 3. Obtener todos los usuarios
-const getAllUsers = async (limit, offset) => {
-  try {
-    const users = await user.findAll({
-      order: [["userId", "DESC"]],
-      offset: offset,
-      limit: limit,
-    });
-    return users;
-  } catch (error) {
-    console.error("Error en getAllUsers:", error);
-    throw error;
-  }
+// Obtener todos los usuarios
+const getAllUsers = async (limit = 10, offset = 0) => {
+  return await User.findAll({
+    attributes: { exclude: ["password", "salt", "resetPasswordToken"] },
+    limit,
+    offset,
+    order: [["userId", "DESC"]],
+  });
 };
 
-// 4. Obtener usuario por ID (userId)
+// Buscar usuario por ID
 const getUserById = async (id) => {
-  try {
-    const userid = await user.findOne({
-      where: { userId: id },
-    });
-    return userid;
-  } catch (error) {
-    console.error("Error en getUserById:", error);
-    throw error;
-  }
+  return await User.findByPk(id, {
+    attributes: { exclude: ["password", "salt", "resetPasswordToken"] },
+  });
 };
 
-// 5. Eliminar usuario (userId)
-const userDelete = async (id) => {
-  try {
-    const deleted = await user.destroy({
-      where: { userId: id },
-    });
-    return deleted;
-  } catch (error) {
-    console.error("Error en userDelete:", error);
-    throw error;
-  }
+// Registrar usuario desde el controlador
+const userCreate = async (data) => {
+  const uuid = randomUUID();
+
+  return await User.create({
+    ...data,
+    uuid,
+  });
 };
 
-// 6. Actualizar usuario (userId)
+// Actualizar usuario por ID
 const UserUpdate = async (id, data) => {
-  try {
-    const updated = await user.update(data, {
-      where: { userId: id },
-    });
-    return updated;
-  } catch (error) {
-    console.error("Error en UserUpdate:", error);
-    throw error;
+  const [updated] = await User.update(data, {
+    where: { userId: id },
+  });
+
+  if (!updated) {
+    throw new Error("No se encontró el usuario para actualizar");
   }
+
+  return await getUserById(id);
+};
+
+// Actualizar usuario por correo
+const UserUpdateEmail = async (email, data) => {
+  const [updated] = await User.update(data, {
+    where: { email },
+  });
+
+  return updated;
+};
+
+// Consultar usuario por UUID
+const getUserByUUID = async (uuid) => {
+  return await User.findOne({
+    where: { uuid },
+  });
+};
+
+// Eliminar usuario
+const userDelete = async (id) => {
+  const user = await User.findByPk(id);
+
+  if (!user) {
+    throw new Error("El usuario no existe");
+  }
+
+  await user.destroy();
+
+  return user.userId;
 };
 
 module.exports = {
   getEmailUser,
-  userCreate,
+  createUser,
   getAllUsers,
   getUserById,
-  userDelete,
+  userCreate,
   UserUpdate,
+  UserUpdateEmail,
+  getUserByUUID,
+  userDelete,
 };

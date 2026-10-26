@@ -104,6 +104,7 @@ router.post("/validate-reset-password", validateResetPassword);
  *       200:
  *         description: Contraseña actualizada correctamente
  */
+
 router.post("/new-password", newPassword);
 
 module.exports = router;

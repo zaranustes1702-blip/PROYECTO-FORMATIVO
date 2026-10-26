@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,14 +11,29 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { Plus } from "lucide-react";
-import { API_RESPONSIBLE_URL } from "@/api/config";
+import {
+  API_RESPONSIBLE_CREATE_URL,
+  API_RESPONSIBLE_UPDATE_URL,
+} from "@/api/config";
 
 interface FormCreateResponsibleProps {
   onResponsibleCreated?: () => void;
+  initialData?: any;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export default function FormCreateResponsible({ onResponsibleCreated }: FormCreateResponsibleProps) {
-  const [open, setOpen] = useState(false);
+export default function FormCreateResponsible({
+  onResponsibleCreated,
+  initialData,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
+}: FormCreateResponsibleProps) {
+  const isControlled = controlledOpen !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = isControlled ? controlledOpen : internalOpen;
+  const isEdit = Boolean(initialData);
+
   const [guardando, setGuardando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState("");
   const [mensajeError, setMensajeError] = useState("");
@@ -31,6 +46,25 @@ export default function FormCreateResponsible({ onResponsibleCreated }: FormCrea
     responsibleType: "",
     active: "true",
   });
+
+  useEffect(() => {
+    if (initialData && open) {
+      setFormData({
+        fullName: initialData.fullName || "",
+        documentNumber: initialData.documentNumber || "",
+        trainingRecord: initialData.trainingRecord || "",
+        role: initialData.role || "",
+        responsibleType: initialData.responsibleType || "",
+        active: initialData.active ? "true" : "false",
+      });
+      setMensajeExito("");
+      setMensajeError("");
+    } else if (!initialData && open) {
+      resetInputs();
+      setMensajeExito("");
+      setMensajeError("");
+    }
+  }, [initialData, open]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -54,7 +88,11 @@ export default function FormCreateResponsible({ onResponsibleCreated }: FormCrea
 
   const handleOpenChange = (nuevoEstado: boolean) => {
     if (guardando) return;
-    setOpen(nuevoEstado);
+    if (isControlled && setControlledOpen) {
+      setControlledOpen(nuevoEstado);
+    } else {
+      setInternalOpen(nuevoEstado);
+    }
     if (!nuevoEstado) {
       resetInputs();
       setMensajeExito("");
@@ -72,16 +110,23 @@ export default function FormCreateResponsible({ onResponsibleCreated }: FormCrea
       fullName: formData.fullName.trim(),
       documentNumber: formData.documentNumber.trim(),
       trainingRecord: formData.trainingRecord.trim(),
-      role: formData.role.trim(),
+      role: formData.role.trim() || formData.responsibleType,
       responsibleType: formData.responsibleType,
       active: formData.active === "true",
     };
 
     try {
-      const response = await fetch(`${API_RESPONSIBLE_URL}/CreateResponsible`, {
-        method: "POST",
+      const token = localStorage.getItem("token");
+      const url = isEdit
+        ? API_RESPONSIBLE_UPDATE_URL(initialData.id)
+        : API_RESPONSIBLE_CREATE_URL;
+      const method = isEdit ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(datosEnviar),
       });
@@ -98,23 +143,23 @@ export default function FormCreateResponsible({ onResponsibleCreated }: FormCrea
           resultado?.message ||
             resultado?.mensaje ||
             resultado?.error ||
-            `Error ${response.status}: No se pudo registrar el responsable`
+            `Error ${response.status}: No se pudo ${isEdit ? "actualizar" : "registrar"} el responsable`
         );
       }
 
-      setMensajeExito("¡Responsable registrado correctamente!");
-      resetInputs();
+      setMensajeExito(isEdit ? "¡Responsable actualizado correctamente!" : "¡Responsable registrado correctamente!");
+      if (!isEdit) resetInputs();
 
       if (onResponsibleCreated) {
         onResponsibleCreated();
       }
 
       setTimeout(() => {
-        setOpen(false);
+        handleOpenChange(false);
         setMensajeExito("");
-      }, 1500);
+      }, 1200);
     } catch (error: any) {
-      console.error("Error al registrar responsable:", error);
+      console.error(`Error al ${isEdit ? "actualizar" : "registrar"} responsable:`, error);
       setMensajeError(
         error.message || "Ocurrió un error inesperado al conectar con el servidor"
       );
@@ -125,15 +170,17 @@ export default function FormCreateResponsible({ onResponsibleCreated }: FormCrea
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
-        <Plus className="w-5 h-5 text-white" />
-        <span>Registrar Responsable</span>
-      </DialogTrigger>
+      {!isControlled && !isEdit && (
+        <DialogTrigger className="inline-flex items-center justify-center gap-2 bg-green-1-navbar hover:bg-green-2-navbar text-white font-medium px-5 py-2.5 rounded-xl shadow-sm hover:shadow hover:scale-[1.01] transition-all cursor-pointer">
+          <Plus className="w-5 h-5 text-white" />
+          <span>Registrar Responsable</span>
+        </DialogTrigger>
+      )}
 
       <DialogContent className="bg-white sm:max-w-[425px] md:max-w-[800px] border border-border rounded-2xl shadow-xl">
         <DialogHeader className="font-bold text-2xl text-center text-title select-none pointer-events-none">
           <DialogTitle className="text-center font-bold text-2xl text-title select-none pointer-events-none">
-            Registrar Responsable
+            {isEdit ? "Editar Responsable" : "Registrar Responsable"}
           </DialogTitle>
         </DialogHeader>
 
@@ -150,8 +197,8 @@ export default function FormCreateResponsible({ onResponsibleCreated }: FormCrea
         )}
 
         <form id="responsible-form" onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="md:col-span-2">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <label
                 htmlFor="fullName"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
@@ -164,10 +211,10 @@ export default function FormCreateResponsible({ onResponsibleCreated }: FormCrea
                 name="fullName"
                 value={formData.fullName}
                 onChange={handleChange}
-                maxLength={100}
+                maxLength={50}
                 required
                 className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                placeholder="Nombre completo del responsable"
+                placeholder="Ej: Juan Pérez"
               />
             </div>
 
@@ -184,10 +231,10 @@ export default function FormCreateResponsible({ onResponsibleCreated }: FormCrea
                 name="documentNumber"
                 value={formData.documentNumber}
                 onChange={handleChange}
-                maxLength={30}
+                maxLength={20}
                 required
                 className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                placeholder="Documento de identidad"
+                placeholder="Ej: 1023456789"
               />
             </div>
 
@@ -196,7 +243,7 @@ export default function FormCreateResponsible({ onResponsibleCreated }: FormCrea
                 htmlFor="trainingRecord"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                Número de Ficha:
+                Ficha de Formación:
               </label>
               <input
                 type="text"
@@ -204,10 +251,10 @@ export default function FormCreateResponsible({ onResponsibleCreated }: FormCrea
                 name="trainingRecord"
                 value={formData.trainingRecord}
                 onChange={handleChange}
-                maxLength={50}
+                maxLength={20}
                 required
                 className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                placeholder="Ficha de formación"
+                placeholder="Ej: 2694582"
               />
             </div>
 
@@ -216,7 +263,7 @@ export default function FormCreateResponsible({ onResponsibleCreated }: FormCrea
                 htmlFor="role"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
               >
-                Rol o Cargo:
+                Rol:
               </label>
               <input
                 type="text"
@@ -224,14 +271,14 @@ export default function FormCreateResponsible({ onResponsibleCreated }: FormCrea
                 name="role"
                 value={formData.role}
                 onChange={handleChange}
-                maxLength={100}
+                maxLength={50}
                 required
                 className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-                placeholder="Ejemplo: Encargado del galpón"
+                placeholder="Ej: Encargado de lote"
               />
             </div>
 
-            <div>
+            <div className="col-span-2">
               <label
                 htmlFor="responsibleType"
                 className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
@@ -244,32 +291,13 @@ export default function FormCreateResponsible({ onResponsibleCreated }: FormCrea
                 value={formData.responsibleType}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
+                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar cursor-pointer"
               >
                 <option value="">Selecciona una opción</option>
                 <option value="Instructor">Instructor</option>
                 <option value="Aprendiz">Aprendiz</option>
                 <option value="Pasante">Pasante</option>
                 <option value="Gestor">Gestor</option>
-              </select>
-            </div>
-
-            <div className="col-span-1 md:col-span-2">
-              <label
-                htmlFor="active"
-                className="block text-sm font-semibold text-title mb-1 select-none pointer-events-none"
-              >
-                Estado:
-              </label>
-              <select
-                id="active"
-                name="active"
-                value={formData.active}
-                onChange={handleChange}
-                className="w-full px-3 py-2 bg-white border border-border rounded-xl text-title focus:outline-none focus:ring-2 focus:ring-green-1-navbar"
-              >
-                <option value="true">Activo</option>
-                <option value="false">Inactivo</option>
               </select>
             </div>
           </div>
@@ -281,7 +309,7 @@ export default function FormCreateResponsible({ onResponsibleCreated }: FormCrea
               type="button"
               onClick={() => handleOpenChange(false)}
               disabled={guardando}
-              className="flex-1 bg-[#E8DFD1] hover:bg-[#D9CCB8] text-[#3A2A1A] font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition"
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2.5 px-4 rounded-xl shadow-sm focus:outline-none disabled:opacity-50 transition cursor-pointer"
             >
               Cancelar
             </button>
@@ -292,13 +320,13 @@ export default function FormCreateResponsible({ onResponsibleCreated }: FormCrea
               disabled={guardando}
               className="flex-1 bg-green-1-navbar text-white font-medium py-2.5 px-4 rounded-xl hover:bg-green-2-navbar shadow-md focus:outline-none focus:ring-2 focus:ring-green-1-navbar disabled:opacity-50 transition cursor-pointer"
             >
-              {guardando ? "Guardando..." : "Guardar Responsable"}
+              {guardando ? (isEdit ? "Actualizando..." : "Guardando...") : (isEdit ? "Actualizar Responsable" : "Guardar Responsable")}
             </button>
           </div>
         </DialogFooter>
 
         <DialogDescription className="text-center text-parrafo select-none pointer-events-none">
-          Complete la información para registrar una persona responsable.
+          {isEdit ? "Modifique la información de la persona responsable." : "Complete la información para registrar una persona responsable."}
         </DialogDescription>
       </DialogContent>
     </Dialog>

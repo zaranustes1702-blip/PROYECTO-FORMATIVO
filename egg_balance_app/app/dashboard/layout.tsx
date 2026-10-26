@@ -60,7 +60,7 @@ export default function DashboardLayout({
   if (!autorizado) return null;
 
   return (
-    <SidebarProvider className="h-svh overflow-hidden">
+    <SidebarProvider defaultOpen={false} className="h-svh overflow-hidden">
       <AppSidebar />
 
       <SidebarInset className="flex flex-col h-full overflow-hidden">

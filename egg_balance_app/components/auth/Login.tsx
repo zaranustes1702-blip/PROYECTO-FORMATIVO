@@ -17,7 +17,17 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeClosed } from "lucide-react";
 
-export default function Login() {
+interface LoginProps {
+  triggerText?: string;
+  triggerClassName?: string;
+  showArrow?: boolean;
+}
+
+export default function Login({
+  triggerText = "Iniciar Sesión",
+  triggerClassName,
+  showArrow = true,
+}: LoginProps = {}) {
   const [openDialog, setOpenDialog] = useState(false);
   const [openReset, setOpenReset] = useState(false);
   const [email, setEmail] = useState("");
@@ -69,11 +79,18 @@ export default function Login() {
   return (
     <div>
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogTrigger className="group w-full sm:w-auto flex items-center justify-center gap-3 !bg-[#2C3C23] hover:!bg-[#2E7D32] !text-white font-medium px-7 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer">
-          Iniciar Sesión
-          <span className="flex items-center justify-center w-6 h-6 rounded-full !bg-[#F4C430] !text-[#3A2A1A] text-xs font-bold transition-transform duration-300 group-hover:translate-x-1">
-            →
-          </span>
+        <DialogTrigger
+          className={
+            triggerClassName ||
+            "group w-full sm:w-auto flex items-center justify-center gap-3 !bg-[#2C3C23] hover:!bg-[#2E7D32] !text-white font-medium px-7 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+          }
+        >
+          {triggerText}
+          {showArrow && (
+            <span className="flex items-center justify-center w-6 h-6 rounded-full !bg-[#F4C430] !text-[#3A2A1A] text-xs font-bold transition-transform duration-300 group-hover:translate-x-1">
+              →
+            </span>
+          )}
         </DialogTrigger>
 
         <DialogContent className="sm:max-w-sm rounded-2xl !border-[#2E7D32] !bg-white">

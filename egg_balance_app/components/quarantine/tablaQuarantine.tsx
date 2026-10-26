@@ -1,7 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { API_QUARANTINE_ALL_URL } from "@/api/config";
+import { useEffect, useState, useCallback } from "react";
+import { Pencil, Trash2, Ban, CheckCircle2 } from "lucide-react";
+import {
+  API_QUARANTINE_ALL_URL,
+  API_QUARANTINE_UPDATE_URL,
+  API_QUARANTINE_DELETE_URL,
+} from "@/api/config";
+import FormCreateQuarantine from "./formCreate";
 
 const POR_PAGINA = 10;
 
@@ -19,75 +25,148 @@ export default function TablaQuarantine({
   onTotalPages,
 }: TablaQuarantineProps) {
   const [items, setItems] = useState<any[]>([]);
+  const [editingItem, setEditingItem] = useState<any | null>(null);
+
+  const fetchItems = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(`${API_QUARANTINE_ALL_URL}?limit=500`, {
+        method: "GET",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      const resJson = await response.json();
+      const lista = resJson.info || resJson.data || [];
+      setItems(
+        Array.isArray(lista)
+          ? [...lista].sort((a: any, b: any) => b.id - a.id)
+          : []
+      );
+    } catch (error) {
+      console.error("Error al obtener registros de cuarentena:", error);
+      setItems([]);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const token = localStorage.getItem("token");
-
-        // El backend devuelve 10 por defecto; pedimos más para buscar y paginar
-        const response = await fetch(`${API_QUARANTINE_ALL_URL}?limit=500`, {
-          method: "GET",
-          cache: "no-store",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        });
-
-        const resJson = await response.json();
-
-        // Tu clase Response devuelve los datos en resJson.info
-        const lista = resJson.info || resJson.data || [];
-        // Más recientes primero (descendente por ID)
-        setItems(
-          Array.isArray(lista)
-            ? [...lista].sort((a: any, b: any) => b.id - a.id)
-            : []
-        );
-      } catch (error) {
-        console.error("Error al obtener registros de cuarentena:", error);
-        setItems([]);
-      }
-    };
-
     fetchItems();
-  }, [refreshKey]);
+  }, [refreshKey, fetchItems]);
 
-  // Muestra la fecha como dd/mm/aaaa (ej: 12/09/2026)
   const formatDate = (dateStr?: string | null) => {
     if (!dateStr) return "—";
-
     const cleanDate = dateStr.split("T")[0];
     const [year, month, day] = cleanDate.split("-");
-
     if (day && month && year) {
       return `${day}/${month}/${year}`;
     }
-
     return dateStr;
   };
 
-  // Búsqueda en id, fecha, lote, insumo, aves afectadas, síntomas, diagnóstico, tratamiento, dosis, duración, fecha de finalización, observaciones y estado
+  // Inactivar o Activar registro
+  const handleToggleActive = async (item: any) => {
+    const nuevoEstado = !item.active;
+    const accion = nuevoEstado ? "activar" : "inactivar";
+    if (
+      !window.confirm(
+        `¿Está seguro de que desea ${accion} este registro de cuarentena?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const cleanDate = (d?: string | null) => (d ? d.split("T")[0] : "");
+
+      const response = await fetch(API_QUARANTINE_UPDATE_URL(item.id), {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          id_lote: Number(item.id_lote),
+          id_supply: item.id_supply,
+          quarantineDate: cleanDate(item.quarantineDate),
+          affectedBirds: Number(item.affectedBirds),
+          symptoms: item.symptoms,
+          diagnosis: item.diagnosis,
+          treatmentApplied: item.treatmentApplied,
+          dosage: item.dosage,
+          treatmentDuration: item.treatmentDuration,
+          quarantineEndDate: cleanDate(item.quarantineEndDate) || null,
+          observations: item.observations || "",
+          active: nuevoEstado,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error al ${accion} el registro de cuarentena`);
+      }
+
+      fetchItems();
+    } catch (error: any) {
+      alert(error.message || `No se pudo ${accion} el registro`);
+    }
+  };
+
+  // Eliminar registro
+  const handleDelete = async (item: any) => {
+    if (
+      !window.confirm(
+        `¿Está seguro de que desea eliminar este registro de cuarentena? Esta acción no se puede deshacer.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(API_QUARANTINE_DELETE_URL(item.id), {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(
+          data?.message || data?.errors?.[0] || "No se pudo eliminar el registro"
+        );
+      }
+
+      fetchItems();
+    } catch (error: any) {
+      alert(error.message || "Error al eliminar el registro");
+    }
+  };
+
   const texto = filtro.trim().toLowerCase();
 
   const itemsFiltrados = items.filter((item: any) => {
     if (!texto) return true;
 
     return [
-      String(item.id),
-      String(formatDate(item.quarantineDate)),
-      String(item.birdbatch?.batchNumber ?? item.id_lote),
-      String(item.supply?.supplyName ?? item.id_supply),
+      formatDate(item.quarantineDate),
+      item.birdbatch?.batchNumber ?? item.id_lote,
+      item.supply?.supplyName ?? item.id_supply,
       String(item.affectedBirds),
-      String(item.symptoms),
-      String(item.diagnosis),
-      String(item.treatmentApplied || "—"),
-      String(item.dosage || "—"),
-      String(item.treatmentDuration || "—"),
-      String(formatDate(item.quarantineEndDate)),
-      String(item.observations || "—"),
-      item.active ? "activo" : "inactivo"
+      item.symptoms,
+      item.diagnosis,
+      item.treatmentApplied,
+      item.dosage,
+      item.treatmentDuration,
+      formatDate(item.quarantineEndDate),
+      item.observations,
+      String(item.id),
+      item.active ? "activo" : "inactivo",
     ].some((valor) => (valor ?? "").toString().toLowerCase().includes(texto));
   });
 
@@ -97,7 +176,7 @@ export default function TablaQuarantine({
     if (onTotalPages) {
       onTotalPages(totalPaginas);
     }
-  }, [totalPaginas]);
+  }, [totalPaginas, onTotalPages]);
 
   const paginaActual = Math.min(currentPage, totalPaginas);
   const itemsPagina = itemsFiltrados.slice(
@@ -106,120 +185,126 @@ export default function TablaQuarantine({
   );
 
   return (
-    <div className="w-full overflow-hidden rounded-3xl shadow-sm border border-[#E8DFD1]">
-      {/* Contenedor con scroll: los títulos quedan fijos al bajar */}
-      <div className="max-h-[60vh] overflow-auto">
-        <table className="w-full min-w-max border-collapse">
-          <thead>
-            <tr className="bg-green-2-navbar text-white">
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm whitespace-nowrap">
-                ID
-              </th>
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm whitespace-nowrap">
-                Fecha
-              </th>
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm whitespace-nowrap">
-                Lote
-              </th>
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm whitespace-nowrap">
-                Insumo
-              </th>
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm whitespace-nowrap">
-                Aves Afectadas
-              </th>
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm whitespace-nowrap">
-                Síntomas
-              </th>
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm whitespace-nowrap">
-                Diagnóstico
-              </th>
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm whitespace-nowrap">
-                Tratamiento
-              </th>
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm whitespace-nowrap">
-                Dosis
-              </th>
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm whitespace-nowrap">
-                Duración
-              </th>
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm whitespace-nowrap">
-                Fecha de Finalización
-              </th>
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm whitespace-nowrap">
-                Observaciones
-              </th>
-              <th className="sticky top-0 z-10 bg-green-2-navbar px-6 py-3.5 text-left font-semibold text-sm whitespace-nowrap">
-                Estado
-              </th>
-            </tr>
-          </thead>
+    <>
+      {editingItem && (
+        <FormCreateQuarantine
+          open={!!editingItem}
+          onOpenChange={(abierto) => {
+            if (!abierto) setEditingItem(null);
+          }}
+          initialData={editingItem}
+          onQuarantineCreated={() => {
+            setEditingItem(null);
+            fetchItems();
+          }}
+        />
+      )}
 
-          <tbody className="divide-y divide-[#E8DFD1]/60 bg-white">
-            {itemsPagina.length > 0 ? (
-              itemsPagina.map((item: any) => (
-                <tr key={item.id}>
-                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A] font-medium whitespace-nowrap">
-                    {item.id}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A] whitespace-nowrap">
-                    {formatDate(item.quarantineDate)}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A] whitespace-nowrap">
-                    {item.birdbatch?.batchNumber ?? item.id_lote}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A] whitespace-nowrap">
-                    {item.supply?.supplyName ?? item.id_supply}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A] whitespace-nowrap">
-                    {item.affectedBirds}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A] whitespace-nowrap">
-                    {item.symptoms}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A] whitespace-nowrap">
-                    {item.diagnosis}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A] whitespace-nowrap">
-                    {item.treatmentApplied || "—"}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A] whitespace-nowrap">
-                    {item.dosage || "—"}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A] whitespace-nowrap">
-                    {item.treatmentDuration || "—"}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A] whitespace-nowrap">
-                    {formatDate(item.quarantineEndDate)}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm text-[#3A2A1A] max-w-xs truncate" title={item.observations}>
-                    {item.observations || "—"}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm whitespace-nowrap">
-                    <span
-                      className={`font-semibold ${
-                        item.active ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      {item.active ? "Activo" : "Inactivo"}
-                    </span>
+      <div className="w-full overflow-hidden rounded-3xl shadow-sm border border-[#E8DFD1]">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-green-2-navbar text-white">
+                <th className="px-6 py-3 text-left font-semibold text-sm">
+                  Fecha
+                </th>
+                <th className="px-6 py-3 text-left font-semibold text-sm">
+                  Lote
+                </th>
+                <th className="px-6 py-3 text-left font-semibold text-sm">
+                  Aves Afectadas
+                </th>
+                <th className="px-6 py-3 text-left font-semibold text-sm">
+                  Diagnóstico
+                </th>
+                <th className="px-6 py-3 text-left font-semibold text-sm">
+                  Estado
+                </th>
+                <th className="px-6 py-3 text-center font-semibold text-sm">
+                  Acciones
+                </th>
+              </tr>
+            </thead>
+
+            <tbody className="divide-y divide-[#E8DFD1]/60 bg-white">
+              {itemsPagina.length > 0 ? (
+                itemsPagina.map((item: any) => (
+                  <tr key={item.id} className="hover:bg-[#FCFBF9] transition-colors">
+                    <td className="px-6 py-2.5 text-sm text-[#3A2A1A]">
+                      {formatDate(item.quarantineDate)}
+                    </td>
+                    <td className="px-6 py-2.5 text-sm text-[#3A2A1A] font-medium">
+                      {item.birdbatch?.batchNumber ?? item.id_lote}
+                    </td>
+                    <td className="px-6 py-2.5 text-sm text-[#3A2A1A]">
+                      {item.affectedBirds}
+                    </td>
+                    <td className="px-6 py-2.5 text-sm text-[#3A2A1A]">
+                      {item.diagnosis}
+                    </td>
+                    <td className="px-6 py-2.5 text-sm">
+                      <span
+                        className={`font-semibold ${
+                          item.active ? "text-green-600" : "text-red-600"
+                        }`}
+                      >
+                        {item.active ? "Activo" : "Inactivo"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-2.5 text-sm text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setEditingItem(item)}
+                          title="Editar (ver todos los campos)"
+                          className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleActive(item)}
+                          title={item.active ? "Inactivar" : "Activar"}
+                          className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                            item.active
+                              ? "text-amber-600 hover:text-amber-800 hover:bg-amber-50"
+                              : "text-green-600 hover:text-green-800 hover:bg-green-50"
+                          }`}
+                        >
+                          {item.active ? (
+                            <Ban className="w-4 h-4" />
+                          ) : (
+                            <CheckCircle2 className="w-4 h-4" />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(item)}
+                          title="Eliminar"
+                          className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-6 py-8 text-center text-sm text-[#9A8B7A]"
+                  >
+                    {texto
+                      ? "No se encontraron registros con ese criterio."
+                      : "No hay registros de cuarentena."}
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan={13}
-                  className="px-6 py-8 text-center text-sm text-[#9A8B7A]"
-                >
-                  {texto
-                    ? "No se encontraron registros de cuarentena con ese criterio."
-                    : "No hay registros de cuarentena."}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

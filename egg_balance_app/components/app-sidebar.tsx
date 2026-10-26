@@ -18,7 +18,6 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupLabel,
   SidebarHeader,
@@ -185,31 +184,6 @@ export function AppSidebar() {
           </SidebarGroup>
         ))}
       </SidebarContent>
-
-      {/* FOOTER */}
-      <SidebarFooter className="border-t border-[#EFE8DD] bg-[#FCFBF9] pt-2">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              className="
-                flex items-center gap-2 rounded-lg bg-white/60 px-3 py-2 text-[#3A2A1A] transition-colors
-                hover:bg-green-50/60 hover:text-green-800
-                group-data-[collapsible=icon]:justify-center
-              "
-            >
-              <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#EFE8DD] text-[#5A4836]">
-                <User className="size-4" />
-              </div>
-              <div className="flex flex-col text-left group-data-[collapsible=icon]:hidden">
-                <span className="text-xs font-semibold text-[#2D2115]">
-                  Administrador
-                </span>
-                <span className="text-[10px] text-gray-500">En línea</span>
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
 
       <SidebarRail />
     </Sidebar>

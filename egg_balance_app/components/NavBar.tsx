@@ -7,9 +7,8 @@ import Login from "./auth/Login";
 
 const navLinks = [
     { href: "/", label: "Inicio" },
-    { href: "/productos", label: "Productos" },
-    { href: "/nosotros", label: "Nosotros" },
-    { href: "/contacto", label: "Contacto" },
+    { href: "/about", label: "Nosotros" },
+    { href: "/contact", label: "Contacto" },
 ];
 
 export default function NavBar() {
