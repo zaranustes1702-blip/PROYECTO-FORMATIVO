@@ -70,6 +70,7 @@ export default function TablaEggProduction({
   const formatTime = (timeStr?: string | null) =>
     timeStr ? String(timeStr).slice(0, 5) : "—";
 
+  /*
   // Inactivar o Activar registro
   const handleToggleActive = async (item: any) => {
     const nuevoEstado = !item.active;
@@ -161,6 +162,7 @@ export default function TablaEggProduction({
       alert(error.message || "Error al eliminar el registro");
     }
   };
+  */
 
   const texto = filtro.trim().toLowerCase();
 
@@ -292,6 +294,7 @@ export default function TablaEggProduction({
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
+                        {/* 
                         <button
                           type="button"
                           onClick={() => handleToggleActive(item)}
@@ -316,6 +319,7 @@ export default function TablaEggProduction({
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                        */}
                       </div>
                     </td>
                   </tr>

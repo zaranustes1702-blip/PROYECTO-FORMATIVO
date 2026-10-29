@@ -67,6 +67,7 @@ export default function TablaQuarantine({
     return dateStr;
   };
 
+  /*
   // Inactivar o Activar registro
   const handleToggleActive = async (item: any) => {
     const nuevoEstado = !item.active;
@@ -147,6 +148,7 @@ export default function TablaQuarantine({
       alert(error.message || "Error al eliminar el registro");
     }
   };
+  */
 
   const texto = filtro.trim().toLowerCase();
 
@@ -261,6 +263,7 @@ export default function TablaQuarantine({
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
+                        {/* 
                         <button
                           type="button"
                           onClick={() => handleToggleActive(item)}
@@ -285,6 +288,7 @@ export default function TablaQuarantine({
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                        */}
                       </div>
                     </td>
                   </tr>

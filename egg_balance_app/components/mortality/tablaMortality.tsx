@@ -67,6 +67,7 @@ export default function TablaMortality({
     return dateStr;
   };
 
+  /*
   // Inactivar o Activar registro
   const handleToggleActive = async (item: any) => {
     const nuevoEstado = !item.active;
@@ -145,6 +146,7 @@ export default function TablaMortality({
       alert(error.message || "Error al eliminar el registro");
     }
   };
+  */
 
   const texto = filtro.trim().toLowerCase();
 
@@ -256,6 +258,7 @@ export default function TablaMortality({
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
+                        {/* 
                         <button
                           type="button"
                           onClick={() => handleToggleActive(item)}
@@ -280,6 +283,7 @@ export default function TablaMortality({
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                        */}
                       </div>
                     </td>
                   </tr>

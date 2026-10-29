@@ -70,6 +70,7 @@ export default function TablaFeeding({
   const formatTime = (timeStr?: string | null) =>
     timeStr ? String(timeStr).slice(0, 5) : "—";
 
+  /*
   // Inactivar o Activar alimentación
   const handleToggleActive = async (item: any) => {
     const nuevoEstado = !item.active;
@@ -147,6 +148,7 @@ export default function TablaFeeding({
       alert(error.message || "Error al eliminar la alimentación");
     }
   };
+  */
 
   const texto = filtro.trim().toLowerCase();
 
@@ -257,6 +259,7 @@ export default function TablaFeeding({
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
+                        {/* 
                         <button
                           type="button"
                           onClick={() => handleToggleActive(item)}
@@ -281,6 +284,7 @@ export default function TablaFeeding({
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                        */}
                       </div>
                     </td>
                   </tr>

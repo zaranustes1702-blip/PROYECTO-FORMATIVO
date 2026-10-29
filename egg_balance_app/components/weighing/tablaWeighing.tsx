@@ -70,6 +70,7 @@ export default function TablaWeighing({
     return dateStr;
   };
 
+  /*
   // Inactivar o Activar pesaje
   const handleToggleActive = async (item: any) => {
     const nuevoEstado = !item.active;
@@ -150,6 +151,7 @@ export default function TablaWeighing({
       alert(error.message || "Error al eliminar el pesaje");
     }
   };
+  */
 
   // Búsqueda en lote, fecha, hora, responsable, aves, pesos, uniformidad, ID y estado
   const texto = filtro.trim().toLowerCase();
@@ -266,6 +268,7 @@ export default function TablaWeighing({
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
+                        {/* Acciones de inactivar y eliminar comentadas
                         <button
                           type="button"
                           onClick={() => handleToggleActive(weighing)}
@@ -290,6 +293,7 @@ export default function TablaWeighing({
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                        */}
                       </div>
                     </td>
                   </tr>

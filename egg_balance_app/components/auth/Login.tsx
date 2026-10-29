@@ -16,6 +16,7 @@ import ResetPassword from "@/components/auth/ResetPasss";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeClosed } from "lucide-react";
+import { toast } from "../ui/toast";
 
 interface LoginProps {
   triggerText?: string;
@@ -48,6 +49,16 @@ export default function Login({
   };
 
   const handleLogin = (e: React.FormEvent) => {
+    if (!email){
+      toast.add({
+        title: "CORREGIR",
+        description: "Por favor, ingrese su correo electronico",
+        type: "success",
+        
+      })
+
+      return;
+    }
     e.preventDefault();
     fetch("http://localhost:3000/api/auth/login", {
       method: "POST",

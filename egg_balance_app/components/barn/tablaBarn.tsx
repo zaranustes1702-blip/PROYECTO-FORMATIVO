@@ -53,6 +53,7 @@ export default function TableBarn({
     fetchBarns();
   }, [refreshKey, fetchBarns]);
 
+  /*
   // Inactivar o Activar galpón
   const handleToggleActive = async (barn: any) => {
     const nuevoEstado = !barn.active;
@@ -119,6 +120,7 @@ export default function TableBarn({
       alert(error.message || "Error al eliminar el galpón");
     }
   };
+  */
 
   // Búsqueda en nombre, tamaño, capacidad, ID y estado
   const texto = filtro.trim().toLowerCase();
@@ -220,6 +222,7 @@ export default function TableBarn({
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
+                        {/* 
                         <button
                           type="button"
                           onClick={() => handleToggleActive(barn)}
@@ -244,6 +247,7 @@ export default function TableBarn({
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                        */}
                       </div>
                     </td>
                   </tr>

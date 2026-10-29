@@ -57,6 +57,7 @@ export default function TablaResponsible({
     fetchItems();
   }, [refreshKey, fetchItems]);
 
+  /*
   // Inactivar o Activar responsable
   const handleToggleActive = async (item: any) => {
     const nuevoEstado = !item.active;
@@ -130,6 +131,7 @@ export default function TablaResponsible({
       alert(error.message || "Error al eliminar el responsable");
     }
   };
+  */
 
   const texto = filtro.trim().toLowerCase();
 
@@ -238,6 +240,7 @@ export default function TablaResponsible({
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
+                        {/* 
                         <button
                           type="button"
                           onClick={() => handleToggleActive(item)}
@@ -262,6 +265,7 @@ export default function TablaResponsible({
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                        */}
                       </div>
                     </td>
                   </tr>

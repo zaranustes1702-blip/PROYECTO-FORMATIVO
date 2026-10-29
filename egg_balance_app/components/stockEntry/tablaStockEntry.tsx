@@ -72,6 +72,7 @@ export default function TablaStockEntry({
     return isNaN(num) ? "0" : num.toLocaleString("es-CO");
   };
 
+  /*
   // Inactivar o Activar entrada
   const handleToggleActive = async (item: any) => {
     const nuevoEstado = !item.active;
@@ -148,6 +149,7 @@ export default function TablaStockEntry({
       alert(error.message || "Error al eliminar la entrada");
     }
   };
+  */
 
   const texto = filtro.trim().toLowerCase();
 
@@ -257,6 +259,7 @@ export default function TablaStockEntry({
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
+                        {/* 
                         <button
                           type="button"
                           onClick={() => handleToggleActive(item)}
@@ -281,6 +284,7 @@ export default function TablaStockEntry({
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                        */}
                       </div>
                     </td>
                   </tr>

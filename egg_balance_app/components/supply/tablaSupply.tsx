@@ -65,6 +65,7 @@ export default function TablaSupply({
     return tipo;
   };
 
+  /*
   // Inactivar o Activar insumo
   const handleToggleActive = async (item: any) => {
     const nuevoEstado = !item.active;
@@ -138,6 +139,7 @@ export default function TablaSupply({
       alert(error.message || "Error al eliminar el insumo");
     }
   };
+  */
 
   const texto = filtro.trim().toLowerCase();
 
@@ -246,6 +248,7 @@ export default function TablaSupply({
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
+                        {/* 
                         <button
                           type="button"
                           onClick={() => handleToggleActive(item)}
@@ -270,6 +273,7 @@ export default function TablaSupply({
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                        */}
                       </div>
                     </td>
                   </tr>

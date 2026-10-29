@@ -67,6 +67,7 @@ export default function TablaHealth({
     return dateStr;
   };
 
+  /*
   // Inactivar o Activar registro
   const handleToggleActive = async (item: any) => {
     const nuevoEstado = !item.active;
@@ -141,6 +142,7 @@ export default function TablaHealth({
       alert(error.message || "Error al eliminar el registro");
     }
   };
+  */
 
   const texto = filtro.trim().toLowerCase();
 
@@ -249,6 +251,7 @@ export default function TablaHealth({
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
+                        {/* 
                         <button
                           type="button"
                           onClick={() => handleToggleActive(item)}
@@ -273,6 +276,7 @@ export default function TablaHealth({
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                        */}
                       </div>
                     </td>
                   </tr>

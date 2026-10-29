@@ -81,6 +81,7 @@ export default function TablaUser({
     fetchItems();
   }, [refreshKey, fetchItems]);
 
+  /*
   // Inactivar o Activar usuario
   const handleToggleActive = async (user: User) => {
     const nuevoEstado = !user.active;
@@ -153,6 +154,7 @@ export default function TablaUser({
       alert(error.message || "Error al eliminar el usuario");
     }
   };
+  */
 
   const texto = filtro.trim().toLowerCase();
 
@@ -288,6 +290,7 @@ export default function TablaUser({
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
+                        {/* 
                         <button
                           type="button"
                           onClick={() => handleToggleActive(item)}
@@ -312,6 +315,7 @@ export default function TablaUser({
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                        */}
                       </div>
                     </td>
                   </tr>

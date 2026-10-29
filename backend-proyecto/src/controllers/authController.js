@@ -5,7 +5,7 @@ const path = require("path");
 const fs = require("fs");
 
 const Response = require("../functions/response");
-const {sendEmail} = require("../services/emailServices");
+const { sendEmail } = require("../services/emailServices");
 const { getEmailUser, UserUpdateEmail, getUserByUUID } = require("../services/userServices");
 
 dotenv.config();
@@ -92,6 +92,7 @@ const resetPassword = async (req, res) => {
 
     await UserUpdateEmail(user.email, data);
 
+    // Leer la plantilla JSON
     const routeJson = path.join(
       process.cwd(),
       "public",
@@ -162,8 +163,10 @@ const validateResetPassword = async (req, res) => {
       return res.status(400).json(response.json);
     }
 
+    // El token es el uuid codificado en base64, lo decodificamos
     const uuid = Buffer.from(token, "base64").toString("utf8");
 
+    // Buscamos el usuario que tenga ese uuid
     const user = await getUserByUUID(uuid);
 
     if (!user) {
@@ -171,11 +174,13 @@ const validateResetPassword = async (req, res) => {
       return res.status(400).json(response.json);
     }
 
+    // Verificamos que el usuario haya solicitado el cambio de contraseña
     if (!user.solicito_newPassword) {
       const response = new Response(false, "El enlace ya fue usado o no es válido", null);
       return res.status(400).json(response.json);
     }
 
+    // Verificamos que el token guardado en BD coincida con el que llegó
     if (user.resetPasswordToken !== token) {
       const response = new Response(false, "Token inválido", null);
       return res.status(400).json(response.json);
@@ -206,8 +211,10 @@ const newPassword = async (req, res) => {
       return res.status(400).json(response.json);
     }
 
+    // Decodificamos el token para obtener el uuid
     const uuid = Buffer.from(token, "base64").toString("utf8");
 
+    // Buscamos el usuario
     const user = await getUserByUUID(uuid);
 
     if (!user) {
@@ -215,11 +222,13 @@ const newPassword = async (req, res) => {
       return res.status(400).json(response.json);
     }
 
+    // Verificamos que haya solicitado el cambio y que el token coincida
     if (!user.solicito_newPassword || user.resetPasswordToken !== token) {
       const response = new Response(false, "El enlace ya fue usado o no es válido", null);
       return res.status(400).json(response.json);
     }
 
+    // Encriptamos la nueva contraseña
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(password, salt);
 
