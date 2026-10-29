@@ -67,7 +67,6 @@ export default function TablaBirdBatch({
     return dateStr;
   };
 
-  /*
   // Inactivar o Activar lote
   const handleToggleActive = async (batch: any) => {
     const nuevoEstado = !batch.active;
@@ -145,7 +144,6 @@ export default function TablaBirdBatch({
       alert(error.message || "Error al eliminar el lote");
     }
   };
-  */
 
   const texto = filtro.trim().toLowerCase();
 
@@ -260,7 +258,6 @@ export default function TablaBirdBatch({
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
-                        {/* 
                         <button
                           type="button"
                           onClick={() => handleToggleActive(batch)}
@@ -285,7 +282,6 @@ export default function TablaBirdBatch({
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
-                        */}
                       </div>
                     </td>
                   </tr>
