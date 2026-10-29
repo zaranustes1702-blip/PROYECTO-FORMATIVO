@@ -195,7 +195,7 @@ CREATE TABLE `eggproduction` (
 
 LOCK TABLES `eggproduction` WRITE;
 /*!40000 ALTER TABLE `eggproduction` DISABLE KEYS */;
-INSERT INTO `eggproduction` VALUES (1,'2026-10-17','05:00:00',NULL,NULL,NULL,0,0,0,0,0,0,5,87,82,0,43.72,'',1,'2026-10-19 03:15:14','2026-10-19 03:15:14',1,1,3,'22:00:00','Mañana',5,5,5,10,12,11,3,48,51,6,5,5,2,12,4,2,34,36),(2,'2026-10-18','04:00:00',NULL,NULL,NULL,0,0,0,0,0,0,6,159,153,0,79.9,'',1,'2026-10-19 03:16:28','2026-10-19 03:16:28',1,2,3,'14:00:00','Mañana',30,12,20,12,32,1,2,107,109,9,12,21,0,1,3,4,46,50);
+INSERT INTO `eggproduction` VALUES (1,'2026-10-17','05:00:00',NULL,NULL,NULL,0,0,0,0,0,0,5,87,82,0,43.72,'',1,'2026-10-19 03:15:14','2026-10-26 00:53:20',1,1,3,'22:00:00','Mañana',5,5,5,10,12,11,3,48,51,6,5,5,2,12,4,2,34,36),(2,'2026-10-18','04:00:00',NULL,NULL,NULL,0,0,0,0,0,0,6,159,153,0,79.9,'',1,'2026-10-19 03:16:28','2026-10-19 03:16:28',1,2,3,'14:00:00','Mañana',30,12,20,12,32,1,2,107,109,9,12,21,0,1,3,4,46,50);
 /*!40000 ALTER TABLE `eggproduction` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -562,7 +562,7 @@ CREATE TABLE `users` (
   `resetPasswordTokenExpires` datetime DEFAULT NULL,
   PRIMARY KEY (`userId`),
   KEY `idx_user_roll` (`id_roll`)
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -571,7 +571,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (16,'Carlos Gomez','123456789','carlos.gomez@test.com','$2b$10$XpzCFqaf6wdYfGvBuLrXg.q9c/IDPx221S89zwT8AJotkIzMqWDJS','$2b$10$XpzCFqaf6wdYfGvBuLrXg.','1005829102','Administrador',0,1,NULL,'2026-10-23 02:46:01',1,0,'MTIzNDU2Nzg5',NULL),(28,'Zara Ñustes','7e896425-fc44-4e57-afda-ec1d4921b426','zaranustes1702@gmail.com','$2b$12$lxU7l1a4X94Va3K9uK9G9uEUG0k0Ann9Q9pJIKpzNRucMa4.TpLvC','$2b$12$lxU7l1a4X94Va3K9uK9G9u','123456789','Administrador',1,1,'2026-10-23 02:28:39','2026-10-23 16:00:54',1,NULL,'N2U4OTY0MjUtZmM0NC00ZTU3LWFmZGEtZWMxZDQ5MjFiNDI2',NULL),(29,'Egg Balance','29778d53-d50b-4d6c-ab79-3c12e4b4fbb6','eggbalance857@gmail.com','$2b$10$/6GOgQpuvrXPIKe2untd9uJACi.79tOv.9cniXbaPb2ldMT14Dvuu','$2b$10$/6GOgQpuvrXPIKe2untd9u','1000000001','Administrador',1,1,'2026-10-23 14:44:24','2026-10-23 15:53:38',1,NULL,'Mjk3NzhkNTMtZDUwYi00ZDZjLWFiNzktM2MxMmU0YjRmYmI2',NULL);
+INSERT INTO `users` VALUES (16,'Carlos Gomez','123456789','carlos.gomez@test.com','$2b$10$XpzCFqaf6wdYfGvBuLrXg.q9c/IDPx221S89zwT8AJotkIzMqWDJS','$2b$10$XpzCFqaf6wdYfGvBuLrXg.','1005829102','Administrador',0,1,NULL,'2026-10-23 02:46:01',1,0,'MTIzNDU2Nzg5',NULL),(28,'Andres','7e896425-fc44-4e57-afda-ec1d4921b426','zaranustes1702@gmail.com','$2b$12$euQJpWrtG.wKGSs2zcG12.EtcOUot2kC2s4C5lY.VkR.bEk8RKKNu','$2b$12$euQJpWrtG.wKGSs2zcG12.','123456789','Administrador',1,1,'2026-10-23 02:28:39','2026-10-24 04:20:20',1,NULL,'N2U4OTY0MjUtZmM0NC00ZTU3LWFmZGEtZWMxZDQ5MjFiNDI2',NULL),(29,'Egg Balance','29778d53-d50b-4d6c-ab79-3c12e4b4fbb6','eggbalance857@gmail.com','$2b$10$/6GOgQpuvrXPIKe2untd9uJACi.79tOv.9cniXbaPb2ldMT14Dvuu','$2b$10$/6GOgQpuvrXPIKe2untd9u','1000000001','Administrador',1,1,'2026-10-23 14:44:24','2026-10-23 15:53:38',1,NULL,'Mjk3NzhkNTMtZDUwYi00ZDZjLWFiNzktM2MxMmU0YjRmYmI2',NULL),(30,'Andres Ñustes','ce28264d-f6b7-48b9-b5ff-84407a5533ab','zaralidia914@gmail.com','$2b$10$wasPEPAIjsa75ZFzLf7ylOcqyVsz2kCVMCiSEeL8cbw1C.P6nAM2K','$2b$10$wasPEPAIjsa75ZFzLf7ylO','1005829103','Administrador',1,1,'2026-10-24 04:28:19','2026-10-24 04:28:19',0,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -652,4 +652,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-23 20:54:11
+-- Dump completed on 2026-10-29  9:24:37
